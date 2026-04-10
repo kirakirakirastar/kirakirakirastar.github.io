@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #app {
+  height: 100%;
+}
+
+/* 内容样式 */
+.markdown-body,
+.rich-html {
+  max-width: none;
+  line-height: 1.75;
+}
+
+.markdown-body pre,
+.rich-html pre {
+  @apply bg-gray-100 dark:bg-gray-800 rounded-lg p-4 overflow-x-auto;
+}
+
+.markdown-body code,
+.rich-html code {
+  @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm;
+}
+
+.markdown-body pre code,
+.rich-html pre code {
+  @apply bg-transparent p-0;
+}
+
+.markdown-body h1, .markdown-body h2, .markdown-body h3,
+.rich-html h1, .rich-html h2, .rich-html h3 {
+  @apply font-bold mt-6 mb-4;
+}
+
+.markdown-body p,
+.rich-html p {
+  @apply mb-4 leading-relaxed;
+}
+
+.markdown-body ul, .markdown-body ol,
+.rich-html ul, .rich-html ol {
+  @apply mb-4 pl-6;
+}
+
+.markdown-body li,
+.rich-html li {
+  @apply mb-1;
+}
+
+.markdown-body blockquote,
+.rich-html blockquote {
+  @apply border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-4;
+}
+
+.markdown-body img,
+.rich-html img {
+  @apply max-w-full h-auto rounded-lg;
+}
+
+/* 主题切换过渡 */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-500;
+}
