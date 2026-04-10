@@ -115,7 +115,7 @@ const saveHobby = async () => {
     router.push('/hobbies')
   } catch (error) {
     console.error('保存条目失败:', error)
-    alert('保存失败，请检查后端是否启动')
+    alert('保存失败，请稍后重试')
   } finally {
     saving.value = false
   }

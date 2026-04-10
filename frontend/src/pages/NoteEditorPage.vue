@@ -18,7 +18,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">标签（逗号分隔）</label>
-            <input v-model="tagsInput" type="text" placeholder="Vue, FastAPI, SQLite" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
+            <input v-model="tagsInput" type="text" placeholder="Vue, Vite, Markdown" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Markdown 内容</label>
@@ -97,7 +97,7 @@ const saveNote = async () => {
     }
   } catch (error) {
     console.error('保存笔记失败:', error)
-    alert('保存失败，请检查后端是否启动')
+    alert('保存失败，请稍后重试')
   } finally {
     saving.value = false
   }

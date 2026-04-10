@@ -1,5 +1,3 @@
-import http from './http'
+import { localDashboardApi } from './localData'
 
-export const dashboardApi = {
-  get: () => http.get('/dashboard'),
-}
+export const dashboardApi = localDashboardApi
