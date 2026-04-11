@@ -109,8 +109,9 @@
             登录
           </router-link>
         </div>
-      </header>
-    </div>
+      </div>
+    </header>
+  </div>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col items-center">
