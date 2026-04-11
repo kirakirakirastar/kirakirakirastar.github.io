@@ -1,15 +1,16 @@
 <template>
   <div class="min-h-screen flex flex-col font-sans transition-colors duration-500 bg-slate-50 dark:bg-slate-900">
-    <!-- Navbar -->
-    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-gray-200/50 dark:border-slate-700/50">
-      <div class="max-w-[1600px] 2xl:max-w-[1920px] w-full mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <!-- Logo -->
-          <router-link to="/" class="flex-shrink-0 flex items-center">
-            <span class="text-xl font-extrabold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent tracking-tight">
-              Siana's Space
-            </span>
-          </router-link>
+    <!-- Floating Navbar -->
+    <div class="sticky top-4 z-50 px-4 sm:px-6 lg:px-8 w-full max-w-[1600px] 2xl:max-w-[1920px] mx-auto pointer-events-none mb-4">
+      <header class="backdrop-blur-xl bg-white/70 dark:bg-slate-800/60 border border-white/40 dark:border-slate-700/50 shadow-lg rounded-2xl pointer-events-auto">
+        <div class="px-4 sm:px-6">
+          <div class="flex justify-between items-center h-16">
+            <!-- Logo -->
+            <router-link to="/" class="flex-shrink-0 flex items-center">
+              <span class="text-xl font-extrabold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent tracking-tight hover:opacity-80 transition-opacity">
+                Kirakirastar's Blog
+              </span>
+            </router-link>
 
           <!-- Desktop Nav -->
           <nav class="hidden md:flex space-x-1">
@@ -110,6 +111,7 @@
         </div>
       </div>
     </header>
+  </div>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col items-center">
