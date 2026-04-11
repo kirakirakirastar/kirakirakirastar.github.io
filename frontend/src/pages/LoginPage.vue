@@ -2,10 +2,10 @@
   <div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 animate-fade-in-up">
     <!-- Wrapper with glowing background effect behind the card -->
     <div class="relative max-w-md w-full">
-      <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl opacity-20 dark:opacity-40"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-primary to-secondary shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl opacity-20 dark:opacity-40"></div>
       <div class="relative space-y-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-10 rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/50">
         <div>
-          <h2 class="mt-2 text-center text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 class="mt-2 text-center text-3xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             欢迎回来，博主
           </h2>
           <p class="mt-3 text-center text-sm text-gray-500 dark:text-gray-400">
@@ -23,7 +23,7 @@
                 type="email"
                 autocomplete="email"
                 required
-                class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-gray-200 dark:border-slate-700/50 bg-gray-50 dark:bg-slate-900/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white dark:focus:bg-slate-800 transition-all sm:text-sm"
+                class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-gray-200 dark:border-slate-700/50 bg-gray-50 dark:bg-slate-900/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white dark:focus:bg-slate-800 transition-all sm:text-sm"
                 placeholder="developer@example.com"
               />
             </div>
@@ -36,7 +36,7 @@
                 type="password"
                 autocomplete="current-password"
                 required
-                class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-gray-200 dark:border-slate-700/50 bg-gray-50 dark:bg-slate-900/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white dark:focus:bg-slate-800 transition-all sm:text-sm"
+                class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-gray-200 dark:border-slate-700/50 bg-gray-50 dark:bg-slate-900/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white dark:focus:bg-slate-800 transition-all sm:text-sm"
                 placeholder="输入密码"
               />
             </div>
@@ -46,7 +46,7 @@
             <button
               type="submit"
               :disabled="loading"
-              class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-primary to-secondary hover:from-primary-light hover:to-secondary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ loading ? '验证身份中...' : '安全登录 \u2192' }}
             </button>

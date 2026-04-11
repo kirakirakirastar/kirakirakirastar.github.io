@@ -1,16 +1,16 @@
 <template>
   <div class="w-full px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
-    <div class="flex justify-between items-end mb-10">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 gap-4">
       <div>
-        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">爱好追踪</h1>
-        <p class="text-gray-500 dark:text-gray-400">动漫 / 书籍 / 游戏 条目追踪</p>
+        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">爱好追踪</h1>
+        <p class="text-gray-500 dark:text-gray-400">ACG、影视游戏记录与评分</p>
       </div>
       <router-link
         v-if="authStore.user"
         to="/hobbies/new"
-        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+        class="px-5 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
       >
-        新建条目
+        追加爱好
       </router-link>
     </div>
 
@@ -19,7 +19,7 @@
       <div class="flex flex-wrap gap-4 w-full">
         <select
           v-model="selectedType"
-          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-purple-500 outline-none transition-shadow"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow"
           @change="loadHobbies"
         >
           <option value="">所有类型</option>
@@ -29,7 +29,7 @@
         </select>
         <select
           v-model="selectedStatus"
-          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-purple-500 outline-none transition-shadow"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow"
           @change="loadHobbies"
         >
           <option value="">所有状态</option>
@@ -44,7 +44,7 @@
     <!-- Stats -->
     <div v-if="stats" class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
       <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-purple-600 dark:text-purple-400">{{ stats.total }}</div>
+        <div class="text-3xl font-extrabold text-primary dark:text-primary-light">{{ stats.total }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">总条目</div>
       </div>
       <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
@@ -100,13 +100,13 @@
           <div v-if="authStore.user" class="flex gap-2">
             <router-link
               :to="`/hobbies/${hobby.id}/edit`"
-              class="flex-1 px-3 py-2 text-center bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
+              class="flex-1 px-3 py-2 text-center bg-primary text-white rounded-lg hover:bg-primary-dark text-sm transition-colors"
             >
               编辑
             </router-link>
             <button
               @click="deleteHobby(hobby.id)"
-              class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+              class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm transition-colors"
             >
               删除
             </button>

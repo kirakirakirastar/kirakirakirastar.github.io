@@ -2,15 +2,15 @@
   <div class="w-full px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
     <div class="flex justify-between items-end mb-10">
       <div>
-        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">代码笔记</h1>
-        <p class="text-gray-500 dark:text-gray-400">Markdown 编写与渲染，代码高亮</p>
+        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">代码笔记</h1>
+        <p class="text-gray-500 dark:text-gray-400">所有技术探索的堆叠与存放区</p>
       </div>
       <router-link
         v-if="authStore.user"
         to="/notes/new"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        class="px-5 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
       >
-        新建笔记
+        写新笔记
       </router-link>
     </div>
 
@@ -21,12 +21,12 @@
           v-model="keyword"
           type="text"
           placeholder="搜索笔记..."
-          class="flex-1 min-w-[12rem] px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow"
+          class="flex-1 min-w-[12rem] px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-shadow"
           @input="debouncedSearch"
         />
         <select
           v-model="selectedTag"
-          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow"
           @change="loadNotes"
         >
           <option value="">所有标签</option>

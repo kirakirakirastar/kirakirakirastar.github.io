@@ -1,16 +1,16 @@
 <template>
   <div class="w-full px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
     <!-- Hero Banner -->
-    <div class="relative overflow-hidden rounded-[2rem] mb-12 bg-gradient-to-br from-indigo-600/90 via-purple-600/90 to-blue-800/90 dark:from-indigo-900 dark:via-purple-900 dark:to-slate-900 border border-white/20 dark:border-white/10 shadow-2xl p-10 sm:p-14 md:p-16 text-center sm:text-left">
+    <div class="relative overflow-hidden rounded-[2rem] mb-12 bg-gradient-to-br from-primary/90 via-secondary/90 to-slate-800/90 dark:from-primary/80 dark:via-secondary/80 dark:to-slate-900 border border-white/20 dark:border-white/10 shadow-2xl p-10 sm:p-14 md:p-16 text-center sm:text-left">
       <!-- Decorational Glowing Orbs -->
       <div class="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-blue-400/30 blur-3xl mix-blend-screen pointer-events-none"></div>
       <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-purple-400/30 blur-3xl mix-blend-screen pointer-events-none"></div>
       
       <div class="relative z-10">
         <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4 text-white drop-shadow-md tracking-tight">
-          欢迎来到 <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-purple-200">Kirakirastar's Blog</span>
+          欢迎来到 <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">Kirakirastar's Blog</span>
         </h1>
-        <p class="text-indigo-100 dark:text-indigo-200/80 text-lg sm:text-xl md:text-2xl max-w-3xl font-medium tracking-wide">
+        <p class="text-white/80 dark:text-white/70 text-lg sm:text-xl md:text-2xl max-w-3xl font-medium tracking-wide">
           记录代码灵感、个人沉淀与浩瀚的爱好宇宙。
         </p>
       </div>

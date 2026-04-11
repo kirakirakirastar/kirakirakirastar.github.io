@@ -7,6 +7,16 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      colors: {
+        primary: {
+          light: 'rgb(var(--color-primary-light) / <alpha-value>)',
+          DEFAULT: 'rgb(var(--color-primary) / <alpha-value>)',
+        },
+        secondary: {
+          light: 'rgb(var(--color-secondary-light) / <alpha-value>)',
+          DEFAULT: 'rgb(var(--color-secondary) / <alpha-value>)',
+        }
+      },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
       },

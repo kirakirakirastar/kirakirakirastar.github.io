@@ -2,15 +2,15 @@
   <div class="w-full px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
     <div class="flex justify-between items-end mb-10">
       <div>
-        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-green-600 to-teal-500 bg-clip-text text-transparent">个人日志</h1>
+        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">个人日志</h1>
         <p class="text-gray-500 dark:text-gray-400">生活点滴与富文本记录</p>
       </div>
       <router-link
         v-if="authStore.user"
         to="/journals/new"
-        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        class="px-5 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
       >
-        新建日志
+        写新日志
       </router-link>
     </div>
 
@@ -21,12 +21,12 @@
           v-model="keyword"
           type="text"
           placeholder="搜索日志..."
-          class="flex-1 min-w-[12rem] px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-green-500 outline-none transition-shadow"
+          class="flex-1 min-w-[12rem] px-4 py-3 border rounded-xl bg-white/50 dark:bg-slate-900/50 dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow backdrop-blur-sm"
           @input="debouncedSearch"
         />
         <select
           v-model="selectedArchive"
-          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-green-500 outline-none transition-shadow"
+          class="w-full sm:w-auto px-4 py-3 border rounded-xl bg-white/50 dark:bg-slate-900/50 dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow backdrop-blur-sm"
           @change="loadJournals"
         >
           <option value="">所有时间</option>
