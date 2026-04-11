@@ -19,7 +19,7 @@
       <div class="flex flex-wrap gap-4 w-full">
         <select
           v-model="selectedType"
-          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-theme-bg-dark dark:border-white/10 focus:ring-2 focus:ring-primary outline-none transition-shadow"
           @change="loadHobbies"
         >
           <option value="">所有类型</option>
@@ -29,7 +29,7 @@
         </select>
         <select
           v-model="selectedStatus"
-          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-theme-bg-dark dark:border-white/10 focus:ring-2 focus:ring-primary outline-none transition-shadow"
           @change="loadHobbies"
         >
           <option value="">所有状态</option>
@@ -43,7 +43,7 @@
 
     <!-- Stats -->
     <div v-if="stats" class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
         <div class="text-3xl font-extrabold text-primary dark:text-primary-light">{{ stats.total }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">总条目</div>
       </div>
@@ -70,14 +70,14 @@
         :key="hobby.id"
         class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
       >
-        <div v-if="hobby.cover_url" class="aspect-[3/4] bg-gray-200 dark:bg-slate-700">
+        <div v-if="hobby.cover_url" class="aspect-[3/4] bg-gray-200 dark:bg-theme-bg-dark/50">
           <img
             :src="getImageUrl(hobby.cover_url)"
             :alt="hobby.title"
             class="w-full h-full object-cover"
           />
         </div>
-        <div v-else class="aspect-[3/4] bg-gray-50 dark:bg-slate-700/50 flex items-center justify-center">
+        <div v-else class="aspect-[3/4] bg-gray-50 dark:bg-theme-bg-dark/30 flex items-center justify-center">
           <span class="text-gray-400 text-sm">无海报</span>
         </div>
         <div class="p-6 flex flex-col flex-1">

@@ -14,11 +14,14 @@
         transform: `scale(${settingsStore.bgScale / 100})`
       }"
     ></div>
-    <!-- Theme Tint Overlay -->
-    <div class="fixed inset-0 pointer-events-none -z-10 bg-theme-bg-tint dark:bg-primary/5"></div>
+    <!-- Theme Tint Overlay (Controlled Intensity) -->
+    <div 
+      class="fixed inset-0 pointer-events-none -z-10 transition-opacity duration-500 bg-primary"
+      :style="{ opacity: settingsStore.bgTintOpacity / 100 }"
+    ></div>
     <!-- Floating Navbar -->
     <div class="sticky top-6 z-50 px-4 sm:px-6 w-full max-w-5xl mx-auto pointer-events-none mb-8 transition-all duration-300">
-      <header class="backdrop-blur-2xl bg-white/70 dark:bg-slate-800/80 border border-white/50 dark:border-white/10 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/80 rounded-3xl pointer-events-auto">
+      <header class="backdrop-blur-2xl bg-white/70 dark:bg-theme-card-dark/80 border border-white/50 dark:border-white/10 shadow-xl shadow-slate-200/50 dark:shadow-theme-bg-dark/80 rounded-3xl pointer-events-auto">
         <div class="px-5 sm:px-8">
           <div class="flex justify-between items-center h-16 sm:h-18">
             <!-- Logo -->
@@ -69,7 +72,7 @@
           <div class="flex items-center">
             <button
               @click="themeStore.toggleTheme()"
-              class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+              class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-theme-bg-dark transition-colors"
             >
               <svg v-if="themeStore.theme === 'light'" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
@@ -80,7 +83,7 @@
             </button>
             <button
               @click="isSettingsOpen = true"
-              class="p-2 ml-1 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+              class="p-2 ml-1 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-theme-bg-dark transition-colors"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             </button>

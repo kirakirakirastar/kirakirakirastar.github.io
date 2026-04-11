@@ -21,12 +21,12 @@
           v-model="keyword"
           type="text"
           placeholder="搜索笔记..."
-          class="flex-1 min-w-[12rem] px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-shadow"
+          class="flex-1 min-w-[12rem] px-4 py-2 border rounded-xl bg-white dark:bg-theme-bg-dark dark:border-slate-700/50 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-shadow"
           @input="debouncedSearch"
         />
         <select
           v-model="selectedTag"
-          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-theme-bg-dark dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow"
           @change="loadNotes"
         >
           <option value="">所有标签</option>
@@ -34,7 +34,7 @@
         </select>
         <select
           v-model="selectedArchive"
-          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-theme-bg-dark dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow"
           @change="loadNotes"
         >
           <option value="">所有时间</option>

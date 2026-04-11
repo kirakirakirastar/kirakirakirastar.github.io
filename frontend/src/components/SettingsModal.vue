@@ -7,12 +7,12 @@
     ></div>
 
     <!-- Modal Content -->
-    <div class="relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-2xl w-full max-w-lg rounded-3xl shadow-2xl border border-white/40 dark:border-white/10 p-6 sm:p-8 m-4 transform transition-all">
+    <div class="relative bg-white/90 dark:bg-theme-card-dark/95 backdrop-blur-2xl w-full max-w-lg rounded-3xl shadow-2xl border border-white/40 dark:border-white/10 p-6 sm:p-8 m-4 transform transition-all">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           外观设置
         </h2>
-        <button @click="close" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-500">
+        <button @click="close" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-theme-bg-dark transition-colors text-slate-500">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -50,7 +50,7 @@
         </div>
 
         <!-- Background Controls -->
-        <div v-if="bgUrlInput" class="space-y-5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-700/50">
+        <div v-if="bgUrlInput" class="space-y-5 p-4 rounded-2xl bg-slate-50 dark:bg-theme-bg-dark/30 border border-slate-100 dark:border-white/5">
           <div>
             <div class="flex justify-between mb-2">
               <label class="text-sm font-medium text-slate-600 dark:text-slate-400">背景透明度: {{ bgOpacityInput }}%</label>
@@ -78,6 +78,18 @@
               class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-primary"
             />
           </div>
+        </div>
+
+        <!-- Theme Tint Control (Always Visible) -->
+        <div class="space-y-4">
+          <div class="flex justify-between mb-1">
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">主题色彩感 (Intensity): {{ bgTintOpacityInput }}%</label>
+          </div>
+          <input 
+            type="range" v-model="bgTintOpacityInput" @input="applyBgParams" min="0" max="50" 
+            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-primary"
+          />
+          <p class="text-[10px] text-slate-400">调节此滑块可让全局背景（包括自定义图片）向主题色靠拢</p>
         </div>
       </div>
       
@@ -118,12 +130,14 @@ const bgUrlInput = ref(settings.bgUrl)
 const bgOpacityInput = ref(settings.bgOpacity)
 const bgBlurInput = ref(settings.bgBlur)
 const bgScaleInput = ref(settings.bgScale)
+const bgTintOpacityInput = ref(settings.bgTintOpacity)
 
 // Watch for external store changes (optional)
 watch(() => settings.bgUrl, (val) => bgUrlInput.value = val)
 watch(() => settings.bgOpacity, (val) => bgOpacityInput.value = val)
 watch(() => settings.bgBlur, (val) => bgBlurInput.value = val)
 watch(() => settings.bgScale, (val) => bgScaleInput.value = val)
+watch(() => settings.bgTintOpacity, (val) => bgTintOpacityInput.value = val)
 
 const themeOptions = [
   { id: 'blue', name: '星空蓝', bgClass: 'bg-indigo-600', ringClass: 'ring-indigo-500' },
@@ -144,7 +158,8 @@ const applyBgParams = () => {
   settings.updateSettings({ 
     bgOpacity: Number(bgOpacityInput.value),
     bgBlur: Number(bgBlurInput.value),
-    bgScale: Number(bgScaleInput.value)
+    bgScale: Number(bgScaleInput.value),
+    bgTintOpacity: Number(bgTintOpacityInput.value)
   })
 }
 
@@ -153,6 +168,7 @@ const resetBackground = () => {
   bgOpacityInput.value = 50
   bgBlurInput.value = 0
   bgScaleInput.value = 100
+  bgTintOpacityInput.value = 10
   applyBgUrl()
   applyBgParams()
   setTheme('blue')

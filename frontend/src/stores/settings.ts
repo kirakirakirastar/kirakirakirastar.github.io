@@ -9,6 +9,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const bgOpacity = ref(50)
   const bgBlur = ref(0)
   const bgScale = ref(100)
+  const bgTintOpacity = ref(10) // New: Theme tint opacity percentage
 
   const initSettings = () => {
     const saved = localStorage.getItem('app-settings')
@@ -20,6 +21,7 @@ export const useSettingsStore = defineStore('settings', () => {
         if (parsed.bgOpacity !== undefined) bgOpacity.value = parsed.bgOpacity
         if (parsed.bgBlur !== undefined) bgBlur.value = parsed.bgBlur
         if (parsed.bgScale !== undefined) bgScale.value = parsed.bgScale
+        if (parsed.bgTintOpacity !== undefined) bgTintOpacity.value = parsed.bgTintOpacity
       } catch (e) {
         console.error('Failed to parse settings', e)
       }
@@ -40,12 +42,14 @@ export const useSettingsStore = defineStore('settings', () => {
     bgOpacity: number
     bgBlur: number
     bgScale: number
+    bgTintOpacity: number
   }>) => {
     if (updates.themeColor) themeColor.value = updates.themeColor
     if (updates.bgUrl !== undefined) bgUrl.value = updates.bgUrl
     if (updates.bgOpacity !== undefined) bgOpacity.value = updates.bgOpacity
     if (updates.bgBlur !== undefined) bgBlur.value = updates.bgBlur
     if (updates.bgScale !== undefined) bgScale.value = updates.bgScale
+    if (updates.bgTintOpacity !== undefined) bgTintOpacity.value = updates.bgTintOpacity
 
     applyThemeClass()
     
@@ -54,12 +58,13 @@ export const useSettingsStore = defineStore('settings', () => {
       bgUrl: bgUrl.value,
       bgOpacity: bgOpacity.value,
       bgBlur: bgBlur.value,
-      bgScale: bgScale.value
+      bgScale: bgScale.value,
+      bgTintOpacity: bgTintOpacity.value
     }))
   }
 
   return { 
-    themeColor, bgUrl, bgOpacity, bgBlur, bgScale,
+    themeColor, bgUrl, bgOpacity, bgBlur, bgScale, bgTintOpacity,
     initSettings, updateSettings 
   }
 })
