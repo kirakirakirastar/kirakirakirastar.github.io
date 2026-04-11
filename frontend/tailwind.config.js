@@ -15,6 +15,14 @@ export default {
         secondary: {
           light: 'var(--color-secondary-light)',
           DEFAULT: 'var(--color-secondary)',
+        },
+        'theme-bg': {
+          DEFAULT: 'var(--color-bg-page)',
+          dark: 'var(--color-bg-page-dark)',
+          tint: 'var(--color-bg-tint)',
+        },
+        'theme-card': {
+          dark: 'var(--color-bg-card-dark)',
         }
       },
       fontFamily: {

@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen flex flex-col font-sans transition-colors duration-500 bg-slate-50 dark:bg-slate-900 relative overflow-hidden">
+  <div class="min-h-screen flex flex-col font-sans transition-colors duration-700 bg-theme-bg dark:bg-theme-bg-dark relative overflow-hidden text-slate-900 dark:text-slate-100">
     
     <!-- Dynamic Custom Background -->
     <div 
       v-if="settingsStore.bgUrl"
-      class="fixed inset-0 pointer-events-none -z-10 transition-all duration-500 will-change-transform"
+      class="fixed inset-0 pointer-events-none -z-20 transition-all duration-500 will-change-transform"
       :style="{
         backgroundImage: `url(${settingsStore.bgUrl})`,
         backgroundSize: 'cover',
@@ -14,6 +14,8 @@
         transform: `scale(${settingsStore.bgScale / 100})`
       }"
     ></div>
+    <!-- Theme Tint Overlay -->
+    <div class="fixed inset-0 pointer-events-none -z-10 bg-theme-bg-tint dark:bg-primary/5"></div>
     <!-- Floating Navbar -->
     <div class="sticky top-6 z-50 px-4 sm:px-6 w-full max-w-5xl mx-auto pointer-events-none mb-8 transition-all duration-300">
       <header class="backdrop-blur-2xl bg-white/70 dark:bg-slate-800/80 border border-white/50 dark:border-white/10 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/80 rounded-3xl pointer-events-auto">

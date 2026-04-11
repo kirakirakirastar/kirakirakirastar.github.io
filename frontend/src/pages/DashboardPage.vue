@@ -1,7 +1,7 @@
 <template>
   <div class="w-full px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
     <!-- Hero Banner -->
-    <div class="relative overflow-hidden rounded-[2rem] mb-12 bg-gradient-to-br from-primary via-secondary to-slate-800 dark:from-primary/20 dark:via-secondary/20 dark:to-slate-950 border border-white/20 dark:border-white/5 shadow-2xl p-10 sm:p-14 md:p-16 text-center sm:text-left">
+    <div class="relative overflow-hidden rounded-[2rem] mb-12 bg-gradient-to-br from-primary via-secondary to-slate-800 dark:from-primary/40 dark:via-secondary/40 dark:to-slate-950 border border-white/20 dark:border-white/10 shadow-2xl p-10 sm:p-14 md:p-16 text-center sm:text-left">
       <!-- Decorational Glowing Orbs -->
       <div class="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-primary/30 blur-3xl mix-blend-screen pointer-events-none"></div>
       <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-secondary/30 blur-3xl mix-blend-screen pointer-events-none"></div>
@@ -18,23 +18,23 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-10">
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
         <div class="text-3xl font-extrabold text-primary">{{ stats.notes_count }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">代码笔记</div>
       </div>
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
         <div class="text-3xl font-extrabold text-secondary">{{ stats.journals_count }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">个人日志</div>
       </div>
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
         <div class="text-3xl font-extrabold text-primary-light">{{ stats.hobbies_count }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">爱好条目</div>
       </div>
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
         <div class="text-3xl font-extrabold text-secondary-light">{{ stats.completed_hobbies }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">已完成</div>
       </div>
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
         <div class="text-3xl font-extrabold text-primary">{{ stats.month_updates }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">本月更新</div>
       </div>
@@ -43,7 +43,7 @@
     <!-- Latest Activity -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Latest Notes -->
-      <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 flex flex-col">
+      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 flex flex-col">
         <h2 class="text-xl font-bold mb-5 flex items-center space-x-2">
           <span class="w-1.5 h-6 rounded bg-primary block"></span>
           <span>近期笔记</span>
@@ -64,7 +64,7 @@
       </div>
 
       <!-- Latest Journals -->
-      <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 flex flex-col">
+      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 flex flex-col">
         <h2 class="text-xl font-bold mb-5 flex items-center space-x-2">
           <span class="w-1.5 h-6 rounded bg-secondary block"></span>
           <span>最新日志</span>
@@ -85,7 +85,7 @@
       </div>
 
       <!-- Latest Hobbies -->
-      <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 flex flex-col">
+      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 flex flex-col">
         <h2 class="text-xl font-bold mb-5 flex items-center space-x-2">
           <span class="w-1.5 h-6 rounded bg-primary-light block"></span>
           <span>爱好追踪</span>

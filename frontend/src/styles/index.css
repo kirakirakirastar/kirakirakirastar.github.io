@@ -4,35 +4,51 @@
 
 @layer base {
   :root, .theme-blue {
-    --color-primary: #2563eb; /* blue-600 */
-    --color-primary-light: #60a5fa; /* blue-400 */
-    --color-secondary: #0ea5e9; /* sky-500 */
-    --color-secondary-light: #7dd3fc; /* sky-300 */
+    --color-primary: #2563eb;
+    --color-primary-light: #60a5fa;
+    --color-secondary: #0ea5e9;
+    --color-secondary-light: #7dd3fc;
     --color-accent-soft: rgba(37, 99, 235, 0.1);
+    --color-bg-page: #f8fafc;
+    --color-bg-page-dark: #0f172a;
+    --color-bg-card-dark: #1e293b;
+    --color-bg-tint: rgba(37, 99, 235, 0.05);
   }
 
   .theme-purple {
-    --color-primary: #9333ea; /* purple-600 */
-    --color-primary-light: #c084fc; /* purple-400 */
-    --color-secondary: #db2777; /* pink-600 */
-    --color-secondary-light: #f472b6; /* pink-400 */
+    --color-primary: #9333ea;
+    --color-primary-light: #c084fc;
+    --color-secondary: #db2777;
+    --color-secondary-light: #f472b6;
     --color-accent-soft: rgba(147, 51, 234, 0.1);
+    --color-bg-page: #fdfaff;
+    --color-bg-page-dark: #130a1f;
+    --color-bg-card-dark: #1e1133;
+    --color-bg-tint: rgba(147, 51, 234, 0.05);
   }
 
   .theme-emerald {
-    --color-primary: #059669; /* emerald-600 */
-    --color-primary-light: #34d399; /* emerald-400 */
-    --color-secondary: #0d9488; /* teal-600 */
-    --color-secondary-light: #2dd4bf; /* teal-400 */
+    --color-primary: #059669;
+    --color-primary-light: #34d399;
+    --color-secondary: #0d9488;
+    --color-secondary-light: #2dd4bf;
     --color-accent-soft: rgba(5, 150, 105, 0.1);
+    --color-bg-page: #f7fee7;
+    --color-bg-page-dark: #06140e;
+    --color-bg-card-dark: #0d261b;
+    --color-bg-tint: rgba(5, 150, 105, 0.05);
   }
 
   .theme-rose {
-    --color-primary: #e11d48; /* rose-600 */
-    --color-primary-light: #fb7185; /* rose-400 */
-    --color-secondary: #f97316; /* orange-500 */
-    --color-secondary-light: #fb923c; /* orange-400 */
+    --color-primary: #e11d48;
+    --color-primary-light: #fb7185;
+    --color-secondary: #f97316;
+    --color-secondary-light: #fb923c;
     --color-accent-soft: rgba(225, 29, 72, 0.1);
+    --color-bg-page: #fff1f2;
+    --color-bg-page-dark: #1a0a0d;
+    --color-bg-card-dark: #2b1115;
+    --color-bg-tint: rgba(225, 29, 72, 0.05);
   }
 }
 

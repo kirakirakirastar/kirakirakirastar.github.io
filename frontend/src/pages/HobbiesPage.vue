@@ -15,7 +15,7 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 mb-8 flex flex-col md:flex-row gap-4">
+    <div class="bg-theme-bg/60 dark:bg-theme-card-dark/60 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 mb-8 flex flex-col md:flex-row gap-4">
       <div class="flex flex-wrap gap-4 w-full">
         <select
           v-model="selectedType"
@@ -47,15 +47,15 @@
         <div class="text-3xl font-extrabold text-primary dark:text-primary-light">{{ stats.total }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">总条目</div>
       </div>
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
         <div class="text-3xl font-extrabold text-secondary">{{ stats.completed }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">已完成</div>
       </div>
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
         <div class="text-3xl font-extrabold text-primary-light">{{ stats.in_progress }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">在看</div>
       </div>
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
         <div class="text-3xl font-extrabold text-secondary-light">{{ stats.avg_rating?.toFixed(1) || '-' }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">平均评分</div>
       </div>
@@ -68,7 +68,7 @@
       <div
         v-for="hobby in hobbies"
         :key="hobby.id"
-        class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+        class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
       >
         <div v-if="hobby.cover_url" class="aspect-[3/4] bg-gray-200 dark:bg-slate-700">
           <img
