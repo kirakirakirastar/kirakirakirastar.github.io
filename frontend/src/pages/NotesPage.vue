@@ -1,9 +1,9 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex justify-between items-center mb-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
+    <div class="flex justify-between items-end mb-10">
       <div>
-        <h1 class="text-3xl font-bold mb-2">代码笔记</h1>
-        <p class="text-gray-600 dark:text-gray-400">Markdown 编写与渲染，代码高亮</p>
+        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">代码笔记</h1>
+        <p class="text-gray-500 dark:text-gray-400">Markdown 编写与渲染，代码高亮</p>
       </div>
       <router-link
         v-if="authStore.user"
@@ -15,18 +15,18 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
-      <div class="flex flex-wrap gap-4">
+    <div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 mb-8 flex flex-col md:flex-row gap-4">
+      <div class="flex w-full flex-wrap gap-4">
         <input
           v-model="keyword"
           type="text"
           placeholder="搜索笔记..."
-          class="flex-1 min-w-48 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          class="flex-1 min-w-[12rem] px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow"
           @input="debouncedSearch"
         />
         <select
           v-model="selectedTag"
-          class="px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
           @change="loadNotes"
         >
           <option value="">所有标签</option>
@@ -34,7 +34,7 @@
         </select>
         <select
           v-model="selectedArchive"
-          class="px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
           @change="loadNotes"
         >
           <option value="">所有时间</option>
@@ -52,24 +52,24 @@
       <div
         v-for="note in notes"
         :key="note.id"
-        class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+        class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
       >
-        <router-link :to="`/notes/${note.id}`" class="block">
-          <h2 class="text-xl font-semibold mb-2 hover:text-blue-600 dark:hover:text-blue-400">
-            {{ note.title }}
-          </h2>
-          <p class="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{{ note.summary || '暂无摘要' }}</p>
-          <div class="flex items-center justify-between">
-            <div class="flex gap-2">
-              <span
-                v-for="tag in note.tags"
-                :key="tag.id"
-                class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded"
-              >
-                {{ tag.name }}
-              </span>
-            </div>
-            <span class="text-sm text-gray-500">{{ formatDate(note.created_at) }}</span>
+        <router-link :to="`/notes/${note.id}`" class="block p-6">
+          <div class="flex justify-between items-start mb-3">
+            <h2 class="text-xl font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              {{ note.title }}
+            </h2>
+            <span class="text-sm text-gray-400 whitespace-nowrap ml-4">{{ formatDate(note.created_at) }}</span>
+          </div>
+          <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2 leading-relaxed">{{ note.summary || '暂无摘要' }}</p>
+          <div class="flex flex-wrap gap-2">
+            <span
+              v-for="tag in note.tags"
+              :key="tag.id"
+              class="px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800/30 rounded-full"
+            >
+              {{ tag.name }}
+            </span>
           </div>
         </router-link>
       </div>

@@ -1,9 +1,9 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex justify-between items-center mb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
+    <div class="flex justify-between items-end mb-10">
       <div>
-        <h1 class="text-3xl font-bold mb-2">爱好追踪</h1>
-        <p class="text-gray-600 dark:text-gray-400">动漫 / 书籍 / 游戏 条目追踪</p>
+        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">爱好追踪</h1>
+        <p class="text-gray-500 dark:text-gray-400">动漫 / 书籍 / 游戏 条目追踪</p>
       </div>
       <router-link
         v-if="authStore.user"
@@ -15,11 +15,11 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
-      <div class="flex flex-wrap gap-4">
+    <div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 mb-8 flex flex-col md:flex-row gap-4">
+      <div class="flex flex-wrap gap-4 w-full">
         <select
           v-model="selectedType"
-          class="px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-purple-500 outline-none transition-shadow"
           @change="loadHobbies"
         >
           <option value="">所有类型</option>
@@ -29,7 +29,7 @@
         </select>
         <select
           v-model="selectedStatus"
-          class="px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-purple-500 outline-none transition-shadow"
           @change="loadHobbies"
         >
           <option value="">所有状态</option>
@@ -42,22 +42,22 @@
     </div>
 
     <!-- Stats -->
-    <div v-if="stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center">
-        <div class="text-2xl font-bold text-purple-600">{{ stats.total }}</div>
-        <div class="text-sm text-gray-600 dark:text-gray-400">总条目</div>
+    <div v-if="stats" class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <div class="text-3xl font-extrabold text-purple-600 dark:text-purple-400">{{ stats.total }}</div>
+        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">总条目</div>
       </div>
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center">
-        <div class="text-2xl font-bold text-green-600">{{ stats.completed }}</div>
-        <div class="text-sm text-gray-600 dark:text-gray-400">已完成</div>
+      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <div class="text-3xl font-extrabold text-green-600 dark:text-green-400">{{ stats.completed }}</div>
+        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">已完成</div>
       </div>
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center">
-        <div class="text-2xl font-bold text-blue-600">{{ stats.in_progress }}</div>
-        <div class="text-sm text-gray-600 dark:text-gray-400">在看</div>
+      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <div class="text-3xl font-extrabold text-blue-600 dark:text-blue-400">{{ stats.in_progress }}</div>
+        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">在看</div>
       </div>
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center">
-        <div class="text-2xl font-bold text-orange-600">{{ stats.avg_rating?.toFixed(1) || '-' }}</div>
-        <div class="text-sm text-gray-600 dark:text-gray-400">平均评分</div>
+      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <div class="text-3xl font-extrabold text-orange-600 dark:text-orange-400">{{ stats.avg_rating?.toFixed(1) || '-' }}</div>
+        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">平均评分</div>
       </div>
     </div>
 
@@ -68,21 +68,21 @@
       <div
         v-for="hobby in hobbies"
         :key="hobby.id"
-        class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow"
+        class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
       >
-        <div v-if="hobby.cover_url" class="aspect-[3/4] bg-gray-200 dark:bg-gray-700">
+        <div v-if="hobby.cover_url" class="aspect-[3/4] bg-gray-200 dark:bg-slate-700">
           <img
             :src="getImageUrl(hobby.cover_url)"
             :alt="hobby.title"
             class="w-full h-full object-cover"
           />
         </div>
-        <div v-else class="aspect-[3/4] bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-          <span class="text-gray-400">无封面</span>
+        <div v-else class="aspect-[3/4] bg-gray-50 dark:bg-slate-700/50 flex items-center justify-center">
+          <span class="text-gray-400 text-sm">无海报</span>
         </div>
-        <div class="p-4">
-          <div class="flex items-start justify-between mb-2">
-            <h3 class="font-semibold text-lg line-clamp-2">{{ hobby.title }}</h3>
+        <div class="p-6 flex flex-col flex-1">
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="font-extrabold text-lg line-clamp-2 leading-tight">{{ hobby.title }}</h3>
             <span
               class="px-2 py-1 text-xs rounded-full"
               :class="statusClass(hobby.status)"

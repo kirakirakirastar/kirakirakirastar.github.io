@@ -1,9 +1,9 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex justify-between items-center mb-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
+    <div class="flex justify-between items-end mb-10">
       <div>
-        <h1 class="text-3xl font-bold mb-2">个人日志</h1>
-        <p class="text-gray-600 dark:text-gray-400">富文本编辑，图片上传，支持搜索</p>
+        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-green-600 to-teal-500 bg-clip-text text-transparent">个人日志</h1>
+        <p class="text-gray-500 dark:text-gray-400">生活点滴与富文本记录</p>
       </div>
       <router-link
         v-if="authStore.user"
@@ -15,18 +15,18 @@
     </div>
 
     <!-- Search -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
-      <div class="flex flex-wrap gap-4">
+    <div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 mb-8 flex flex-col md:flex-row gap-4">
+      <div class="flex w-full flex-wrap gap-4">
         <input
           v-model="keyword"
           type="text"
           placeholder="搜索日志..."
-          class="flex-1 min-w-48 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          class="flex-1 min-w-[12rem] px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-green-500 outline-none transition-shadow"
           @input="debouncedSearch"
         />
         <select
           v-model="selectedArchive"
-          class="px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          class="px-4 py-2 border rounded-xl bg-white dark:bg-slate-900 dark:border-slate-700/50 focus:ring-2 focus:ring-green-500 outline-none transition-shadow"
           @change="loadJournals"
         >
           <option value="">所有时间</option>
@@ -44,16 +44,18 @@
       <div
         v-for="journal in journals"
         :key="journal.id"
-        class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+        class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
       >
-        <router-link :to="`/journals/${journal.id}`" class="block">
-          <h2 class="text-xl font-semibold mb-2 hover:text-green-600 dark:hover:text-green-400">
-            {{ journal.title }}
-          </h2>
-          <p class="text-gray-600 dark:text-gray-400 mb-3 line-clamp-3">{{ journal.excerpt || '暂无摘要' }}</p>
-          <div class="flex items-center justify-between">
-            <span class="text-sm text-gray-500">{{ formatDate(journal.created_at) }}</span>
-            <span class="text-sm text-green-600 dark:text-green-400">查看详情 →</span>
+        <router-link :to="`/journals/${journal.id}`" class="block p-6">
+          <div class="flex justify-between items-start mb-3">
+            <h2 class="text-xl font-bold group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+              {{ journal.title }}
+            </h2>
+            <span class="text-sm text-gray-400 whitespace-nowrap ml-4">{{ formatDate(journal.created_at) }}</span>
+          </div>
+          <p class="text-gray-600 dark:text-gray-300 mb-3 line-clamp-3 leading-relaxed">{{ journal.excerpt || '暂无摘要' }}</p>
+          <div class="flex items-center justify-end mt-4">
+            <span class="text-sm text-green-600 dark:text-green-400 font-medium">查看详情 &rarr;</span>
           </div>
         </router-link>
       </div>

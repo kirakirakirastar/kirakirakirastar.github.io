@@ -1,12 +1,14 @@
 <template>
-  <div class="min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
+  <div class="min-h-screen flex flex-col font-sans transition-colors duration-500 bg-slate-50 dark:bg-slate-900">
+    <!-- Navbar -->
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-gray-200/50 dark:border-slate-700/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <!-- Logo -->
-          <router-link to="/" class="flex items-center space-x-2">
-            <span class="text-xl font-bold text-blue-600 dark:text-blue-400">MyBlog</span>
+          <router-link to="/" class="flex-shrink-0 flex items-center">
+            <span class="text-xl font-extrabold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent tracking-tight">
+              Siana's Space
+            </span>
           </router-link>
 
           <!-- Desktop Nav -->
@@ -15,10 +17,12 @@
               v-for="item in navItems"
               :key="item.path"
               :to="item.path"
-              class="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-              :class="$route.path === item.path || $route.path.startsWith(item.path + '/')
-                ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+              class="inline-flex items-center px-3 py-2 border-b-2 text-sm font-medium transition-all duration-300"
+              :class="[
+                $route.path === item.path || (item.path !== '/' && $route.path.startsWith(item.path))
+                  ? 'border-indigo-500 text-gray-900 dark:text-white'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              ]"
             >
               {{ item.name }}
             </router-link>
@@ -47,7 +51,7 @@
           <!-- Theme Toggle -->
           <button
             @click="themeStore.toggleTheme()"
-            class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
           >
             <svg v-if="themeStore.theme === 'light'" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>

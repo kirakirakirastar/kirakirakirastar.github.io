@@ -2,8 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  font-family: 'Inter', sans-serif;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 html, body, #app {
   height: 100%;
+}
+
+::selection {
+  @apply bg-indigo-500/30 text-indigo-900 dark:text-indigo-100;
 }
 
 /* 内容样式 */
@@ -60,23 +71,23 @@ html, body, #app {
 
 /* 主题切换过渡 */
 body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-/* 滚动条样式 */
+/* 滚动条样式 (Modern Web App style) */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-800;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-gray-600 rounded;
+  @apply bg-slate-200 dark:bg-slate-700 rounded-full bg-clip-padding border-2 border-transparent;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400 dark:bg-gray-500;
+  @apply bg-slate-300 dark:bg-slate-600;
 }
