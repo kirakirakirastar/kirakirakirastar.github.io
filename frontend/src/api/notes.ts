@@ -1,3 +1,2 @@
-import { localNotesApi } from './localData'
-
-export const notesApi = localNotesApi
+import { supabaseNotesApi } from './supabaseData'
+export const notesApi = supabaseNotesApi

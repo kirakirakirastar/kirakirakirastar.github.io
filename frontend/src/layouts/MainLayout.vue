@@ -24,6 +24,26 @@
             </router-link>
           </nav>
 
+          <!-- Auth Button -->
+          <div class="hidden md:flex items-center space-x-4 ml-4">
+            <template v-if="authStore.user">
+              <span class="text-sm text-gray-500">{{ authStore.user.email }}</span>
+              <button
+                @click="onSignOut"
+                class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-red-500 transition-colors"
+              >
+                退出
+              </button>
+            </template>
+            <router-link
+              v-else
+              to="/login"
+              class="text-sm font-medium px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors"
+            >
+              登录
+            </router-link>
+          </div>
+
           <!-- Theme Toggle -->
           <button
             @click="themeStore.toggleTheme()"
@@ -65,6 +85,24 @@
           >
             {{ item.name }}
           </router-link>
+          
+          <template v-if="authStore.user">
+            <div class="px-3 py-2 text-sm text-gray-500 border-t dark:border-gray-700 mt-2 pt-2">{{ authStore.user.email }}</div>
+            <button
+              @click="onSignOut"
+              class="w-full text-left block px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              退出
+            </button>
+          </template>
+          <router-link
+            v-else
+            to="/login"
+            @click="mobileMenuOpen = false"
+            class="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border-t dark:border-gray-700 mt-2 pt-2"
+          >
+            登录
+          </router-link>
         </div>
       </div>
     </header>
@@ -78,10 +116,25 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
+import { useAuthStore } from '@/stores/auth'
 
 const themeStore = useThemeStore()
+const authStore = useAuthStore()
+const router = useRouter()
+
 themeStore.initTheme()
+// Initial loading of auth
+if (!authStore.initialized) {
+  authStore.initAuth()
+}
+
+const onSignOut = async () => {
+  await authStore.signOut()
+  mobileMenuOpen.value = false
+  router.push('/login')
+}
 
 const mobileMenuOpen = ref(false)
 

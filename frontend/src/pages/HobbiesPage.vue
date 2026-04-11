@@ -6,6 +6,7 @@
         <p class="text-gray-600 dark:text-gray-400">动漫 / 书籍 / 游戏 条目追踪</p>
       </div>
       <router-link
+        v-if="authStore.user"
         to="/hobbies/new"
         class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
       >
@@ -96,7 +97,7 @@
           <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4">
             {{ hobby.review || '暂无短评' }}
           </p>
-          <div class="flex gap-2">
+          <div v-if="authStore.user" class="flex gap-2">
             <router-link
               :to="`/hobbies/${hobby.id}/edit`"
               class="flex-1 px-3 py-2 text-center bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
@@ -120,7 +121,9 @@
 import { ref, onMounted } from 'vue'
 import { hobbiesApi } from '@/api/hobbies'
 import { resolveAssetUrl } from '@/api/http'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const loading = ref(true)
 const hobbies = ref<any[]>([])
 const stats = ref<any>(null)

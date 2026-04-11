@@ -19,7 +19,7 @@
             </div>
             <p class="text-gray-500">{{ formatDate(note.created_at) }}</p>
           </div>
-          <div class="flex gap-2">
+          <div v-if="authStore.user" class="flex gap-2">
             <router-link
               :to="`/notes/${note.id}/edit`"
               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -51,7 +51,9 @@ import dayjs from 'dayjs'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import { notesApi } from '@/api/notes'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)

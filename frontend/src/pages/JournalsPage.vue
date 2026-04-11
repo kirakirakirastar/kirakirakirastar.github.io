@@ -6,6 +6,7 @@
         <p class="text-gray-600 dark:text-gray-400">富文本编辑，图片上传，支持搜索</p>
       </div>
       <router-link
+        v-if="authStore.user"
         to="/journals/new"
         class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
       >
@@ -64,7 +65,9 @@
 import { ref, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import { journalsApi } from '@/api/journals'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const loading = ref(true)
 const journals = ref<any[]>([])
 const archives = ref<any[]>([])

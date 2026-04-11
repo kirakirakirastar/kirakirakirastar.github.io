@@ -1,3 +1,2 @@
-import { localDashboardApi } from './localData'
-
-export const dashboardApi = localDashboardApi
+import { supabaseDashboardApi } from './supabaseData'
+export const dashboardApi = supabaseDashboardApi

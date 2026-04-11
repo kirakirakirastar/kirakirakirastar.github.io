@@ -1,3 +1,2 @@
-import { localHobbiesApi } from './localData'
-
-export const hobbiesApi = localHobbiesApi
+import { supabaseHobbiesApi } from './supabaseData'
+export const hobbiesApi = supabaseHobbiesApi

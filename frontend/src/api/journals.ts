@@ -1,3 +1,2 @@
-import { localJournalsApi } from './localData'
-
-export const journalsApi = localJournalsApi
+import { supabaseJournalsApi } from './supabaseData'
+export const journalsApi = supabaseJournalsApi

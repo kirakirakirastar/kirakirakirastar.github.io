@@ -10,7 +10,7 @@
             <h1 class="text-3xl font-bold mb-2">{{ journal.title }}</h1>
             <p class="text-gray-500">{{ formatDate(journal.created_at) }}</p>
           </div>
-          <div class="flex gap-2">
+          <div v-if="authStore.user" class="flex gap-2">
             <router-link
               :to="`/journals/${journal.id}/edit`"
               class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
@@ -40,7 +40,9 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import { journalsApi } from '@/api/journals'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)

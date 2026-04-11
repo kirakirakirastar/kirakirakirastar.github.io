@@ -6,6 +6,7 @@
         <p class="text-gray-600 dark:text-gray-400">Markdown 编写与渲染，代码高亮</p>
       </div>
       <router-link
+        v-if="authStore.user"
         to="/notes/new"
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
       >
@@ -46,7 +47,7 @@
 
     <!-- Notes List -->
     <div v-if="loading" class="text-center py-12 text-gray-500">加载中...</div>
-    <div v-else-if="notes.length === 0" class="text-center py-12 text-gray-500">暂无笔记，点击上方新建按钮创建</div>
+    <div v-else-if="notes.length === 0" class="text-center py-12 text-gray-500">暂无笔记</div>
     <div v-else class="space-y-4">
       <div
         v-for="note in notes"
@@ -80,7 +81,9 @@
 import { ref, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import { notesApi } from '@/api/notes'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const loading = ref(true)
 const notes = ref<any[]>([])
 const tags = ref<any[]>([])

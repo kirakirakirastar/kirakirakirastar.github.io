@@ -1,4 +1,4 @@
-import { uploadImageLocally } from './localData'
+import { uploadImageLocally } from './supabaseData'
 
 export const uploadApi = {
   image: uploadImageLocally,
