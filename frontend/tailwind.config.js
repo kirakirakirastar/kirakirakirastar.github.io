@@ -9,12 +9,12 @@ export default {
     extend: {
       colors: {
         primary: {
-          light: 'rgb(var(--color-primary-light) / <alpha-value>)',
-          DEFAULT: 'rgb(var(--color-primary) / <alpha-value>)',
+          light: 'rgba(var(--color-primary-light), <alpha-value>)',
+          DEFAULT: 'rgba(var(--color-primary), <alpha-value>)',
         },
         secondary: {
-          light: 'rgb(var(--color-secondary-light) / <alpha-value>)',
-          DEFAULT: 'rgb(var(--color-secondary) / <alpha-value>)',
+          light: 'rgba(var(--color-secondary-light), <alpha-value>)',
+          DEFAULT: 'rgba(var(--color-secondary), <alpha-value>)',
         }
       },
       fontFamily: {
