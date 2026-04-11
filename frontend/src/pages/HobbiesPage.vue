@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
+  <div class="w-full px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
     <div class="flex justify-between items-end mb-10">
       <div>
         <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">爱好追踪</h1>
@@ -64,7 +64,7 @@
     <!-- Hobbies List -->
     <div v-if="loading" class="text-center py-12 text-gray-500">加载中...</div>
     <div v-else-if="hobbies.length === 0" class="text-center py-12 text-gray-500">暂无条目，点击上方新建按钮创建</div>
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
       <div
         v-for="hobby in hobbies"
         :key="hobby.id"

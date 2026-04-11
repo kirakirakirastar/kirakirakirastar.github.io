@@ -2,7 +2,7 @@
   <div class="min-h-screen flex flex-col font-sans transition-colors duration-500 bg-slate-50 dark:bg-slate-900">
     <!-- Navbar -->
     <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-gray-200/50 dark:border-slate-700/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-[1600px] 2xl:max-w-[1920px] w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <!-- Logo -->
           <router-link to="/" class="flex-shrink-0 flex items-center">
@@ -112,8 +112,10 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1">
-      <router-view />
+    <main class="flex-1 flex flex-col items-center">
+      <div class="w-full max-w-[1600px] 2xl:max-w-[1920px]">
+        <router-view />
+      </div>
     </main>
   </div>
 </template>

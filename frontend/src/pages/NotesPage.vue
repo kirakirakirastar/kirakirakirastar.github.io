@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
+  <div class="w-full px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
     <div class="flex justify-between items-end mb-10">
       <div>
         <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">代码笔记</h1>
@@ -46,9 +46,9 @@
     </div>
 
     <!-- Notes List -->
-    <div v-if="loading" class="text-center py-12 text-gray-500">加载中...</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400 animate-pulse">加载中...</div>
     <div v-else-if="notes.length === 0" class="text-center py-12 text-gray-500">暂无笔记</div>
-    <div v-else class="space-y-4">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
       <div
         v-for="note in notes"
         :key="note.id"
