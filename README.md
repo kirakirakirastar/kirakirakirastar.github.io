@@ -2,8 +2,7 @@
 
 一个可直接部署到 GitHub Pages 的纯前端个人博客系统，包含代码笔记、个人日志、爱好追踪三大模块。
 
-当前 GitHub Pages 版本不依赖后端服务：
-- 数据保存在浏览器 `localStorage`
+数据保存在浏览器 `localStorage`，无需后端服务：
 - 上传图片会转成 Data URL 保存在浏览器本地
 - 路由使用 Hash 模式，适合 GitHub Pages
 
@@ -50,11 +49,11 @@ npm run dev
 
 ## GitHub Pages 部署
 
-仓库已经配置为可直接发布到 GitHub Pages。
+仓库已配置为直接发布到 GitHub Pages，push 后自动构建。
 
 ### 启用步骤
 
-1. 将仓库推送到 GitHub。
+1. 将仓库推送到 GitHub（`kirakirastar/kirakirastar.github.io`）。
 2. 打开仓库 **Settings > Pages**。
 3. 在 **Source** 中选择 **GitHub Actions**。
 4. 推送到 `main` 分支后会自动构建并发布站点。
@@ -62,13 +61,15 @@ npm run dev
 ### 部署地址
 
 ```text
-https://<你的 GitHub 用户名>.github.io/<仓库名>/
+https://kirakirastar.github.io/
 ```
 
-由于使用 Hash 路由，页面地址会类似：
+由于使用 Hash 路由，页面地址类似：
 
 ```text
-https://<你的 GitHub 用户名>.github.io/<仓库名>/#/notes
+https://kirakirastar.github.io/#/notes
+https://kirakirastar.github.io/#/journals
+https://kirakirastar.github.io/#/hobbies
 ```
 
 ### 发布后建议验证
@@ -86,8 +87,3 @@ https://<你的 GitHub 用户名>.github.io/<仓库名>/#/notes
 - 清除浏览器站点数据后，内容会被删除。
 - 不同浏览器、不同设备之间不会自动同步。
 - 图片以 Data URL 形式存储；如果上传大量大图，浏览器存储空间会更快被占满。
-
-## 说明
-
-- 当前发布目标是 **GitHub Pages 纯静态部署**。
-- 数据仅保存在浏览器本地，不会自动同步到其他设备。

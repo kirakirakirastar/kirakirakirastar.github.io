@@ -1,0 +1,9 @@
+node_modules/
+.env
+.DS_Store
+dist/
+.claude/
+frontend/node_modules/
+frontend/dist/
+frontend/release/
+frontend/*.log
