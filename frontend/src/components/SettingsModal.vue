@@ -39,13 +39,23 @@
         <!-- Custom Background URL -->
         <div>
           <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">自定义背景图片 URL</h3>
-          <input 
-            v-model="bgUrlInput" 
-            type="text" 
-            placeholder="https://example.com/wallpaper.jpg"
-            class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-slate-200"
-            @change="applyBgUrl"
-          />
+          <div class="flex gap-2">
+            <input 
+              :value="bgUrlInput" 
+              type="text" 
+              placeholder="https://example.com/wallpaper.jpg"
+              class="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-slate-200"
+              @input="e => { bgUrlInput = (e.target as HTMLInputElement).value; applyBgUrl() }"
+            />
+            <button 
+              v-if="bgUrlInput" 
+              @click="bgUrlInput = ''; applyBgUrl()" 
+              class="px-3 py-2 bg-slate-200 dark:bg-slate-800 text-slate-500 rounded-xl hover:text-red-500 transition-colors"
+              title="清除图片"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+          </div>
           <p class="text-xs text-slate-500 mt-2">留空以使用默认纯色背景</p>
         </div>
 
@@ -113,8 +123,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import { useDebounceFn } from '@vueuse/core'
 
 const props = defineProps<{
   isOpen: boolean
@@ -132,12 +143,16 @@ const bgBlurInput = ref(settings.bgBlur)
 const bgScaleInput = ref(settings.bgScale)
 const bgTintOpacityInput = ref(settings.bgTintOpacity)
 
-// Watch for external store changes (optional)
-watch(() => settings.bgUrl, (val) => bgUrlInput.value = val)
-watch(() => settings.bgOpacity, (val) => bgOpacityInput.value = val)
-watch(() => settings.bgBlur, (val) => bgBlurInput.value = val)
-watch(() => settings.bgScale, (val) => bgScaleInput.value = val)
-watch(() => settings.bgTintOpacity, (val) => bgTintOpacityInput.value = val)
+// Synchronize local refs when modal opens to avoid reaction loops during input
+watch(() => props.isOpen, (open) => {
+  if (open) {
+    bgUrlInput.value = settings.bgUrl
+    bgOpacityInput.value = settings.bgOpacity
+    bgBlurInput.value = settings.bgBlur
+    bgScaleInput.value = settings.bgScale
+    bgTintOpacityInput.value = settings.bgTintOpacity
+  }
+})
 
 const themeOptions = [
   { id: 'blue', name: '星空蓝', bgClass: 'bg-indigo-600', ringClass: 'ring-indigo-500' },
@@ -150,8 +165,14 @@ const setTheme = (colorId: 'blue' | 'purple' | 'emerald' | 'rose') => {
   settings.updateSettings({ themeColor: colorId })
 }
 
+// Debounce URL updates to prevent network spam and string splicing bugs
+const debouncedBgUpdate = useDebounceFn((url: string) => {
+  settings.updateSettings({ bgUrl: url })
+}, 300)
+
 const applyBgUrl = () => {
-  settings.updateSettings({ bgUrl: bgUrlInput.value })
+  const url = bgUrlInput.value?.trim() || ''
+  debouncedBgUpdate(url)
 }
 
 const applyBgParams = () => {

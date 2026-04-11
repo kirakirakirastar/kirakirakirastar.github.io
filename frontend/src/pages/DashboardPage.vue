@@ -17,33 +17,67 @@
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-10">
-      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-primary">{{ stats.notes_count }}</div>
-        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">代码笔记</div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 mb-12">
+      <div class="group relative bg-white/40 dark:bg-theme-card-dark/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/40 dark:border-white/10 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1.5 transition-all duration-500 overflow-hidden">
+        <div class="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/20 transition-colors"></div>
+        <div class="flex flex-col relative z-10">
+          <div class="p-2 mb-3 w-fit rounded-xl bg-primary/10 text-primary">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+          </div>
+          <div class="text-3xl font-black text-slate-800 dark:text-white mb-1">{{ stats.notes_count }}</div>
+          <div class="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">代码笔记</div>
+        </div>
       </div>
-      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-secondary">{{ stats.journals_count }}</div>
-        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">个人日志</div>
+
+      <div class="group relative bg-white/40 dark:bg-theme-card-dark/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/40 dark:border-white/10 hover:shadow-2xl hover:shadow-secondary/20 hover:-translate-y-1.5 transition-all duration-500 overflow-hidden">
+        <div class="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-secondary/5 rounded-full blur-2xl group-hover:bg-secondary/20 transition-colors"></div>
+        <div class="flex flex-col relative z-10">
+          <div class="p-2 mb-3 w-fit rounded-xl bg-secondary/10 text-secondary">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+          </div>
+          <div class="text-3xl font-black text-slate-800 dark:text-white mb-1">{{ stats.journals_count }}</div>
+          <div class="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">个人日志</div>
+        </div>
       </div>
-      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-primary-light">{{ stats.hobbies_count }}</div>
-        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">爱好条目</div>
+
+      <div class="group relative bg-white/40 dark:bg-theme-card-dark/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/40 dark:border-white/10 hover:shadow-2xl hover:shadow-primary-light/20 hover:-translate-y-1.5 transition-all duration-500 overflow-hidden">
+        <div class="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-primary-light/5 rounded-full blur-2xl group-hover:bg-primary-light/20 transition-colors"></div>
+        <div class="flex flex-col relative z-10">
+          <div class="p-2 mb-3 w-fit rounded-xl bg-primary-light/10 text-primary-light">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+          </div>
+          <div class="text-3xl font-black text-slate-800 dark:text-white mb-1">{{ stats.hobbies_count }}</div>
+          <div class="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">爱好条目</div>
+        </div>
       </div>
-      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-secondary-light">{{ stats.completed_hobbies }}</div>
-        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">已完成</div>
+
+      <div class="group relative bg-white/40 dark:bg-theme-card-dark/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/40 dark:border-white/10 hover:shadow-2xl hover:shadow-secondary-light/20 hover:-translate-y-1.5 transition-all duration-500 overflow-hidden">
+        <div class="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-secondary-light/5 rounded-full blur-2xl group-hover:bg-secondary-light/20 transition-colors"></div>
+        <div class="flex flex-col relative z-10">
+          <div class="p-2 mb-3 w-fit rounded-xl bg-secondary-light/10 text-secondary-light">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </div>
+          <div class="text-3xl font-black text-slate-800 dark:text-white mb-1">{{ stats.completed_hobbies }}</div>
+          <div class="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">已完成</div>
+        </div>
       </div>
-      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-primary">{{ stats.month_updates }}</div>
-        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">本月更新</div>
+
+      <div class="group relative bg-white/40 dark:bg-theme-card-dark/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/40 dark:border-white/10 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1.5 transition-all duration-500 overflow-hidden col-span-2 lg:col-span-1">
+        <div class="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/20 transition-colors"></div>
+        <div class="flex flex-col relative z-10">
+          <div class="p-2 mb-3 w-fit rounded-xl bg-primary/10 text-primary">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          </div>
+          <div class="text-3xl font-black text-slate-800 dark:text-white mb-1">{{ stats.month_updates }}</div>
+          <div class="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">本月更新</div>
+        </div>
       </div>
     </div>
 
     <!-- Latest Activity -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Latest Notes -->
-      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 flex flex-col">
+      <div class="bg-white/40 dark:bg-theme-card-dark/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-white/40 dark:border-white/5 p-6 flex flex-col">
         <h2 class="text-xl font-bold mb-5 flex items-center space-x-2">
           <span class="w-1.5 h-6 rounded bg-primary block"></span>
           <span>近期笔记</span>
@@ -64,7 +98,7 @@
       </div>
 
       <!-- Latest Journals -->
-      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 flex flex-col">
+      <div class="bg-white/40 dark:bg-theme-card-dark/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-white/40 dark:border-white/5 p-6 flex flex-col">
         <h2 class="text-xl font-bold mb-5 flex items-center space-x-2">
           <span class="w-1.5 h-6 rounded bg-secondary block"></span>
           <span>最新日志</span>
@@ -85,7 +119,7 @@
       </div>
 
       <!-- Latest Hobbies -->
-      <div class="bg-white/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 flex flex-col">
+      <div class="bg-white/40 dark:bg-theme-card-dark/40 backdrop-blur-2xl rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-white/40 dark:border-white/5 p-6 flex flex-col">
         <h2 class="text-xl font-bold mb-5 flex items-center space-x-2">
           <span class="w-1.5 h-6 rounded bg-primary-light block"></span>
           <span>爱好追踪</span>

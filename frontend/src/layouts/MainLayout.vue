@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen flex flex-col font-sans transition-colors duration-700 bg-theme-bg dark:bg-theme-bg-dark relative overflow-hidden text-slate-900 dark:text-slate-100">
+  <div class="min-h-screen flex flex-col font-sans transition-colors duration-700 relative overflow-hidden text-slate-900 dark:text-slate-100" :class="settingsStore.bgUrl ? 'bg-transparent' : 'bg-theme-bg dark:bg-theme-bg-dark'">
     
     <!-- Dynamic Custom Background -->
     <div 
       v-if="settingsStore.bgUrl"
       class="fixed inset-0 pointer-events-none -z-20 transition-all duration-500 will-change-transform"
       :style="{
-        backgroundImage: `url(${settingsStore.bgUrl})`,
+        backgroundImage: `url('${settingsStore.bgUrl}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         opacity: settingsStore.bgOpacity / 100,
@@ -20,28 +20,31 @@
       :style="{ opacity: settingsStore.bgTintOpacity / 100 }"
     ></div>
     <!-- Floating Navbar -->
-    <div class="sticky top-6 z-50 px-4 sm:px-6 w-full max-w-5xl mx-auto pointer-events-none mb-8 transition-all duration-300">
-      <header class="backdrop-blur-2xl bg-white/70 dark:bg-theme-card-dark/80 border border-white/50 dark:border-white/10 shadow-xl shadow-slate-200/50 dark:shadow-theme-bg-dark/80 rounded-3xl pointer-events-auto">
-        <div class="px-5 sm:px-8">
+    <div class="sticky top-6 z-50 px-4 sm:px-6 w-full max-w-5xl mx-auto pointer-events-none mb-10 transition-all duration-500">
+      <header class="relative backdrop-blur-3xl bg-white/40 dark:bg-theme-card-dark/60 border border-white/50 dark:border-white/10 shadow-2xl shadow-primary/5 dark:shadow-none rounded-[2.5rem] pointer-events-auto overflow-hidden">
+        <!-- Visual Accent: Bottom Gradient Line -->
+        <div class="absolute bottom-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-primary/40 to-transparent"></div>
+        
+        <div class="px-6 sm:px-10">
           <div class="flex justify-between items-center h-16 sm:h-18">
             <!-- Logo -->
-            <router-link to="/" class="flex-shrink-0 flex items-center">
-              <span class="text-xl font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent tracking-tight hover:opacity-80 transition-opacity">
-                Kirakirastar's Blog
+            <router-link to="/" class="flex-shrink-0 flex items-center group">
+              <span class="text-2xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent tracking-tighter group-hover:scale-105 transition-transform duration-300">
+                Kirakirastar
               </span>
             </router-link>
 
           <!-- Desktop Nav -->
-          <nav class="hidden md:flex space-x-1">
+          <nav class="hidden md:flex items-center bg-gray-100/50 dark:bg-white/5 rounded-full px-1.5 py-1 backdrop-blur-md border border-black/5 dark:border-white/5">
             <router-link
               v-for="item in navItems"
               :key="item.path"
               :to="item.path"
-              class="inline-flex items-center px-3 py-2 border-b-2 text-sm font-medium transition-all duration-300"
+              class="relative px-4 py-2 text-sm font-bold transition-all duration-500 rounded-full"
               :class="[
                 $route.path === item.path || (item.path !== '/' && $route.path.startsWith(item.path))
-                  ? 'border-primary text-gray-900 dark:text-white'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                  ? 'bg-white dark:bg-white/10 text-primary shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               ]"
             >
               {{ item.name }}
