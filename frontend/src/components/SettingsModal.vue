@@ -90,7 +90,7 @@
         </button>
         <button 
           @click="close" 
-          class="px-6 py-2 bg-primary hover:bg-primary-light text-white rounded-xl font-medium transition-colors shadow-lg shadow-primary/30"
+          class="px-6 py-2 bg-primary hover:bg-primary-light text-white rounded-xl font-medium transition-colors shadow-lg shadow-primary"
         >
           完成
         </button>

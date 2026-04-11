@@ -1,7 +1,7 @@
 <template>
   <div class="w-full px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
     <!-- Hero Banner -->
-    <div class="relative overflow-hidden rounded-[2rem] mb-12 bg-gradient-to-br from-primary/90 via-secondary/90 to-slate-800/90 dark:from-primary/80 dark:via-secondary/80 dark:to-slate-900 border border-white/20 dark:border-white/10 shadow-2xl p-10 sm:p-14 md:p-16 text-center sm:text-left">
+    <div class="relative overflow-hidden rounded-[2rem] mb-12 bg-gradient-to-br from-primary via-secondary to-slate-800 dark:from-primary dark:via-secondary dark:to-slate-900 border border-white/20 dark:border-white/10 shadow-2xl p-10 sm:p-14 md:p-16 text-center sm:text-left opacity-95">
       <!-- Decorational Glowing Orbs -->
       <div class="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-blue-400/30 blur-3xl mix-blend-screen pointer-events-none"></div>
       <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-purple-400/30 blur-3xl mix-blend-screen pointer-events-none"></div>
