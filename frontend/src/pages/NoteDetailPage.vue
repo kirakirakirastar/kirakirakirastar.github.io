@@ -12,7 +12,7 @@
               <span
                 v-for="tag in note.tags"
                 :key="tag.id"
-                class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded"
+                class="px-2 py-1 text-xs bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light rounded"
               >
                 {{ tag.name }}
               </span>
@@ -22,7 +22,7 @@
           <div v-if="authStore.user" class="flex gap-2">
             <router-link
               :to="`/notes/${note.id}/edit`"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition-colors"
             >
               编辑
             </router-link>

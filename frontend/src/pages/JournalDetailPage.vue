@@ -13,7 +13,7 @@
           <div v-if="authStore.user" class="flex gap-2">
             <router-link
               :to="`/journals/${journal.id}/edit`"
-              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary-light transition-colors"
             >
               编辑
             </router-link>

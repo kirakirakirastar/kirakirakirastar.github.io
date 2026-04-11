@@ -48,14 +48,14 @@
       >
         <router-link :to="`/journals/${journal.id}`" class="block p-6">
           <div class="flex justify-between items-start mb-3">
-            <h2 class="text-xl font-bold group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+            <h2 class="text-xl font-bold group-hover:text-secondary transition-colors">
               {{ journal.title }}
             </h2>
             <span class="text-sm text-gray-400 whitespace-nowrap ml-4">{{ formatDate(journal.created_at) }}</span>
           </div>
           <p class="text-gray-600 dark:text-gray-300 mb-3 line-clamp-3 leading-relaxed">{{ journal.excerpt || '暂无摘要' }}</p>
           <div class="flex items-center justify-end mt-4">
-            <span class="text-sm text-green-600 dark:text-green-400 font-medium">查看详情 &rarr;</span>
+            <span class="text-sm text-secondary dark:text-secondary-light font-medium group-hover:translate-x-1 transition-transform">查看详情 &rarr;</span>
           </div>
         </router-link>
       </div>

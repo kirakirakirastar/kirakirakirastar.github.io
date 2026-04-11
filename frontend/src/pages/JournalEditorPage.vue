@@ -25,10 +25,10 @@
               <button type="button" @click="editor?.chain().focus().toggleItalic().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('italic') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm italic">I</button>
               <button type="button" @click="editor?.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('heading', { level: 1 }) }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">H1</button>
               <button type="button" @click="editor?.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('heading', { level: 2 }) }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">H2</button>
-              <button type="button" @click="editor?.chain().focus().toggleBulletList().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('bulletList') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">• 列表</button>
-              <button type="button" @click="editor?.chain().focus().toggleOrderedList().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('orderedList') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">1. 列表</button>
-              <button type="button" @click="editor?.chain().focus().toggleBlockquote().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('blockquote') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">引用</button>
-              <button type="button" @click="editor?.chain().focus().toggleCodeBlock().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('codeBlock') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">代码</button>
+              <button type="button" @click="editor?.chain().focus().toggleBulletList().run()" :class="{ 'bg-secondary/20 text-secondary': editor?.isActive('bulletList') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">• 列表</button>
+              <button type="button" @click="editor?.chain().focus().toggleOrderedList().run()" :class="{ 'bg-secondary/20 text-secondary': editor?.isActive('orderedList') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">1. 列表</button>
+              <button type="button" @click="editor?.chain().focus().toggleBlockquote().run()" :class="{ 'bg-secondary/20 text-secondary': editor?.isActive('blockquote') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">引用</button>
+              <button type="button" @click="editor?.chain().focus().toggleCodeBlock().run()" :class="{ 'bg-secondary/20 text-secondary': editor?.isActive('codeBlock') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">代码</button>
               <button type="button" @click="editor?.chain().focus().undo().run()" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">撤销</button>
               <button type="button" @click="editor?.chain().focus().redo().run()" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">重做</button>
               <label class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm cursor-pointer">
@@ -41,10 +41,10 @@
         </div>
 
         <div class="flex gap-3">
-          <button type="submit" :disabled="saving" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+          <button type="submit" :disabled="saving" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary-light disabled:opacity-50 transition-colors">
             {{ saving ? '保存中...' : '保存' }}
           </button>
-          <router-link to="/journals" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg">取消</router-link>
+          <router-link to="/journals" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">取消</router-link>
         </div>
       </div>
     </form>

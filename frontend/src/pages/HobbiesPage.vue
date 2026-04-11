@@ -47,16 +47,16 @@
         <div class="text-3xl font-extrabold text-primary dark:text-primary-light">{{ stats.total }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">总条目</div>
       </div>
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-green-600 dark:text-green-400">{{ stats.completed }}</div>
+      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <div class="text-3xl font-extrabold text-secondary">{{ stats.completed }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">已完成</div>
       </div>
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-blue-600 dark:text-blue-400">{{ stats.in_progress }}</div>
+      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <div class="text-3xl font-extrabold text-primary-light">{{ stats.in_progress }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">在看</div>
       </div>
-      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-orange-600 dark:text-orange-400">{{ stats.avg_rating?.toFixed(1) || '-' }}</div>
+      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <div class="text-3xl font-extrabold text-secondary-light">{{ stats.avg_rating?.toFixed(1) || '-' }}</div>
         <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">平均评分</div>
       </div>
     </div>
@@ -151,9 +151,9 @@ const typeLabel = (type: string) => {
 
 const statusClass = (status: string) => {
   const classes: Record<string, string> = {
-    want: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-    in_progress: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    completed: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+    want: 'bg-primary/10 text-primary dark:text-primary-light',
+    in_progress: 'bg-secondary/10 text-secondary dark:text-secondary-light',
+    completed: 'bg-primary/20 text-primary dark:text-primary-light font-bold',
     paused: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
   }
   return classes[status] || 'bg-gray-100 text-gray-700'

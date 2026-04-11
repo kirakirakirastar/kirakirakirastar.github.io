@@ -35,7 +35,7 @@
               class="inline-flex items-center px-3 py-2 border-b-2 text-sm font-medium transition-all duration-300"
               :class="[
                 $route.path === item.path || (item.path !== '/' && $route.path.startsWith(item.path))
-                  ? 'border-indigo-500 text-gray-900 dark:text-white'
+                  ? 'border-primary text-gray-900 dark:text-white'
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
               ]"
             >
@@ -105,9 +105,9 @@
             :key="item.path"
             :to="item.path"
             @click="mobileMenuOpen = false"
-            class="block px-3 py-2 rounded-lg text-sm font-medium"
+            class="block px-3 py-2 rounded-lg text-sm font-medium transition-colors"
             :class="$route.path === item.path || $route.path.startsWith(item.path + '/')
-              ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+              ? 'bg-primary/10 text-primary dark:text-primary-light'
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
           >
             {{ item.name }}
