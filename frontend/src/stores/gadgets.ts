@@ -40,24 +40,30 @@ export const useGadgetStore = defineStore('gadgets', () => {
     try {
       if (isLoggedIn) {
         // Logged in: Fetch everything
-        const [todosData, checkinData, announcementsData] = await Promise.all([
+        // Use individual try-catches to ensure partial failures don't break everything
+        const [todosRes, checkinRes, announcementsRes] = await Promise.allSettled([
           todosApi.list(),
           checkinApi.get(),
           announcementsApi.list()
         ])
-        todos.value = todosData
-        checkin.value = checkinData || { last_date: null, streak: 0, total_count: 0 }
-        announcements.value = announcementsData
+        
+        todos.value = todosRes.status === 'fulfilled' ? todosRes.value : []
+        checkin.value = checkinRes.status === 'fulfilled' ? (checkinRes.value || { last_date: null, streak: 0, total_count: 0 }) : { last_date: null, streak: 0, total_count: 0 }
+        announcements.value = announcementsRes.status === 'fulfilled' ? announcementsRes.value : []
       } else {
         // Guest: Only fetch announcements
-        const announcementsData = await announcementsApi.list()
-        announcements.value = announcementsData
+        try {
+          const announcementsData = await announcementsApi.list()
+          announcements.value = announcementsData
+        } catch (e) {
+          console.error('Failed to fetch announcements for guest:', e)
+        }
         // Reset private data
         todos.value = []
         checkin.value = { last_date: null, streak: 0, total_count: 0 }
       }
     } catch (e) {
-      console.error('Failed to fetch gadgets:', e)
+      console.error('Critical failure in initGadgets:', e)
     } finally {
       loading.value = false
     }
