@@ -184,12 +184,10 @@ const loadDashboard = async () => {
   }
 }
 
-onMounted(async () => {
+onMounted(() => {
   loadDashboard()
-  // Ensure auth is initialized before fetching gadgets to avoid guest/user mismatch
-  if (!authStore.initialized) {
-    await authStore.initAuth()
+  if (authStore.user) {
+    gadgetStore.initGadgets()
   }
-  gadgetStore.initGadgets(!!authStore.user)
 })
 </script>
