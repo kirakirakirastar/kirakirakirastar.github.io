@@ -16,11 +16,11 @@
         willChange: 'opacity, filter',
       }"
     ></div>
-    <!-- Theme Tint Overlay — inline style to bypass Tailwind's rgb() issue with hex CSS vars -->
+    <!-- Theme Tint Overlay — uses Vue computed to map themeColor to hex reactively -->
     <div 
       class="fixed inset-0 pointer-events-none z-[9998]"
       :style="{ 
-        backgroundColor: 'var(--color-primary)',
+        backgroundColor: tintColor,
         opacity: settingsStore.bgTintOpacity / 100,
         willChange: 'opacity',
       }"
@@ -162,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
 import { useAuthStore } from '@/stores/auth'
@@ -197,4 +197,13 @@ const navItems = [
   { name: '个人日志', path: '/journals' },
   { name: '爱好追踪', path: '/hobbies' },
 ]
+
+// Map themeColor to hex directly via Vue reactivity — CSS variable resolution is unreliable
+const THEME_COLORS: Record<string, string> = {
+  blue:    '#2563eb',
+  purple:  '#9333ea',
+  emerald: '#059669',
+  rose:    '#e11d48',
+}
+const tintColor = computed(() => THEME_COLORS[settingsStore.themeColor] ?? '#2563eb')
 </script>
