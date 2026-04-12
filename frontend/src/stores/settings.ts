@@ -9,7 +9,23 @@ export const useSettingsStore = defineStore('settings', () => {
   const bgOpacity = ref(50)
   const bgBlur = ref(0)
   const bgScale = ref(100)
-  const bgTintOpacity = ref(10) // New: Theme tint opacity percentage
+  const bgTintOpacity = ref(10)
+
+  // Debounced localStorage write — avoids blocking the main thread on every slider tick
+  let saveTimer: ReturnType<typeof setTimeout> | null = null
+  const scheduleSave = () => {
+    if (saveTimer) clearTimeout(saveTimer)
+    saveTimer = setTimeout(() => {
+      localStorage.setItem('app-settings', JSON.stringify({
+        themeColor: themeColor.value,
+        bgUrl: bgUrl.value,
+        bgOpacity: bgOpacity.value,
+        bgBlur: bgBlur.value,
+        bgScale: bgScale.value,
+        bgTintOpacity: bgTintOpacity.value,
+      }))
+    }, 500)
+  }
 
   const initSettings = () => {
     const saved = localStorage.getItem('app-settings')
@@ -30,9 +46,7 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   const applyThemeClass = () => {
-    // Remove existing theme classes
     document.documentElement.classList.remove('theme-purple', 'theme-blue', 'theme-emerald', 'theme-rose')
-    // Add new theme class
     document.documentElement.classList.add(`theme-${themeColor.value}`)
   }
 
@@ -44,6 +58,9 @@ export const useSettingsStore = defineStore('settings', () => {
     bgScale: number
     bgTintOpacity: number
   }>) => {
+    // Only trigger DOM class change when theme color actually changes
+    const colorChanged = updates.themeColor !== undefined && updates.themeColor !== themeColor.value
+
     if (updates.themeColor) themeColor.value = updates.themeColor
     if (updates.bgUrl !== undefined) bgUrl.value = updates.bgUrl
     if (updates.bgOpacity !== undefined) bgOpacity.value = updates.bgOpacity
@@ -51,20 +68,15 @@ export const useSettingsStore = defineStore('settings', () => {
     if (updates.bgScale !== undefined) bgScale.value = updates.bgScale
     if (updates.bgTintOpacity !== undefined) bgTintOpacity.value = updates.bgTintOpacity
 
-    applyThemeClass()
-    
-    localStorage.setItem('app-settings', JSON.stringify({
-      themeColor: themeColor.value,
-      bgUrl: bgUrl.value,
-      bgOpacity: bgOpacity.value,
-      bgBlur: bgBlur.value,
-      bgScale: bgScale.value,
-      bgTintOpacity: bgTintOpacity.value
-    }))
+    // Only update DOM class when color actually changed — not on every slider tick
+    if (colorChanged) applyThemeClass()
+
+    // Debounced save — won't write to disk until 500ms after last change
+    scheduleSave()
   }
 
-  return { 
+  return {
     themeColor, bgUrl, bgOpacity, bgBlur, bgScale, bgTintOpacity,
-    initSettings, updateSettings 
+    initSettings, updateSettings,
   }
 })

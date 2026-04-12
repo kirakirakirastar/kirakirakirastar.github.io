@@ -4,20 +4,22 @@
     <!-- Dynamic Custom Background -->
     <div 
       v-if="settingsStore.bgUrl"
-      class="fixed inset-0 pointer-events-none -z-20 transition-all duration-500 will-change-transform"
+      class="fixed inset-0 pointer-events-none -z-20"
       :style="{
         backgroundImage: `url('${settingsStore.bgUrl}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         opacity: settingsStore.bgOpacity / 100,
         filter: `blur(${settingsStore.bgBlur}px)`,
-        transform: `scale(${settingsStore.bgScale / 100})`
+        transform: `scale(${settingsStore.bgScale / 100})`,
+        transition: 'opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease',
+        willChange: 'opacity, filter',
       }"
     ></div>
     <!-- Theme Tint Overlay (Controlled Intensity) -->
     <div 
-      class="fixed inset-0 pointer-events-none -z-10 transition-opacity duration-500 bg-primary"
-      :style="{ opacity: settingsStore.bgTintOpacity / 100 }"
+      class="fixed inset-0 pointer-events-none -z-10 bg-primary"
+      :style="{ opacity: settingsStore.bgTintOpacity / 100, transition: 'opacity 0.3s ease' }"
     ></div>
     <!-- Floating Navbar -->
     <div class="sticky top-6 z-50 px-4 sm:px-6 w-full max-w-5xl mx-auto pointer-events-none mb-10 transition-all duration-500">
