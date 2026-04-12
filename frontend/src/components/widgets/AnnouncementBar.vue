@@ -1,7 +1,23 @@
 <template>
-  <div class="relative w-full overflow-hidden mb-8 group">
+  <div 
+    class="relative w-full overflow-hidden mb-8 group cursor-default select-none"
+    @mouseenter="stopTimer"
+    @mouseleave="startTimer"
+    @touchstart="handleTouchStart"
+    @touchend="handleTouchEnd"
+  >
     <div class="absolute inset-0 bg-white/30 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/5 shadow-sm"></div>
-    <div class="relative flex items-center h-12 px-5 sm:px-6">
+    <div class="relative flex items-center h-12 px-4 sm:px-6">
+      
+      <!-- Prev Button (Desktop Hover) -->
+      <button 
+        v-if="gadgetStore.announcements.length > 1"
+        @click="prev"
+        class="hidden md:flex flex-shrink-0 w-8 h-8 items-center justify-center rounded-full hover:bg-white/50 dark:hover:bg-slate-800/50 text-slate-400 hover:text-primary transition-all opacity-0 group-hover:opacity-100 -ml-2 mr-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+
       <!-- Icon Wrapper -->
       <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/15 dark:bg-primary/25 flex items-center justify-center text-primary dark:text-primary-light mr-4" :class="{ 'animate-pulse': gadgetStore.announcements.length > 0 }">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,23 +35,32 @@
         </div>
         <transition 
           v-else
-          name="slide-fade" 
+          :name="slideDirection" 
           mode="out-in"
         >
           <div 
             :key="currentIndex" 
-            class="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200 truncate"
+            class="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200 truncate pr-4"
           >
             {{ gadgetStore.announcements[currentIndex]?.text }}
           </div>
         </transition>
       </div>
 
+      <!-- Next Button (Desktop Hover) -->
+      <button 
+        v-if="gadgetStore.announcements.length > 1"
+        @click="next"
+        class="hidden md:flex flex-shrink-0 w-8 h-8 items-center justify-center rounded-full hover:bg-white/50 dark:hover:bg-slate-800/50 text-slate-400 hover:text-primary transition-all opacity-0 group-hover:opacity-100 mr-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19l7-7-7-7"></path></svg>
+      </button>
+
       <!-- Settings / Manage Button -->
       <router-link 
         v-if="authStore.user"
         to="/announcements"
-        class="ml-4 p-2 text-slate-400 hover:text-primary hover:bg-white/50 dark:hover:bg-slate-700/50 rounded-xl transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+        class="flex-shrink-0 p-2 text-slate-400 hover:text-primary hover:bg-white/50 dark:hover:bg-slate-700/50 rounded-xl transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
         title="管理公告"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,16 +69,15 @@
         </svg>
       </router-link>
 
-      <!-- Action Button / Navigation -->
-      <div v-if="gadgetStore.announcements.length > 1" class="hidden sm:flex items-center gap-2 ml-4">
-        <div class="flex gap-1">
-          <span 
-            v-for="(_, i) in gadgetStore.announcements" 
-            :key="i"
-            class="w-1.5 h-1.5 rounded-full transition-all duration-300 shadow-sm"
-            :class="i === currentIndex ? 'bg-primary w-4' : 'bg-slate-300 dark:bg-slate-700'"
-          ></span>
-        </div>
+      <!-- Pagination Dots -->
+      <div v-if="gadgetStore.announcements.length > 1" class="hidden sm:flex items-center gap-1.5 ml-4">
+        <span 
+          v-for="(_, i) in gadgetStore.announcements" 
+          :key="i"
+          @click="currentIndex = i"
+          class="w-1.5 h-1.5 rounded-full transition-all duration-300 cursor-pointer"
+          :class="i === currentIndex ? 'bg-primary w-4' : 'bg-slate-300 dark:bg-slate-700 hover:bg-slate-400'"
+        ></span>
       </div>
     </div>
   </div>
@@ -67,14 +91,37 @@ import { useAuthStore } from '@/stores/auth'
 const gadgetStore = useGadgetStore()
 const authStore = useAuthStore()
 const currentIndex = ref(0)
+const slideDirection = ref('slide-next')
 let timer: any = null
+
+// Touch Swiping logic
+const touchStartX = ref(0)
+const handleTouchStart = (e: TouchEvent) => {
+  touchStartX.value = e.touches[0].clientX
+}
+const handleTouchEnd = (e: TouchEvent) => {
+  const touchEndX = e.changedTouches[0].clientX
+  const diff = touchStartX.value - touchEndX
+  if (Math.abs(diff) > 50) {
+    if (diff > 0) next()
+    else prev()
+  }
+}
+
+const next = () => {
+  slideDirection.value = 'slide-next'
+  currentIndex.value = (currentIndex.value + 1) % gadgetStore.announcements.length
+}
+
+const prev = () => {
+  slideDirection.value = 'slide-prev'
+  currentIndex.value = (currentIndex.value - 1 + gadgetStore.announcements.length) % gadgetStore.announcements.length
+}
 
 const startTimer = () => {
   stopTimer()
   if (gadgetStore.announcements.length > 1) {
-    timer = setInterval(() => {
-      currentIndex.value = (currentIndex.value + 1) % gadgetStore.announcements.length
-    }, 6000)
+    timer = setInterval(next, 6000)
   }
 }
 
@@ -93,7 +140,6 @@ onUnmounted(() => {
   stopTimer()
 })
 
-// Restart timer if announcements change
 watch(() => gadgetStore.announcements.length, () => {
   currentIndex.value = 0
   startTimer()
@@ -101,18 +147,28 @@ watch(() => gadgetStore.announcements.length, () => {
 </script>
 
 <style scoped>
-.slide-fade-enter-active,
-.slide-fade-leave-active {
+/* Next Animation */
+.slide-next-enter-active, .slide-next-leave-active,
+.slide-prev-enter-active, .slide-prev-leave-active {
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.slide-fade-enter-from {
-  transform: translateY(20px) scale(0.95);
+.slide-next-enter-from {
+  transform: translateX(30px);
+  opacity: 0;
+}
+.slide-next-leave-to {
+  transform: translateX(-30px);
   opacity: 0;
 }
 
-.slide-fade-leave-to {
-  transform: translateY(-20px) scale(0.95);
+/* Prev Animation */
+.slide-prev-enter-from {
+  transform: translateX(-30px);
+  opacity: 0;
+}
+.slide-prev-leave-to {
+  transform: translateX(30px);
   opacity: 0;
 }
 </style>
