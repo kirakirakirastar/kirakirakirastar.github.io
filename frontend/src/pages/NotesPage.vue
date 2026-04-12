@@ -26,7 +26,7 @@
         />
         <select
           v-model="selectedTag"
-          class="px-4 py-2 border rounded-xl bg-white dark:bg-theme-bg-dark dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow"
+          class="px-4 py-2.5 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow cursor-pointer"
           @change="loadNotes"
         >
           <option value="">所有标签</option>
@@ -34,7 +34,7 @@
         </select>
         <select
           v-model="selectedArchive"
-          class="px-4 py-2 border rounded-xl bg-white dark:bg-theme-bg-dark dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow"
+          class="px-4 py-2.5 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow cursor-pointer"
           @change="loadNotes"
         >
           <option value="">所有时间</option>

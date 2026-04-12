@@ -26,7 +26,7 @@
         />
         <select
           v-model="selectedArchive"
-          class="w-full sm:w-auto px-4 py-3 border rounded-xl bg-white/50 dark:bg-theme-bg-dark/50 dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow backdrop-blur-sm"
+          class="w-full sm:w-auto px-4 py-3 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow cursor-pointer"
           @change="loadJournals"
         >
           <option value="">所有时间</option>

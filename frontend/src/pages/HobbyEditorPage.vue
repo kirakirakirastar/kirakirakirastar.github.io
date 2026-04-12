@@ -8,12 +8,12 @@
     <form @submit.prevent="saveHobby" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
       <div>
         <label class="block text-sm font-medium mb-2">标题</label>
-        <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
+        <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow" />
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium mb-2">类型</label>
-          <select v-model="form.type" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+          <select v-model="form.type" class="w-full px-4 py-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow cursor-pointer">
             <option value="anime">动漫</option>
             <option value="book">书籍</option>
             <option value="game">游戏</option>
@@ -21,7 +21,7 @@
         </div>
         <div>
           <label class="block text-sm font-medium mb-2">状态</label>
-          <select v-model="form.status" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+          <select v-model="form.status" class="w-full px-4 py-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow cursor-pointer">
             <option value="want">想看</option>
             <option value="in_progress">在看</option>
             <option value="completed">已完成</option>
@@ -32,7 +32,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium mb-2">评分（1-10）</label>
-          <input v-model.number="form.rating" type="number" min="1" max="10" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
+          <input v-model.number="form.rating" type="number" min="1" max="10" class="w-full px-4 py-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow" />
         </div>
         <div>
           <label class="block text-sm font-medium mb-2">封面上传</label>
