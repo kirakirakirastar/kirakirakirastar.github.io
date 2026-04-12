@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col font-sans transition-colors duration-700 relative overflow-hidden text-slate-900 dark:text-slate-100" :class="settingsStore.bgUrl ? 'bg-transparent' : 'bg-theme-bg dark:bg-theme-bg-dark'">
+  <div class="min-h-screen flex flex-col font-sans transition-colors duration-500 relative overflow-hidden text-slate-900 dark:text-slate-100" :class="settingsStore.bgUrl ? 'bg-transparent' : 'bg-theme-bg dark:bg-theme-bg-dark'">
     
     <!-- Dynamic Custom Background -->
     <div 
@@ -21,7 +21,7 @@
     ></div>
     <!-- Floating Navbar -->
     <div class="sticky top-6 z-50 px-4 sm:px-6 w-full max-w-5xl mx-auto pointer-events-none mb-10 transition-all duration-500">
-      <header class="relative backdrop-blur-3xl bg-white/40 dark:bg-theme-card-dark/60 border border-white/50 dark:border-white/10 shadow-2xl shadow-primary/5 dark:shadow-none rounded-[2.5rem] pointer-events-auto overflow-hidden">
+      <header class="relative backdrop-blur-xl bg-white/40 dark:bg-theme-card-dark/60 border border-white/50 dark:border-white/10 shadow-2xl shadow-primary/5 dark:shadow-none rounded-[2.5rem] pointer-events-auto overflow-hidden will-change-[backdrop-filter]">
         <!-- Visual Accent: Bottom Gradient Line -->
         <div class="absolute bottom-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-primary/40 to-transparent"></div>
         
