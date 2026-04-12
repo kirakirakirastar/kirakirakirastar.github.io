@@ -322,7 +322,13 @@ export const supabaseCheckinApi = {
   },
   upsert: async (update: any) => {
     // Specify user_id as the conflict target for upsert to work correctly with unique constraint
-    const { data, error } = await supabase.from('checkins').upsert(update, { onConflict: 'user_id' }).select().single()
+    const { data, error } = await supabase.from('checkins').upsert({
+      user_id: update.user_id,
+      last_date: update.last_date,
+      streak: update.streak,
+      total_count: update.total_count,
+      last_record: update.last_record // New field
+    }, { onConflict: 'user_id' }).select().single()
     if (error) throw error
     return data
   }

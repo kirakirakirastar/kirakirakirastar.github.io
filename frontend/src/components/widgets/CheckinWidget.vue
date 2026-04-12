@@ -24,7 +24,7 @@
     </div>
 
     <!-- Stats Row -->
-    <div class="w-full grid grid-cols-2 gap-4 mb-6">
+    <div class="w-full grid grid-cols-2 gap-4 mb-4">
       <div class="bg-slate-50 dark:bg-slate-900/40 rounded-2xl p-3 text-center border border-white/40 dark:border-white/5">
         <div class="text-xs text-slate-400 mb-1">累计打卡</div>
         <div class="text-lg font-bold text-slate-700 dark:text-slate-200">{{ gadgetStore.checkin.total_count }} 次</div>
@@ -34,6 +34,22 @@
         <div class="text-sm font-bold text-slate-700 dark:text-slate-200">
           {{ gadgetStore.canCheckin() ? '现在可以' : '明天再来' }}
         </div>
+      </div>
+    </div>
+
+    <!-- Record Module -->
+    <div class="w-full mb-6">
+      <div v-if="gadgetStore.canCheckin()" class="space-y-2">
+        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">今日感悟 / 目标</label>
+        <textarea 
+          v-model="recordText"
+          placeholder="简单记录一下今天吧..."
+          class="w-full h-20 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-white/60 dark:border-slate-700/60 focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all text-sm resize-none outline-none text-slate-700 dark:text-slate-200"
+        ></textarea>
+      </div>
+      <div v-else-if="gadgetStore.checkin.last_record" class="bg-secondary/5 dark:bg-secondary/10 rounded-2xl p-4 border border-secondary/10">
+        <div class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">今日记录</div>
+        <p class="text-sm text-slate-600 dark:text-slate-300 italic">"{{ gadgetStore.checkin.last_record }}"</p>
       </div>
     </div>
 
@@ -63,12 +79,14 @@ import { useGadgetStore } from '@/stores/gadgets'
 
 const gadgetStore = useGadgetStore()
 const loading = ref(false)
+const recordText = ref('')
 
 const handleCheckin = async () => {
   loading.value = true
   try {
-    const success = await gadgetStore.doCheckin()
+    const success = await gadgetStore.doCheckin(recordText.value)
     if (success) {
+      recordText.value = ''
       // Could add a confetti effect here
     }
   } finally {

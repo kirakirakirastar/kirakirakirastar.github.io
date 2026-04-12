@@ -15,6 +15,7 @@ export interface CheckinState {
   last_date: string | null
   streak: number
   total_count: number
+  last_record?: string | null
 }
 
 export interface Announcement {
@@ -109,7 +110,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
     return !last.isSame(now, 'day')
   }
 
-  const doCheckin = async () => {
+  const doCheckin = async (record: string = '') => {
     if (!canCheckin()) return false
     
     const now = dayjs()
@@ -127,7 +128,8 @@ export const useGadgetStore = defineStore('gadgets', () => {
         user_id: authStore.user?.id,
         last_date: now.format('YYYY-MM-DD'),
         streak: newStreak,
-        total_count: (checkin.value.total_count || 0) + 1
+        total_count: (checkin.value.total_count || 0) + 1,
+        last_record: record
       })
       checkin.value = updated
       return true
