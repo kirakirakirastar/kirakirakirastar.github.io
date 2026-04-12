@@ -16,10 +16,14 @@
         willChange: 'opacity, filter',
       }"
     ></div>
-    <!-- Theme Tint Overlay — above all content for visible color effect -->
+    <!-- Theme Tint Overlay — inline style to bypass Tailwind's rgb() issue with hex CSS vars -->
     <div 
-      class="fixed inset-0 pointer-events-none z-[9998] bg-primary"
-      :style="{ opacity: settingsStore.bgTintOpacity / 100, willChange: 'opacity' }"
+      class="fixed inset-0 pointer-events-none z-[9998]"
+      :style="{ 
+        backgroundColor: 'var(--color-primary)',
+        opacity: settingsStore.bgTintOpacity / 100,
+        willChange: 'opacity',
+      }"
     ></div>
     <!-- Floating Navbar -->
     <div class="sticky top-6 z-50 px-4 sm:px-6 w-full max-w-5xl mx-auto pointer-events-none mb-10 transition-all duration-500">
