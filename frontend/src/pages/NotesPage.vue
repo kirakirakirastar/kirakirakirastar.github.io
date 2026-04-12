@@ -92,7 +92,7 @@ const keyword = ref('')
 const selectedTag = ref('')
 const selectedArchive = ref('')
 
-let searchTimer: number | null = null
+let searchTimer: any = null
 const debouncedSearch = () => {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => loadNotes(), 300)

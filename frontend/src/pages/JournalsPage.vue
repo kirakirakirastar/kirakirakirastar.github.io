@@ -76,7 +76,7 @@ const archives = ref<any[]>([])
 const keyword = ref('')
 const selectedArchive = ref('')
 
-let searchTimer: number | null = null
+let searchTimer: any = null
 const debouncedSearch = () => {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => loadJournals(), 300)
