@@ -321,8 +321,8 @@ export const supabaseCheckinApi = {
     return data
   },
   upsert: async (update: any) => {
-    // Note: requires RLS/Unique constraint on user_id
-    const { data, error } = await supabase.from('checkins').upsert(update).select().single()
+    // Specify user_id as the conflict target for upsert to work correctly with unique constraint
+    const { data, error } = await supabase.from('checkins').upsert(update, { onConflict: 'user_id' }).select().single()
     if (error) throw error
     return data
   }

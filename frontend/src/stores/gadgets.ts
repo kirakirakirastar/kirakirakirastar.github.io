@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import dayjs from 'dayjs'
 import { todosApi, checkinApi, announcementsApi } from '@/api/gadgets'
+import { useAuthStore } from '@/stores/auth'
 
 export interface Todo {
   id: string
@@ -24,6 +25,7 @@ export interface Announcement {
 }
 
 export const useGadgetStore = defineStore('gadgets', () => {
+  const authStore = useAuthStore()
   const todos = ref<Todo[]>([])
   const checkin = ref<CheckinState>({
     last_date: null,
@@ -33,25 +35,29 @@ export const useGadgetStore = defineStore('gadgets', () => {
   const announcements = ref<Announcement[]>([])
   const loading = ref(false)
 
-  const initGadgets = async () => {
+  const initGadgets = async (isLoggedIn: boolean) => {
     loading.value = true
     try {
-      const [todosData, checkinData, announcementsData] = await Promise.all([
-        todosApi.list(),
-        checkinApi.get(),
-        announcementsApi.list()
-      ])
-      
-      todos.value = todosData
-      if (checkinData) {
-        checkin.value = checkinData
+      if (isLoggedIn) {
+        // Logged in: Fetch everything
+        const [todosData, checkinData, announcementsData] = await Promise.all([
+          todosApi.list(),
+          checkinApi.get(),
+          announcementsApi.list()
+        ])
+        todos.value = todosData
+        checkin.value = checkinData || { last_date: null, streak: 0, total_count: 0 }
+        announcements.value = announcementsData
       } else {
-        // Reset to default if no record found
+        // Guest: Only fetch announcements
+        const announcementsData = await announcementsApi.list()
+        announcements.value = announcementsData
+        // Reset private data
+        todos.value = []
         checkin.value = { last_date: null, streak: 0, total_count: 0 }
       }
-      announcements.value = announcementsData
     } catch (e) {
-      console.error('Failed to fetch gadgets from backend:', e)
+      console.error('Failed to fetch gadgets:', e)
     } finally {
       loading.value = false
     }
@@ -104,16 +110,15 @@ export const useGadgetStore = defineStore('gadgets', () => {
     const last = checkin.value.last_date ? dayjs(checkin.value.last_date) : null
     
     let newStreak = 1
-    const isNextDay = last && now.diff(last, 'day') <= 1.5 && now.isAfter(last.endOf('day'))
-    
     // Simple logic: if checked in yesterday, increment. Otherwise reset to 1.
-    // dayjs yesterday check: now.subtract(1, 'day').isSame(last, 'day')
     if (last && now.subtract(1, 'day').isSame(last, 'day')) {
-      newStreak = checkin.value.streak + 1
+      newStreak = (checkin.value.streak || 0) + 1
     }
 
     try {
+      // Use authStore.user.id for explicit sync mapping
       const updated = await checkinApi.upsert({
+        user_id: authStore.user?.id,
         last_date: now.format('YYYY-MM-DD'),
         streak: newStreak,
         total_count: (checkin.value.total_count || 0) + 1
