@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center">
+  <div v-if="isOpen" class="fixed inset-0 z-[9999] flex items-center justify-center">
     <!-- Backdrop -->
     <div 
       class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
@@ -7,7 +7,7 @@
     ></div>
 
     <!-- Modal Content -->
-    <div class="relative bg-white/90 dark:bg-theme-card-dark/95 backdrop-blur-2xl w-full max-w-lg rounded-3xl shadow-2xl border border-white/40 dark:border-white/10 p-6 sm:p-8 m-4 transform transition-all">
+    <div class="relative bg-white/95 dark:bg-theme-card-dark/95 backdrop-blur-lg w-full max-w-lg rounded-3xl shadow-2xl border border-white/40 dark:border-white/10 p-6 sm:p-8 m-4">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           外观设置
@@ -175,12 +175,19 @@ const applyBgUrl = () => {
   debouncedBgUpdate(url)
 }
 
+// Use requestAnimationFrame to throttle slider updates to screen refresh rate
+// This prevents Vue from running more updates than the screen can show
+let rafId: number | null = null
 const applyBgParams = () => {
-  settings.updateSettings({ 
-    bgOpacity: Number(bgOpacityInput.value),
-    bgBlur: Number(bgBlurInput.value),
-    bgScale: Number(bgScaleInput.value),
-    bgTintOpacity: Number(bgTintOpacityInput.value)
+  if (rafId) cancelAnimationFrame(rafId)
+  rafId = requestAnimationFrame(() => {
+    settings.updateSettings({
+      bgOpacity: Number(bgOpacityInput.value),
+      bgBlur: Number(bgBlurInput.value),
+      bgScale: Number(bgScaleInput.value),
+      bgTintOpacity: Number(bgTintOpacityInput.value),
+    })
+    rafId = null
   })
 }
 

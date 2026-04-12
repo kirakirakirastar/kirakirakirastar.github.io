@@ -16,10 +16,10 @@
         willChange: 'opacity, filter',
       }"
     ></div>
-    <!-- Theme Tint Overlay (Controlled Intensity) -->
+    <!-- Theme Tint Overlay — above all content for visible color effect -->
     <div 
-      class="fixed inset-0 pointer-events-none -z-10 bg-primary"
-      :style="{ opacity: settingsStore.bgTintOpacity / 100, transition: 'opacity 0.3s ease' }"
+      class="fixed inset-0 pointer-events-none z-[9998] bg-primary"
+      :style="{ opacity: settingsStore.bgTintOpacity / 100, willChange: 'opacity' }"
     ></div>
     <!-- Floating Navbar -->
     <div class="sticky top-6 z-50 px-4 sm:px-6 w-full max-w-5xl mx-auto pointer-events-none mb-10 transition-all duration-500">
