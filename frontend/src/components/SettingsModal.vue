@@ -143,7 +143,7 @@ const bgBlurInput = ref(settings.bgBlur)
 const bgScaleInput = ref(settings.bgScale)
 const bgTintOpacityInput = ref(settings.bgTintOpacity)
 
-// Synchronize local refs when modal opens to avoid reaction loops during input
+// Sync local refs and CSS vars when modal opens
 watch(() => props.isOpen, (open) => {
   if (open) {
     bgUrlInput.value = settings.bgUrl
@@ -151,8 +151,19 @@ watch(() => props.isOpen, (open) => {
     bgBlurInput.value = settings.bgBlur
     bgScaleInput.value = settings.bgScale
     bgTintOpacityInput.value = settings.bgTintOpacity
+    // Ensure CSS vars match store values
+    syncCssVars()
   }
 })
+
+// Direct CSS custom property update — zero Vue/VDOM overhead during slider drag
+const syncCssVars = () => {
+  const r = document.documentElement.style
+  r.setProperty('--live-tint-opacity',  String(Number(bgTintOpacityInput.value) / 100))
+  r.setProperty('--live-bg-opacity',    String(Number(bgOpacityInput.value) / 100))
+  r.setProperty('--live-bg-blur',       `${bgBlurInput.value}px`)
+  r.setProperty('--live-bg-scale',      String(Number(bgScaleInput.value) / 100))
+}
 
 const themeOptions = [
   { id: 'blue', name: '星空蓝', bgClass: 'bg-indigo-600', ringClass: 'ring-indigo-500' },
@@ -175,20 +186,25 @@ const applyBgUrl = () => {
   debouncedBgUpdate(url)
 }
 
-// Use requestAnimationFrame to throttle slider updates to screen refresh rate
-// This prevents Vue from running more updates than the screen can show
-let rafId: number | null = null
-const applyBgParams = () => {
-  if (rafId) cancelAnimationFrame(rafId)
-  rafId = requestAnimationFrame(() => {
+// Debounced Pinia/localStorage save — fires 500ms after last slider change
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+const scheduleSave = () => {
+  if (saveTimer) clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => {
     settings.updateSettings({
-      bgOpacity: Number(bgOpacityInput.value),
-      bgBlur: Number(bgBlurInput.value),
-      bgScale: Number(bgScaleInput.value),
+      bgOpacity:     Number(bgOpacityInput.value),
+      bgBlur:        Number(bgBlurInput.value),
+      bgScale:       Number(bgScaleInput.value),
       bgTintOpacity: Number(bgTintOpacityInput.value),
     })
-    rafId = null
-  })
+    saveTimer = null
+  }, 500)
+}
+
+// Slider @input handler: directly set CSS vars (instant, no Vue overhead) + schedule save
+const applyBgParams = () => {
+  syncCssVars()
+  scheduleSave()
 }
 
 const resetBackground = () => {

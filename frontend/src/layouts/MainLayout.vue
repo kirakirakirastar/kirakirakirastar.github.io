@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex flex-col font-sans transition-colors duration-500 relative overflow-hidden text-slate-900 dark:text-slate-100" :class="settingsStore.bgUrl ? 'bg-transparent' : 'bg-theme-bg dark:bg-theme-bg-dark'">
     
-    <!-- Dynamic Custom Background -->
+    <!-- Dynamic Custom Background: uses CSS vars set directly by slider handlers -->
     <div 
       v-if="settingsStore.bgUrl"
       class="fixed inset-0 pointer-events-none -z-20"
@@ -9,21 +9,15 @@
         backgroundImage: `url('${settingsStore.bgUrl}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        opacity: settingsStore.bgOpacity / 100,
-        filter: `blur(${settingsStore.bgBlur}px)`,
-        transform: `scale(${settingsStore.bgScale / 100})`,
-        transition: 'opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease',
         willChange: 'opacity, filter',
       }"
+      style="opacity: var(--live-bg-opacity, 0.5); filter: blur(var(--live-bg-blur, 0px)); transform: scale(var(--live-bg-scale, 1))"
     ></div>
-    <!-- Theme Tint Overlay — uses Vue computed to map themeColor to hex reactively -->
+    <!-- Theme Tint Overlay: backgroundColor via Vue computed (theme switch), opacity via CSS var (slider) -->
     <div 
       class="fixed inset-0 pointer-events-none z-[9998]"
-      :style="{ 
-        backgroundColor: tintColor,
-        opacity: settingsStore.bgTintOpacity / 100,
-        willChange: 'opacity',
-      }"
+      :style="{ backgroundColor: tintColor, willChange: 'opacity' }"
+      style="opacity: var(--live-tint-opacity, 0.1)"
     ></div>
     <!-- Floating Navbar -->
     <div class="sticky top-6 z-50 px-4 sm:px-6 w-full max-w-5xl mx-auto pointer-events-none mb-10 transition-all duration-500">
@@ -162,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
 import { useAuthStore } from '@/stores/auth'
@@ -176,6 +170,15 @@ const router = useRouter()
 
 themeStore.initTheme()
 settingsStore.initSettings()
+
+// Initialize CSS custom properties for slider live preview (bypasses Vue reactivity)
+onMounted(() => {
+  const r = document.documentElement.style
+  r.setProperty('--live-tint-opacity', String(settingsStore.bgTintOpacity / 100))
+  r.setProperty('--live-bg-opacity',   String(settingsStore.bgOpacity / 100))
+  r.setProperty('--live-bg-blur',      `${settingsStore.bgBlur}px`)
+  r.setProperty('--live-bg-scale',     String(settingsStore.bgScale / 100))
+})
 
 // Initial loading of auth
 if (!authStore.initialized) {
