@@ -1,5 +1,8 @@
 <template>
   <div class="w-full px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
+    <!-- Announcement Bar -->
+    <AnnouncementBar />
+
     <!-- Hero Banner -->
     <div class="relative overflow-hidden rounded-[2rem] mb-12 bg-gradient-to-br from-primary via-secondary to-slate-800 dark:from-primary/40 dark:via-secondary/40 dark:to-slate-950 border border-white/20 dark:border-white/10 shadow-xl p-10 sm:p-14 md:p-16 text-center sm:text-left">
       <div class="relative z-10">
@@ -63,6 +66,12 @@
           <div class="text-sm text-slate-500 dark:text-slate-200 font-semibold tracking-wide">本月更新</div>
         </div>
       </div>
+    </div>
+
+    <!-- Personal Workspace Gadgets -->
+    <div v-if="authStore.user" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+      <TodoWidget />
+      <CheckinWidget />
     </div>
 
     <!-- Latest Activity -->
@@ -139,7 +148,14 @@
 import { ref, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import { dashboardApi } from '@/api/dashboard'
+import { useAuthStore } from '@/stores/auth'
+import { useGadgetStore } from '@/stores/gadgets'
+import AnnouncementBar from '@/components/widgets/AnnouncementBar.vue'
+import TodoWidget from '@/components/widgets/TodoWidget.vue'
+import CheckinWidget from '@/components/widgets/CheckinWidget.vue'
 
+const authStore = useAuthStore()
+const gadgetStore = useGadgetStore()
 const loading = ref(true)
 const stats = ref({
   notes_count: 0,
@@ -170,5 +186,8 @@ const loadDashboard = async () => {
 
 onMounted(() => {
   loadDashboard()
+  if (authStore.user) {
+    gadgetStore.initGadgets()
+  }
 })
 </script>

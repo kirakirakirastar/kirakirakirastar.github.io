@@ -11,6 +11,7 @@ import JournalEditorPage from '@/pages/JournalEditorPage.vue'
 import HobbiesPage from '@/pages/HobbiesPage.vue'
 import HobbyEditorPage from '@/pages/HobbyEditorPage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
+import AnnouncementsPage from '@/pages/AnnouncementsPage.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const routes = [
@@ -20,6 +21,7 @@ const routes = [
     children: [
       { path: '', component: DashboardPage },
       { path: 'login', component: LoginPage },
+      { path: 'announcements', component: AnnouncementsPage, meta: { requiresAuth: true } },
       { path: 'notes', component: NotesPage },
       { path: 'notes/new', component: NoteEditorPage, meta: { requiresAuth: true } },
       { path: 'notes/:id', component: NoteDetailPage },

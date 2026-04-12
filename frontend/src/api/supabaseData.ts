@@ -291,6 +291,61 @@ export const supabaseDashboardApi = {
   },
 }
 
+export const supabaseTodosApi = {
+  list: async () => {
+    const { data, error } = await supabase.from('todos').select('*').order('created_at', { ascending: false })
+    if (error) throw error
+    return data || []
+  },
+  create: async (text: string) => {
+    const { data, error } = await supabase.from('todos').insert({ text }).select().single()
+    if (error) throw error
+    return data
+  },
+  toggle: async (id: string, completed: boolean) => {
+    const { data, error } = await supabase.from('todos').update({ completed }).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  delete: async (id: string) => {
+    const { error } = await supabase.from('todos').delete().eq('id', id)
+    if (error) throw error
+    return true
+  }
+}
+
+export const supabaseCheckinApi = {
+  get: async () => {
+    const { data, error } = await supabase.from('checkins').select('*').single()
+    if (error && error.code !== 'PGRST116') throw error // Ignore "not found"
+    return data
+  },
+  upsert: async (update: any) => {
+    // Note: requires RLS/Unique constraint on user_id
+    const { data, error } = await supabase.from('checkins').upsert(update).select().single()
+    if (error) throw error
+    return data
+  }
+}
+
+export const supabaseAnnouncementsApi = {
+  list: async () => {
+    const { data, error } = await supabase.from('announcements').select('*').order('created_at', { ascending: false })
+    if (error) throw error
+    return data || []
+  },
+  create: async (text: string, type: string = 'info') => {
+    const { data, error } = await supabase.from('announcements').insert({ text, type }).select().single()
+    if (error) throw error
+    return data
+  },
+  delete: async (id: string) => {
+    const { error } = await supabase.from('announcements').delete().eq('id', id)
+    if (error) throw error
+    return true
+  }
+}
+
 export const uploadImageLocally = (file: File) => new Promise<{ url: string; original_name: string }>((resolve, reject) => {
   const reader = new FileReader()
   reader.onload = () => resolve({ url: String(reader.result || ''), original_name: file.name })
