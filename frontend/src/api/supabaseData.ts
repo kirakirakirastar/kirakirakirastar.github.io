@@ -298,7 +298,9 @@ export const supabaseTodosApi = {
     return data || []
   },
   create: async (text: string) => {
-    const { data, error } = await supabase.from('todos').insert({ text }).select().single()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+    const { data, error } = await supabase.from('todos').insert({ text, user_id: user.id }).select().single()
     if (error) throw error
     return data
   },
@@ -341,7 +343,9 @@ export const supabaseAnnouncementsApi = {
     return data || []
   },
   create: async (text: string, type: string = 'info') => {
-    const { data, error } = await supabase.from('announcements').insert({ text, type }).select().single()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+    const { data, error } = await supabase.from('announcements').insert({ text, type, user_id: user.id }).select().single()
     if (error) throw error
     return data
   },
