@@ -20,11 +20,17 @@
       </button>
 
       <!-- Icon Wrapper -->
-      <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/15 dark:bg-primary/25 flex items-center justify-center text-primary dark:text-primary-light mr-4">
-        <svg class="w-4 h-4" :class="{ 'animate-pulse': gadgetStore.announcements.length > 0 }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-        </svg>
-      </div>
+      <transition name="fade" mode="out-in">
+        <div 
+          :key="currentType"
+          class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mr-4 transition-colors duration-500"
+          :class="typeStyles.bg"
+        >
+          <svg class="w-4 h-4 transition-colors duration-500" :class="[typeStyles.text, { 'animate-pulse': gadgetStore.announcements.length > 0 }]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="typeStyles.icon"></path>
+          </svg>
+        </div>
+      </transition>
 
       <!-- Text Content -->
       <div class="flex-1 relative h-full flex items-center overflow-hidden pointer-events-none">
@@ -41,9 +47,10 @@
         >
           <div 
             :key="currentIndex" 
-            class="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200 truncate pr-6 pointer-events-auto"
+            class="text-sm sm:text-base font-medium truncate pr-6 pointer-events-auto transition-colors duration-500"
+            :class="typeStyles.text || 'text-slate-700 dark:text-slate-200'"
           >
-            {{ gadgetStore.announcements[currentIndex]?.text }}
+            {{ currentAnnouncement?.text }}
           </div>
         </transition>
       </div>
@@ -74,7 +81,7 @@
           :key="i"
           @click.stop="currentIndex = i"
           class="w-1.5 h-1.5 rounded-full transition-all duration-300 cursor-pointer"
-          :class="i === currentIndex ? 'bg-primary w-4' : 'bg-slate-300 dark:bg-slate-700 hover:bg-slate-400'"
+          :class="i === currentIndex ? (typeStyles.dotActive || 'bg-primary w-4') : 'bg-slate-300 dark:bg-slate-700 hover:bg-slate-400'"
         ></span>
       </div>
     </div>
@@ -82,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useGadgetStore } from '@/stores/gadgets'
 import { useAuthStore } from '@/stores/auth'
 
@@ -91,6 +98,32 @@ const authStore = useAuthStore()
 const currentIndex = ref(0)
 const slideDirection = ref('slide-next')
 let timer: any = null
+
+const currentAnnouncement = computed(() => gadgetStore.announcements[currentIndex.value])
+const currentType = computed(() => currentAnnouncement.value?.type || 'info')
+
+const STYLE_MAP = {
+  info: {
+    bg: 'bg-blue-500/15 dark:bg-blue-500/25',
+    text: 'text-blue-600 dark:text-blue-400',
+    dotActive: 'bg-blue-600 w-4',
+    icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+  },
+  success: {
+    bg: 'bg-emerald-500/15 dark:bg-emerald-500/25',
+    text: 'text-emerald-600 dark:text-emerald-400',
+    dotActive: 'bg-emerald-600 w-4',
+    icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+  },
+  warning: {
+    bg: 'bg-amber-500/15 dark:bg-amber-500/25',
+    text: 'text-amber-600 dark:text-amber-400',
+    dotActive: 'bg-amber-600 w-4',
+    icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.268 16c-.77 1.333.192 3 1.732 3z'
+  }
+}
+
+const typeStyles = computed(() => STYLE_MAP[currentType.value as keyof typeof STYLE_MAP] || STYLE_MAP.info)
 
 // Touch Swiping logic
 const touchStartX = ref(0)
@@ -147,7 +180,8 @@ watch(() => gadgetStore.announcements.length, () => {
 
 <style scoped>
 .slide-next-enter-active, .slide-next-leave-active,
-.slide-prev-enter-active, .slide-prev-leave-active {
+.slide-prev-enter-active, .slide-prev-leave-active,
+.fade-enter-active, .fade-leave-active {
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -158,5 +192,10 @@ watch(() => gadgetStore.announcements.length, () => {
 .slide-next-leave-to, .slide-prev-enter-from {
   transform: translateX(-30px);
   opacity: 0;
+}
+
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
 }
 </style>
