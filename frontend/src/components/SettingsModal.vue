@@ -99,7 +99,12 @@
                 <img 
                   v-if="bgUrlInput" 
                   :src="bgUrlInput" 
-                  class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity duration-500"
+                  class="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-40 transition-all duration-500"
+                  :class="[bgFitInput === 'cover' ? 'object-cover' : 'object-contain']"
+                  :style="{
+                    transform: `scale(${Number(bgScaleInput)/100})`,
+                    objectPosition: `${bgPosXInput}% ${bgPosYInput}%`
+                  }"
                 />
                 
                 <div class="relative z-10 flex flex-col items-center gap-2 text-slate-500 group-hover:text-primary transition-colors duration-300">
@@ -158,10 +163,11 @@
                 <!-- Scale (Zoom) -->
                 <div class="col-span-2">
                   <div class="flex justify-between mb-2 px-1">
-                    <label class="text-xs font-bold text-slate-500">裁剪/缩放 (Scale)</label>
+                    <label class="text-xs font-bold text-slate-500">缩放与裁剪 (Zoom)</label>
                     <span class="text-xs font-mono text-primary">{{ bgScaleInput }}%</span>
                   </div>
-                  <input type="range" v-model="bgScaleInput" @input="applyBgParams" min="50" max="200" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
+                  <input type="range" v-model="bgScaleInput" @input="applyBgParams" min="100" max="400" step="1" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
+                  <p class="text-[9px] text-slate-400 mt-2">放大后配合位移滑块可实现图片裁剪效果</p>
                 </div>
                 
                 <!-- Position X -->

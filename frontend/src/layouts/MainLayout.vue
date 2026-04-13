@@ -3,18 +3,25 @@
     <!-- Base Theme Background Layer (Lowest) -->
     <div class="fixed inset-0 -z-20 bg-theme-bg dark:bg-theme-bg-dark"></div>
     
-    <!-- Dynamic Custom Background -->
+    <!-- Dynamic Custom Background Engine (Refactored for True Zoom) -->
     <div 
       v-if="settingsStore.bgUrl"
-      class="fixed inset-0 pointer-events-none -z-10"
-      :style="{
-        backgroundImage: `url('${settingsStore.bgUrl}')`,
-        backgroundSize: settingsStore.bgFit,
-        backgroundPosition: `var(--live-bg-pos-x, ${settingsStore.bgPosX}%) var(--live-bg-pos-y, ${settingsStore.bgPosY}%)`,
-        willChange: 'opacity, filter',
-      }"
-      style="opacity: var(--live-bg-opacity, 0.5); filter: blur(var(--live-bg-blur, 0px)); transform: scale(var(--live-bg-scale, 1))"
-    ></div>
+      class="fixed inset-0 pointer-events-none -z-10 overflow-hidden"
+      style="will-change: opacity;"
+      :style="{ opacity: 'var(--live-bg-opacity, 0.5)' }"
+    >
+      <img 
+        :src="settingsStore.bgUrl"
+        :class="[settingsStore.bgFit === 'cover' ? 'object-cover' : 'object-contain']"
+        class="w-full h-full transition-opacity duration-700"
+        style="will-change: transform, filter, object-position;"
+        :style="{
+          objectPosition: `var(--live-bg-pos-x, ${settingsStore.bgPosX}%) var(--live-bg-pos-y, ${settingsStore.bgPosY}%)`,
+          transform: `scale(var(--live-bg-scale, 1))`,
+          filter: `blur(var(--live-bg-blur, 0px))`
+        }"
+      />
+    </div>
 
     <!-- Theme Tint Overlay (Moved behind content) -->
     <div 
