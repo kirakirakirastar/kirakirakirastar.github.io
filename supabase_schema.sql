@@ -33,42 +33,73 @@ CREATE TABLE hobbies (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 4. 启用 Row Level Security (RLS)
+-- 4. 创建 todos 表
+CREATE TABLE todos (
+  id uuid default gen_random_uuid() primary key,
+  text text not null,
+  completed boolean default false not null,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 5. 创建 checkins 表
+CREATE TABLE checkins (
+  user_id uuid primary key references auth.users(id) on delete cascade not null,
+  last_date date,
+  streak integer default 0 not null,
+  total_count integer default 0 not null,
+  last_record text
+);
+
+-- 6. 创建 announcements 表
+CREATE TABLE announcements (
+  id uuid default gen_random_uuid() primary key,
+  text text not null,
+  type text default 'info' not null,
+  user_id uuid references auth.users(id) on delete set null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 启用所有表的 RLS
 ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE journals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hobbies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE todos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE checkins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 
--- 5. 配置 Notes 权限策略
--- 所有人都可以读取
-CREATE POLICY "Public profiles are viewable by everyone."
-  ON notes FOR SELECT
-  USING ( true );
+-- Notes 权限策略
+CREATE POLICY "Public notes viewable by everyone" ON notes FOR SELECT USING (true);
+CREATE POLICY "Auth insert notes" ON notes FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Auth update notes" ON notes FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Auth delete notes" ON notes FOR DELETE TO authenticated USING (true);
 
--- 只有登录用户（博主）可以新增/修改/删除
-CREATE POLICY "Users can insert their own notes."
-  ON notes FOR INSERT
-  TO authenticated
-  WITH CHECK ( true );
-
-CREATE POLICY "Users can update their own notes."
-  ON notes FOR UPDATE
-  TO authenticated
-  USING ( true )
-  WITH CHECK ( true );
-
-CREATE POLICY "Users can delete their own notes."
-  ON notes FOR DELETE
-  TO authenticated
-  USING ( true );
-
--- 6. 配置 Journals 权限策略
+-- Journals 权限策略
 CREATE POLICY "Public journals viewable by everyone" ON journals FOR SELECT USING (true);
 CREATE POLICY "Auth insert journals" ON journals FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "Auth update journals" ON journals FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Auth delete journals" ON journals FOR DELETE TO authenticated USING (true);
 
--- 7. 配置 Hobbies 权限策略
+-- Hobbies 权限策略
 CREATE POLICY "Public hobbies viewable by everyone" ON hobbies FOR SELECT USING (true);
 CREATE POLICY "Auth insert hobbies" ON hobbies FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "Auth update hobbies" ON hobbies FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Auth delete hobbies" ON hobbies FOR DELETE TO authenticated USING (true);
+
+-- Todos 权限策略 (仅限所属用户)
+CREATE POLICY "Users can view their own todos" ON todos FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own todos" ON todos FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own todos" ON todos FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own todos" ON todos FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+-- Checkins 权限策略 (仅限所属用户)
+CREATE POLICY "Users can view their own checkins" ON checkins FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own checkins" ON checkins FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own checkins" ON checkins FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own checkins" ON checkins FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+-- Announcements 权限策略 (所有人可见，仅登录用户可管理)
+CREATE POLICY "Public announcements viewable by everyone" ON announcements FOR SELECT USING (true);
+CREATE POLICY "Auth insert announcements" ON announcements FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Auth update announcements" ON announcements FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Auth delete announcements" ON announcements FOR DELETE TO authenticated USING (true);

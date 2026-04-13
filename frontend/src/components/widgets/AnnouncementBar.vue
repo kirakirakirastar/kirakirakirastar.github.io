@@ -32,7 +32,7 @@
           <div class="w-24 h-4 bg-slate-200 dark:bg-slate-700 animate-pulse rounded"></div>
         </div>
         <div v-else-if="gadgetStore.announcements.length === 0" class="text-sm font-medium text-slate-400">
-          暂称公告，保持好心情 🎉
+          暂无公告，保持好心情 🎉
         </div>
         <transition 
           v-else

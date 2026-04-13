@@ -36,17 +36,22 @@ export const useGadgetStore = defineStore('gadgets', () => {
   const announcements = ref<Announcement[]>([])
   const loading = ref(false)
 
-  const initGadgets = async (isLoggedIn: boolean) => {
+  let currentRequestId = 0
+
+  const initGadgets = async () => {
+    const requestId = ++currentRequestId
     loading.value = true
+    
     try {
-      if (isLoggedIn) {
+      if (authStore.user) {
         // Logged in: Fetch everything
-        // Use individual try-catches to ensure partial failures don't break everything
         const [todosRes, checkinRes, announcementsRes] = await Promise.allSettled([
           todosApi.list(),
           checkinApi.get(),
           announcementsApi.list()
         ])
+        
+        if (requestId !== currentRequestId) return // Abort if a newer request started
         
         todos.value = todosRes.status === 'fulfilled' ? todosRes.value : []
         checkin.value = checkinRes.status === 'fulfilled' ? (checkinRes.value || { last_date: null, streak: 0, total_count: 0 }) : { last_date: null, streak: 0, total_count: 0 }
@@ -55,10 +60,16 @@ export const useGadgetStore = defineStore('gadgets', () => {
         // Guest: Only fetch announcements
         try {
           const announcementsData = await announcementsApi.list()
+          
+          if (requestId !== currentRequestId) return // Abort if a newer request started
+          
           announcements.value = announcementsData
         } catch (e) {
           console.error('Failed to fetch announcements for guest:', e)
         }
+        
+        if (requestId !== currentRequestId) return // Abort if a newer request started
+        
         // Reset private data
         todos.value = []
         checkin.value = { last_date: null, streak: 0, total_count: 0 }
@@ -66,7 +77,9 @@ export const useGadgetStore = defineStore('gadgets', () => {
     } catch (e) {
       console.error('Critical failure in initGadgets:', e)
     } finally {
-      loading.value = false
+      if (requestId === currentRequestId) {
+        loading.value = false
+      }
     }
   }
 

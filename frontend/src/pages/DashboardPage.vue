@@ -145,7 +145,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import dayjs from 'dayjs'
 import { dashboardApi } from '@/api/dashboard'
 import { useAuthStore } from '@/stores/auth'
@@ -186,8 +186,26 @@ const loadDashboard = async () => {
 
 onMounted(() => {
   loadDashboard()
-  if (authStore.user) {
-    gadgetStore.initGadgets()
-  }
 })
+
+// Watch authStore to initialize gadgets correctly when auth state is resolved
+watch(
+  () => authStore.initialized,
+  (initialized) => {
+    if (initialized) {
+      gadgetStore.initGadgets()
+    }
+  },
+  { immediate: true }
+)
+
+// Also watch for user changes (like login/logout) after initialized
+watch(
+  () => authStore.user,
+  (user) => {
+    if (authStore.initialized) {
+      gadgetStore.initGadgets()
+    }
+  }
+)
 </script>
