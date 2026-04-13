@@ -13,6 +13,8 @@
           记录代码灵感、个人沉淀与浩瀚的爱好宇宙。
         </p>
       </div>
+    </div>
+
     <!-- Quick Nav & Search Hub -->
     <DashboardNav />
 
@@ -155,7 +157,7 @@
           <Skeleton v-for="i in 3" :key="i" height="64px" />
         </div>
         <div v-else-if="latestJournals.length === 0">
-          <EmptyState title="虚位以待" message="最近还没有写日志，给自己留些思考时间吧。" />
+          <EmptyState title="暂无日志" message="点击上方新建按钮创建" />
         </div>
         <div v-else class="space-y-3">
           <router-link
@@ -180,7 +182,7 @@
           <Skeleton v-for="i in 3" :key="i" height="64px" />
         </div>
         <div v-else-if="latestHobbies.length === 0">
-          <EmptyState title="空空如也" message="追踪您的兴趣爱好，让生活更充实。" />
+          <EmptyState title="暂无条目" message="点击上方新建按钮创建" />
         </div>
         <div v-else class="space-y-3">
           <router-link
