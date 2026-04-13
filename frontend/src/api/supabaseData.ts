@@ -370,6 +370,11 @@ export const supabaseTodosApi = {
     if (error) throw error
     return data
   },
+  update: async (id: string, updates: any) => {
+    const { data, error } = await supabase.from('todos').update(updates).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
   delete: async (id: string) => {
     const { error } = await supabase.from('todos').delete().eq('id', id)
     if (error) throw error

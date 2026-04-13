@@ -145,6 +145,36 @@ export const useGadgetStore = defineStore('gadgets', () => {
     }
   }
 
+  const postponeTodo = async (id: string, days: number = 1) => {
+    const todo = todos.value.find(t => t.id === id)
+    if (todo) {
+      try {
+        const updates: any = {}
+        if (todo.start_date) {
+          updates.start_date = dayjs(todo.start_date).add(days, 'day').format('YYYY-MM-DD')
+        }
+        if (todo.due_date) {
+          updates.due_date = dayjs(todo.due_date).add(days, 'day').format('YYYY-MM-DD')
+        }
+        
+        // If no dates set, postpone creates a due date for tomorrow
+        if (!todo.start_date && !todo.due_date) {
+          updates.due_date = dayjs().add(days, 'day').format('YYYY-MM-DD')
+        }
+
+        const data = await todosApi.update(id, updates)
+        todo.start_date = data.start_date
+        todo.due_date = data.due_date
+      } catch (e) {
+        console.error('Failed to postpone todo:', e)
+      }
+    }
+  }
+
+  const failTodo = async (id: string) => {
+    await updateTodoStatus(id, 'failed')
+  }
+
   const removeTodo = async (id: string) => {
     try {
       await todosApi.delete(id)
@@ -231,7 +261,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
 
   return {
     todos, checkin, announcements, loading,
-    initGadgets, addTodo, updateTodoStatus, removeTodo,
+    initGadgets, addTodo, updateTodoStatus, postponeTodo, failTodo, removeTodo,
     canCheckin, doCheckin, updateCheckinRecord, addAnnouncement, removeAnnouncement
   }
 })
