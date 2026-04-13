@@ -9,8 +9,8 @@
       class="fixed inset-0 pointer-events-none -z-10"
       :style="{
         backgroundImage: `url('${settingsStore.bgUrl}')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: settingsStore.bgFit,
+        backgroundPosition: `var(--live-bg-pos-x, ${settingsStore.bgPosX}%) var(--live-bg-pos-y, ${settingsStore.bgPosY}%)`,
         willChange: 'opacity, filter',
       }"
       style="opacity: var(--live-bg-opacity, 0.5); filter: blur(var(--live-bg-blur, 0px)); transform: scale(var(--live-bg-scale, 1))"
@@ -181,6 +181,8 @@ onMounted(() => {
   r.setProperty('--live-bg-opacity',   String(settingsStore.bgOpacity / 100))
   r.setProperty('--live-bg-blur',      `${settingsStore.bgBlur}px`)
   r.setProperty('--live-bg-scale',     String(settingsStore.bgScale / 100))
+  r.setProperty('--live-bg-pos-x',     `${settingsStore.bgPosX}%`)
+  r.setProperty('--live-bg-pos-y',     `${settingsStore.bgPosY}%`)
 })
 
 // Initial loading of auth

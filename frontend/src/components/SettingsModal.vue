@@ -117,6 +117,46 @@
               class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-primary"
             />
           </div>
+          
+          <!-- Position X -->
+          <div>
+            <div class="flex justify-between mb-2">
+              <label class="text-sm font-medium text-slate-600 dark:text-slate-400">水平位置: {{ bgPosXInput }}%</label>
+            </div>
+            <input 
+              type="range" v-model="bgPosXInput" @input="applyBgParams" min="0" max="100" 
+              class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-primary"
+            />
+          </div>
+
+          <!-- Position Y -->
+          <div>
+            <div class="flex justify-between mb-2">
+              <label class="text-sm font-medium text-slate-600 dark:text-slate-400">垂直位置: {{ bgPosYInput }}%</label>
+            </div>
+            <input 
+              type="range" v-model="bgPosYInput" @input="applyBgParams" min="0" max="100" 
+              class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-primary"
+            />
+          </div>
+
+          <!-- Fit Mode -->
+          <div>
+            <div class="flex justify-between mb-2">
+              <label class="text-sm font-medium text-slate-600 dark:text-slate-400">填充模式</label>
+            </div>
+            <div class="flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+              <button 
+                v-for="mode in (['cover', 'contain'] as const)" 
+                :key="mode"
+                @click="bgFitInput = mode; applyBgParams()"
+                class="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all"
+                :class="bgFitInput === mode ? 'bg-white dark:bg-slate-600 shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'"
+              >
+                {{ mode === 'cover' ? '覆盖 (Cover)' : '包含 (Contain)' }}
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Theme Tint Control (Always Visible) -->
@@ -172,6 +212,9 @@ const bgOpacityInput = ref(settings.bgOpacity)
 const bgBlurInput = ref(settings.bgBlur)
 const bgScaleInput = ref(settings.bgScale)
 const bgTintOpacityInput = ref(settings.bgTintOpacity)
+const bgPosXInput = ref(settings.bgPosX)
+const bgPosYInput = ref(settings.bgPosY)
+const bgFitInput = ref(settings.bgFit)
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const isUploading = ref(false)
@@ -208,6 +251,9 @@ watch(() => props.isOpen, (open) => {
     bgBlurInput.value = settings.bgBlur
     bgScaleInput.value = settings.bgScale
     bgTintOpacityInput.value = settings.bgTintOpacity
+    bgPosXInput.value = settings.bgPosX
+    bgPosYInput.value = settings.bgPosY
+    bgFitInput.value = settings.bgFit
     // Ensure CSS vars match store values
     syncCssVars()
   }
@@ -220,6 +266,8 @@ const syncCssVars = () => {
   r.setProperty('--live-bg-opacity',    String(Number(bgOpacityInput.value) / 100))
   r.setProperty('--live-bg-blur',       `${bgBlurInput.value}px`)
   r.setProperty('--live-bg-scale',      String(Number(bgScaleInput.value) / 100))
+  r.setProperty('--live-bg-pos-x',      `${bgPosXInput.value}%`)
+  r.setProperty('--live-bg-pos-y',      `${bgPosYInput.value}%`)
 }
 
 const themeOptions = [
@@ -253,6 +301,9 @@ const scheduleSave = () => {
       bgBlur:        Number(bgBlurInput.value),
       bgScale:       Number(bgScaleInput.value),
       bgTintOpacity: Number(bgTintOpacityInput.value),
+      bgPosX:        Number(bgPosXInput.value),
+      bgPosY:        Number(bgPosYInput.value),
+      bgFit:         bgFitInput.value,
     })
     saveTimer = null
   }, 500)
@@ -270,6 +321,9 @@ const resetBackground = () => {
   bgBlurInput.value = 0
   bgScaleInput.value = 100
   bgTintOpacityInput.value = 10
+  bgPosXInput.value = 50
+  bgPosYInput.value = 50
+  bgFitInput.value = 'cover'
   applyBgUrl()
   applyBgParams()
   setTheme('blue')
