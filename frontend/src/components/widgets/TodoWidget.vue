@@ -68,15 +68,15 @@
       <div v-if="gadgetStore.loading" class="flex justify-center py-8">
         <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
-      <div v-else-if="gadgetStore.todos.length === 0" class="text-center py-10 text-slate-400 dark:text-slate-500">
+      <div v-else-if="activeTodos.length === 0" class="text-center py-10 text-slate-400 dark:text-slate-500">
         <div class="mb-2">☕️</div>
-        <p class="text-sm">暂无任务，放松一下吧</p>
+        <p class="text-sm">主列表无任务，休息一下吧</p>
       </div>
       <transition-group v-else name="list-complete" tag="div" class="space-y-3">
         <div 
-          v-for="todo in gadgetStore.todos" 
+          v-for="todo in activeTodos" 
           :key="todo.id"
-          class="flex items-center gap-3 p-3.5 rounded-2xl bg-white/50 dark:bg-slate-700/30 border-y border-r border-transparent hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50 transition-all duration-300 group/item relative overflow-hidden"
+          class="flex items-center gap-3 p-3.5 rounded-2xl bg-white/50 dark:bg-slate-700/30 border-y border-r border-transparent hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50 transition-all duration-300 group/item relative overflow-hidden shadow-sm"
           :class="[getPriorityColor(todo.priority), { 'opacity-60': todo.status === 'completed', 'opacity-80 bg-red-50/50 dark:bg-red-900/10': todo.status === 'failed' }]"
         >
           <button 
@@ -135,14 +135,67 @@
           </button>
         </div>
       </transition-group>
+
+      <!-- Archive Section -->
+      <div v-if="archivedTodos.length > 0" class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+        <button 
+          @click="showArchive = !showArchive"
+          class="w-full flex items-center justify-between text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors uppercase tracking-wider"
+        >
+          <span>已归档任务 ({{ archivedTodos.length }})</span>
+          <svg class="w-4 h-4 transition-transform duration-300" :class="{ 'rotate-180': showArchive }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+
+        <transition name="fade">
+          <div v-if="showArchive" class="mt-4 space-y-2">
+            <div 
+              v-for="todo in archivedTodos" 
+              :key="todo.id"
+              class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 dark:bg-slate-900/20 border border-transparent opacity-60 grayscale hover:grayscale-0 transition-all duration-300 group/archived"
+            >
+              <button 
+                @click="toggleStatus(todo)"
+                class="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors"
+                :class="{
+                  'bg-primary/20 text-primary': todo.status === 'completed',
+                  'bg-red-100 dark:bg-red-900/30 text-red-500': todo.status === 'failed'
+                }"
+              >
+                <svg v-if="todo.status === 'completed'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                </svg>
+                <svg v-else class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+              <div class="flex-1 min-w-0 flex flex-col">
+                <span class="text-xs font-medium text-slate-500 line-through decoration-slate-400 truncate">{{ todo.text }}</span>
+              </div>
+              <button 
+                @click="gadgetStore.removeTodo(todo.id)"
+                class="opacity-0 group-hover/archived:opacity-100 p-1 text-slate-300 hover:text-red-500 transition-opacity"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </transition>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import dayjs from 'dayjs'
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 import { useGadgetStore } from '@/stores/gadgets'
+
+dayjs.extend(isSameOrAfter)
 
 const gadgetStore = useGadgetStore()
 const newTodoText = ref('')
@@ -150,6 +203,27 @@ const newTodoPriority = ref('medium')
 const newTodoStartDate = ref('')
 const newTodoDueDate = ref('')
 const newTodoRecurrence = ref('none')
+const showArchive = ref(false)
+
+const activeTodos = computed(() => {
+  return gadgetStore.todos.filter(t => {
+    // Archived if completed or failed
+    if (t.status === 'completed' || t.status === 'failed') return false
+    
+    // Delayed visibility check
+    if (t.start_date) {
+      const today = dayjs().startOf('day')
+      const start = dayjs(t.start_date).startOf('day')
+      return today.isSameOrAfter(start)
+    }
+    
+    return true
+  })
+})
+
+const archivedTodos = computed(() => {
+  return gadgetStore.todos.filter(t => t.status === 'completed' || t.status === 'failed')
+})
 
 const recurrenceOptions = ['none', 'daily', 'weekly', 'monthly']
 const toggleNewRecurrence = () => {
