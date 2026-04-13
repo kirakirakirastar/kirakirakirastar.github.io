@@ -39,6 +39,7 @@ CREATE TABLE todos (
   text text not null,
   completed boolean default false not null,
   user_id uuid references auth.users(id) on delete cascade not null,
+  due_date date,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

@@ -260,7 +260,7 @@ export const supabaseDashboardApi = {
       { data: notes, count: notesCount },
       { data: journals, count: journalsCount },
       { data: hobbies, count: hobbiesCount },
-      { count: completedHobbiesCount },
+      { count: completedTodosCount },
       { count: monthNotesCount },
       { count: monthJournalsCount },
       { count: monthHobbiesCount },
@@ -268,7 +268,7 @@ export const supabaseDashboardApi = {
       supabase.from('notes').select('*', { count: 'exact' }).order('created_at', { ascending: false }).limit(5),
       supabase.from('journals').select('*', { count: 'exact' }).order('created_at', { ascending: false }).limit(5),
       supabase.from('hobbies').select('*', { count: 'exact' }).order('updated_at', { ascending: false }).limit(5),
-      supabase.from('hobbies').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
+      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('completed', true),
       supabase.from('notes').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
       supabase.from('journals').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
       supabase.from('hobbies').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
@@ -281,7 +281,7 @@ export const supabaseDashboardApi = {
         notes_count: notesCount || 0,
         journals_count: journalsCount || 0,
         hobbies_count: hobbiesCount || 0,
-        completed_hobbies: completedHobbiesCount || 0,
+        completed_todos: completedTodosCount || 0,
         month_updates: monthUpdates,
       },
       latest_notes: (notes || []).map((n: any) => ({ ...n, tags: normalizeTags(n.tags) })),
@@ -297,10 +297,11 @@ export const supabaseTodosApi = {
     if (error) throw error
     return data || []
   },
-  create: async (text: string) => {
+  create: async (text: string, dueDate?: string | null) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
-    const { data, error } = await supabase.from('todos').insert({ text, user_id: user.id }).select().single()
+    const payload = dueDate ? { text, user_id: user.id, due_date: dueDate } : { text, user_id: user.id }
+    const { data, error } = await supabase.from('todos').insert(payload).select().single()
     if (error) throw error
     return data
   },

@@ -8,6 +8,7 @@ export interface Todo {
   id: string
   text: string
   completed: boolean
+  due_date?: string | null
   created_at: string
 }
 
@@ -84,10 +85,10 @@ export const useGadgetStore = defineStore('gadgets', () => {
   }
 
   // --- Todo Actions ---
-  const addTodo = async (text: string) => {
+  const addTodo = async (text: string, dueDate?: string | null) => {
     if (!text.trim()) return
     try {
-      const newTodo = await todosApi.create(text.trim())
+      const newTodo = await todosApi.create(text.trim(), dueDate)
       todos.value.unshift(newTodo)
     } catch (e) {
       console.error('Failed to create todo:', e)
