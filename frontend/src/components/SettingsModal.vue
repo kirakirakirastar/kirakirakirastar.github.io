@@ -166,7 +166,7 @@
                     <label class="text-xs font-bold text-slate-500">缩放与裁剪 (Zoom)</label>
                     <span class="text-xs font-mono text-primary">{{ bgScaleInput }}%</span>
                   </div>
-                  <input type="range" v-model="bgScaleInput" @input="applyBgParams" min="100" max="400" step="1" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
+                  <input type="range" v-model="bgScaleInput" @input="applyBgParams" min="10" max="400" step="1" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
                   <p class="text-[9px] text-slate-400 mt-2">放大后配合位移滑块可实现图片裁剪效果</p>
                 </div>
                 
