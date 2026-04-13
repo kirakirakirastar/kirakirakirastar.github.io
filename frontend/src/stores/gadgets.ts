@@ -148,25 +148,32 @@ export const useGadgetStore = defineStore('gadgets', () => {
   const postponeTodo = async (id: string, days: number = 1) => {
     const todo = todos.value.find(t => t.id === id)
     if (todo) {
-      try {
-        const updates: any = {}
-        if (todo.start_date) {
-          updates.start_date = dayjs(todo.start_date).add(days, 'day').format('YYYY-MM-DD')
-        }
-        if (todo.due_date) {
-          updates.due_date = dayjs(todo.due_date).add(days, 'day').format('YYYY-MM-DD')
-        }
-        
-        // If no dates set, postpone creates a due date for tomorrow
-        if (!todo.start_date && !todo.due_date) {
-          updates.due_date = dayjs().add(days, 'day').format('YYYY-MM-DD')
-        }
+      const updates: any = {}
+      if (todo.start_date) {
+        updates.start_date = dayjs(todo.start_date).add(days, 'day').format('YYYY-MM-DD')
+      }
+      if (todo.due_date) {
+        updates.due_date = dayjs(todo.due_date).add(days, 'day').format('YYYY-MM-DD')
+      }
+      
+      // If no dates set, postpone creates a due date relative to today
+      if (!todo.start_date && !todo.due_date) {
+        updates.due_date = dayjs().add(days, 'day').format('YYYY-MM-DD')
+      }
 
+      await updateTodo(id, updates)
+    }
+  }
+
+  const updateTodo = async (id: string, updates: any) => {
+    const todo = todos.value.find(t => t.id === id)
+    if (todo) {
+      try {
         const data = await todosApi.update(id, updates)
-        todo.start_date = data.start_date
-        todo.due_date = data.due_date
+        // Update local state with returned data
+        Object.assign(todo, data)
       } catch (e) {
-        console.error('Failed to postpone todo:', e)
+        console.error('Failed to update todo:', e)
       }
     }
   }
@@ -261,7 +268,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
 
   return {
     todos, checkin, announcements, loading,
-    initGadgets, addTodo, updateTodoStatus, postponeTodo, failTodo, removeTodo,
+    initGadgets, addTodo, updateTodoStatus, postponeTodo, updateTodo, failTodo, removeTodo,
     canCheckin, doCheckin, updateCheckinRecord, addAnnouncement, removeAnnouncement
   }
 })

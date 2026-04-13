@@ -76,9 +76,17 @@
         <div 
           v-for="todo in activeTodos" 
           :key="todo.id"
-          class="flex items-center gap-3 p-3.5 rounded-2xl bg-white/50 dark:bg-slate-700/30 border-y border-r border-transparent hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50 transition-all duration-300 group/item relative overflow-hidden shadow-sm"
+          class="flex items-center gap-3 p-3.5 rounded-2xl bg-white/50 dark:bg-slate-700/30 border-y border-r border-transparent hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50 transition-all duration-300 group/item relative overflow-hidden shadow-sm cursor-default"
           :class="[getPriorityColor(todo.priority), { 'opacity-60': todo.status === 'completed', 'opacity-80 bg-red-50/50 dark:bg-red-900/10': todo.status === 'failed' }]"
         >
+          <!-- Priority Color Bar (Interactive) -->
+          <div 
+            @click="cyclePriority(todo)"
+            class="absolute left-0 top-0 bottom-0 w-1.5 cursor-pointer hover:w-2.5 transition-all group/prio"
+            :title="'点击切换优先级: ' + todo.priority"
+          >
+            <div class="h-full w-full opacity-0 group-hover/prio:opacity-20 bg-slate-400"></div>
+          </div>
           <button 
             @click="toggleStatus(todo)"
             class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center transition-colors shadow-sm"
@@ -114,29 +122,48 @@
             </div>
           </div>
 
-          <!-- Recurrence indicator in list -->
-          <div 
+          <!-- Recurrence indicator in list (Interactive) -->
+          <button 
             v-if="todo.recurrence && todo.recurrence !== 'none'" 
-            class="flex-shrink-0 p-1 text-primary/40 dark:text-primary/30"
-            :title="'循环任务: ' + recurrenceLabel(todo.recurrence)"
+            @click="cycleRecurrence(todo)"
+            class="flex-shrink-0 p-1.5 text-primary/40 dark:text-primary/30 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+            :title="'循环任务: ' + recurrenceLabel(todo.recurrence) + ' (点击切换)'"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
             </svg>
-          </div>
-
-          <div class="flex items-center opacity-0 group-hover/item:opacity-100 transition-opacity">
-            <!-- Postpone -->
-            <button 
-              v-if="todo.status === 'pending'"
-              @click="gadgetStore.postponeTodo(todo.id)"
-              class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
-              title="推迟到明天"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
-              </svg>
-            </button>
+          </button>
+          <!-- If none, show a subtle button on hover to enable -->
+          <button 
+            v-else
+            @click="cycleRecurrence(todo)"
+            class="flex-shrink-0 p-1.5 text-slate-300 dark:text-slate-600 opacity-0 group-hover/item:opacity-100 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+            title="设置循环"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+          </button>
+          
+          <div class="flex items-center opacity-0 group-hover/item:opacity-100 transition-opacity ml-1">
+            <!-- Postpone Group -->
+            <div v-if="todo.status === 'pending'" class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg mr-1 overflow-hidden p-0.5">
+              <button 
+                @click="gadgetStore.postponeTodo(todo.id, 1)"
+                class="px-1.5 py-1 text-[9px] font-black text-slate-500 hover:text-primary hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all"
+                title="推迟1天"
+              >+1D</button>
+              <button 
+                @click="gadgetStore.postponeTodo(todo.id, 3)"
+                class="px-1.5 py-1 text-[9px] font-black text-slate-500 hover:text-primary hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all border-l border-slate-200 dark:border-white/5"
+                title="推迟3天"
+              >+3D</button>
+              <button 
+                @click="gadgetStore.postponeTodo(todo.id, 7)"
+                class="px-1.5 py-1 text-[9px] font-black text-slate-500 hover:text-primary hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all border-l border-slate-200 dark:border-white/5"
+                title="推迟1周"
+              >+1W</button>
+            </div>
 
             <!-- Manual Fail -->
             <button 
@@ -190,7 +217,8 @@
                 <div 
                   v-for="todo in group.items" 
                   :key="todo.id"
-                  class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 dark:bg-slate-900/20 border border-transparent opacity-60 grayscale hover:grayscale-0 transition-all duration-300 group/archived"
+                  class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 dark:bg-slate-900/20 border-y border-r border-transparent opacity-60 grayscale hover:grayscale-0 transition-all duration-300 group/archived relative overflow-hidden"
+                  :class="getPriorityColor(todo.priority)"
                 >
                   <button 
                     @click="toggleStatus(todo)"
@@ -240,8 +268,9 @@ dayjs.extend(isSameOrAfter)
 const gadgetStore = useGadgetStore()
 const newTodoText = ref('')
 const newTodoPriority = ref('medium')
-const newTodoStartDate = ref('')
-const newTodoDueDate = ref('')
+const todayStr = dayjs().format('YYYY-MM-DD')
+const newTodoStartDate = ref(todayStr)
+const newTodoDueDate = ref(todayStr)
 const newTodoRecurrence = ref('none')
 const showArchive = ref(false)
 
@@ -301,6 +330,19 @@ const recurrenceOptions = ['none', 'daily', 'weekly', 'monthly']
 const toggleNewRecurrence = () => {
   const currentIndex = recurrenceOptions.indexOf(newTodoRecurrence.value)
   newTodoRecurrence.value = recurrenceOptions[(currentIndex + 1) % recurrenceOptions.length]
+}
+
+const cyclePriority = (todo: any) => {
+  const priorities = ['high', 'medium', 'low']
+  const currentIndex = priorities.indexOf(todo.priority)
+  const nextPriority = priorities[(currentIndex + 1) % priorities.length]
+  gadgetStore.updateTodo(todo.id, { priority: nextPriority })
+}
+
+const cycleRecurrence = (todo: any) => {
+  const currentIndex = recurrenceOptions.indexOf(todo.recurrence || 'none')
+  const nextRecurrence = recurrenceOptions[(currentIndex + 1) % recurrenceOptions.length]
+  gadgetStore.updateTodo(todo.id, { recurrence: nextRecurrence })
 }
 
 const recurrenceLabel = (r: string) => {
