@@ -11,22 +11,33 @@
     </div>
 
     <!-- Add Input -->
-    <div class="relative mb-6">
-      <input 
-        v-model="newTodoText"
-        @keyup.enter="handleAdd"
-        type="text"
-        placeholder="添加新任务..."
-        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-slate-200 placeholder-slate-400"
-      />
-      <button 
-        @click="handleAdd"
-        class="absolute right-2 top-2 p-1.5 rounded-xl bg-primary text-white hover:scale-105 active:scale-95 transition-transform"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
-      </button>
+    <div class="flex flex-col sm:flex-row gap-2 mb-6">
+      <div class="relative flex-1">
+        <input 
+          v-model="newTodoText"
+          @keyup.enter="handleAdd"
+          type="text"
+          placeholder="添加新任务..."
+          class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-slate-200 placeholder-slate-400"
+        />
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="relative">
+          <input 
+            v-model="newTodoDate"
+            type="date"
+            class="px-3 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-slate-200 text-sm h-[48px] w-full"
+          />
+        </div>
+        <button 
+          @click="handleAdd"
+          class="flex-shrink-0 flex items-center justify-center h-[48px] w-[48px] rounded-2xl bg-primary text-white hover:scale-105 active:scale-95 transition-transform"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- List -->
@@ -55,12 +66,18 @@
             </svg>
           </button>
           
-          <span 
-            class="flex-1 text-sm font-medium text-slate-700 dark:text-slate-200 transition-all"
-            :class="{ 'line-through decoration-slate-400': todo.completed }"
-          >
-            {{ todo.text }}
-          </span>
+          <div class="flex-1 min-w-0 flex flex-col justify-center">
+            <span 
+              class="text-sm font-medium text-slate-700 dark:text-slate-200 transition-all truncate block"
+              :class="{ 'line-through decoration-slate-400': todo.completed }"
+            >
+              {{ todo.text }}
+            </span>
+            <div v-if="todo.due_date" class="text-[11px] mt-0.5 tracking-wide flex items-center gap-1" :class="getDateClass(todo.due_date, todo.completed)">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              {{ formatDueDate(todo.due_date) }}
+            </div>
+          </div>
 
           <button 
             @click="gadgetStore.removeTodo(todo.id)"
@@ -78,15 +95,35 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import dayjs from 'dayjs'
 import { useGadgetStore } from '@/stores/gadgets'
 
 const gadgetStore = useGadgetStore()
 const newTodoText = ref('')
+const newTodoDate = ref('')
 
 const handleAdd = async () => {
   if (!newTodoText.value.trim()) return
-  await gadgetStore.addTodo(newTodoText.value)
+  await gadgetStore.addTodo(newTodoText.value, newTodoDate.value || null)
   newTodoText.value = ''
+  newTodoDate.value = ''
+}
+
+const formatDueDate = (dateStr: string) => {
+  const diffDays = dayjs(dateStr).startOf('day').diff(dayjs().startOf('day'), 'day')
+  if (diffDays === 0) return '今天'
+  if (diffDays === 1) return '明天'
+  if (diffDays === -1) return '昨天'
+  return dayjs(dateStr).format('MM-DD')
+}
+
+const getDateClass = (dateStr: string, completed: boolean) => {
+  if (completed) return 'text-slate-400 dark:text-slate-500'
+  const diffDays = dayjs(dateStr).startOf('day').diff(dayjs().startOf('day'), 'day')
+  if (diffDays < 0) return 'text-red-500 font-semibold'
+  if (diffDays === 0) return 'text-orange-500 font-semibold'
+  if (diffDays === 1) return 'text-amber-500'
+  return 'text-slate-400 dark:text-slate-500'
 }
 </script>
 
