@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen flex flex-col font-sans transition-colors duration-500 relative overflow-hidden text-slate-900 dark:text-slate-100" :class="settingsStore.bgUrl ? 'bg-transparent' : 'bg-theme-bg dark:bg-theme-bg-dark'">
+  <div class="min-h-screen flex flex-col font-sans transition-colors duration-500 relative overflow-hidden text-slate-900 dark:text-slate-100 bg-theme-bg dark:bg-theme-bg-dark">
     
-    <!-- Dynamic Custom Background: uses CSS vars set directly by slider handlers -->
+    <!-- Dynamic Custom Background -->
     <div 
       v-if="settingsStore.bgUrl"
-      class="fixed inset-0 pointer-events-none -z-20"
+      class="fixed inset-0 pointer-events-none -z-10"
       :style="{
         backgroundImage: `url('${settingsStore.bgUrl}')`,
         backgroundSize: 'cover',
@@ -13,9 +13,10 @@
       }"
       style="opacity: var(--live-bg-opacity, 0.5); filter: blur(var(--live-bg-blur, 0px)); transform: scale(var(--live-bg-scale, 1))"
     ></div>
-    <!-- Theme Tint Overlay: backgroundColor via Vue computed (theme switch), opacity via CSS var (slider) -->
+
+    <!-- Theme Tint Overlay (Moved behind content) -->
     <div 
-      class="fixed inset-0 pointer-events-none z-[9998]"
+      class="fixed inset-0 pointer-events-none -z-5"
       :style="{ backgroundColor: tintColor, willChange: 'opacity' }"
       style="opacity: var(--live-tint-opacity, 0.1)"
     ></div>
