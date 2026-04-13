@@ -1,10 +1,10 @@
 <template>
-  <div class="w-full px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
+  <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
     <!-- Announcement Bar -->
     <AnnouncementBar />
 
     <!-- Hero Banner -->
-    <div class="relative overflow-hidden rounded-[2rem] mb-12 bg-gradient-to-br from-primary via-secondary to-slate-800 dark:from-primary/40 dark:via-secondary/40 dark:to-slate-950 border border-white/20 dark:border-white/10 shadow-xl p-10 sm:p-14 md:p-16 text-center sm:text-left">
+    <div class="reveal relative overflow-hidden rounded-[2rem] mb-12 bg-gradient-to-br from-primary via-secondary to-slate-800 dark:from-primary/40 dark:via-secondary/40 dark:to-slate-950 border border-white/20 dark:border-white/10 shadow-xl p-10 sm:p-14 md:p-16 text-center sm:text-left shadow-primary/20" style="--delay: 100ms">
       <div class="relative z-10">
         <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4 text-white drop-shadow-md tracking-tight">
           欢迎来到 <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/60">Kirakirastar's Blog</span>
@@ -18,7 +18,7 @@
     <!-- Stats -->
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
       <!-- Notes Stat -->
-      <div class="group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+      <div class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300" style="--delay: 200ms">
         <div class="flex flex-col h-full">
           <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
@@ -30,7 +30,7 @@
       </div>
 
       <!-- Journals Stat -->
-      <div class="group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+      <div class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300" style="--delay: 300ms">
         <div class="flex flex-col h-full">
           <div class="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
@@ -42,7 +42,7 @@
       </div>
 
       <!-- Hobbies Stat -->
-      <div class="group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+      <div class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300" style="--delay: 400ms">
         <div class="flex flex-col h-full">
           <div class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
@@ -54,7 +54,7 @@
       </div>
 
       <!-- Todos Stat -->
-      <div class="group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+      <div class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300" style="--delay: 500ms">
         <div class="flex flex-col h-full">
           <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
@@ -78,7 +78,7 @@
       </div>
 
       <!-- Updates Stat -->
-      <div class="group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 col-span-2 lg:col-span-1">
+      <div class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 col-span-2 lg:col-span-1" style="--delay: 600ms">
         <div class="flex flex-col h-full">
           <div class="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
@@ -92,8 +92,8 @@
 
     <!-- Personal Workspace Gadgets -->
     <div v-if="authStore.user" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-      <TodoWidget />
-      <CheckinWidget />
+      <TodoWidget class="reveal" style="--delay: 700ms" />
+      <CheckinWidget class="reveal" style="--delay: 800ms" />
     </div>
 
     <!-- Latest Activity -->
@@ -238,3 +238,23 @@ watch(
   }
 )
 </script>
+
+<style scoped>
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: reveal-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

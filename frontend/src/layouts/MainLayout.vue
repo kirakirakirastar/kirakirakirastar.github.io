@@ -3,32 +3,9 @@
     <!-- Base Theme Background Layer (Lowest) -->
     <div class="fixed inset-0 -z-20 bg-theme-bg dark:bg-theme-bg-dark"></div>
     
-    <!-- Dynamic Custom Background Engine (Refactored for True Zoom) -->
-    <div 
-      v-if="settingsStore.bgUrl"
-      class="fixed inset-0 pointer-events-none -z-10 overflow-hidden"
-      style="will-change: opacity; transform: translateZ(0);"
-      :style="{ opacity: 'var(--live-bg-opacity, 0.5)' }"
-    >
-      <img 
-        :src="settingsStore.bgUrl"
-        :class="[settingsStore.bgFit === 'cover' ? 'object-cover' : 'object-contain']"
-        class="w-full h-full transition-opacity duration-700"
-        style="will-change: transform, filter; transform: translateZ(0);"
-        :style="{
-          objectPosition: 'center',
-          transform: `scale(var(--live-bg-scale, ${settingsStore.bgScale / 100})) translate(var(--live-bg-offset-x, ${settingsStore.bgPosX - 50}%), var(--live-bg-offset-y, ${settingsStore.bgPosY - 50}%)) translateZ(0)`,
-          filter: `blur(var(--live-bg-blur, ${settingsStore.bgBlur}px))`
-        }"
-      />
-    </div>
+    <!-- Dynamic Custom Background Engine -->
+    <BackgroundEngine />
 
-    <!-- Theme Tint Overlay (Moved behind content) -->
-    <div 
-      class="fixed inset-0 pointer-events-none -z-5"
-      :style="{ backgroundColor: tintColor, willChange: 'opacity' }"
-      style="opacity: var(--live-tint-opacity, 0.1)"
-    ></div>
     <!-- Floating Navbar -->
     <div class="sticky top-6 z-50 px-4 sm:px-6 w-full max-w-5xl mx-auto pointer-events-none mb-10 transition-all duration-500">
       <header class="relative backdrop-blur-xl bg-white/40 dark:bg-theme-card-dark/60 border border-white/50 dark:border-white/10 shadow-2xl shadow-primary/5 dark:shadow-none rounded-[2.5rem] pointer-events-auto overflow-hidden will-change-[backdrop-filter]">
@@ -162,6 +139,9 @@
 
     <!-- Settings Modal -->
     <SettingsModal :isOpen="isSettingsOpen" @close="isSettingsOpen = false" />
+
+    <!-- Notifications -->
+    <Toast />
   </div>
 </template>
 
@@ -172,6 +152,8 @@ import { useThemeStore } from '@/stores/theme'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
 import SettingsModal from '@/components/SettingsModal.vue'
+import BackgroundEngine from '@/components/layout/BackgroundEngine.vue'
+import Toast from '@/components/ui/Toast.vue'
 
 const themeStore = useThemeStore()
 const authStore = useAuthStore()
@@ -180,17 +162,6 @@ const router = useRouter()
 
 themeStore.initTheme()
 settingsStore.initSettings()
-
-// Initialize CSS custom properties for slider live preview (bypasses Vue reactivity)
-onMounted(() => {
-  const r = document.documentElement.style
-  r.setProperty('--live-tint-opacity', String(settingsStore.bgTintOpacity / 100))
-  r.setProperty('--live-bg-opacity',   String(settingsStore.bgOpacity / 100))
-  r.setProperty('--live-bg-blur',      `${settingsStore.bgBlur}px`)
-  r.setProperty('--live-bg-scale',     String(settingsStore.bgScale / 100))
-  r.setProperty('--live-bg-pos-x',     `${settingsStore.bgPosX}%`)
-  r.setProperty('--live-bg-pos-y',     `${settingsStore.bgPosY}%`)
-})
 
 // Initial loading of auth
 if (!authStore.initialized) {
@@ -212,13 +183,4 @@ const navItems = [
   { name: '个人日志', path: '/journals' },
   { name: '爱好追踪', path: '/hobbies' },
 ]
-
-// Map themeColor to hex directly via Vue reactivity — CSS variable resolution is unreliable
-const THEME_COLORS: Record<string, string> = {
-  blue:    '#2563eb',
-  purple:  '#9333ea',
-  emerald: '#059669',
-  rose:    '#e11d48',
-}
-const tintColor = computed(() => THEME_COLORS[settingsStore.themeColor] ?? '#2563eb')
 </script>
