@@ -18,9 +18,11 @@
       <div v-if="gadgetStore.loading" class="flex justify-center py-8">
         <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
-      <div v-else-if="activeTodos.length === 0" class="text-center py-10 text-slate-400 dark:text-slate-500">
-        <div class="mb-2">☕️</div>
-        <p class="text-sm">主列表无任务，休息一下吧</p>
+      <div v-else-if="activeTodos.length === 0" class="py-4">
+        <EmptyState 
+          title="暂无待办" 
+          message="今天似乎还没安排任务？休息或是开始新的一页吧。"
+        />
       </div>
       <transition-group v-else name="list-complete" tag="div" class="space-y-3">
         <TodoItem 
@@ -59,6 +61,7 @@ import { useUiStore } from '@/stores/ui'
 import TodoForm from './todo/TodoForm.vue'
 import TodoItem from './todo/TodoItem.vue'
 import TodoArchive from './todo/TodoArchive.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 
 dayjs.extend(isSameOrAfter)
 

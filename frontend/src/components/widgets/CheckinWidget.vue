@@ -98,8 +98,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useGadgetStore } from '@/stores/gadgets'
+import { useUiStore } from '@/stores/ui'
+import { fireConfetti } from '@/utils/confetti'
 
 const gadgetStore = useGadgetStore()
+const uiStore = useUiStore()
 const loading = ref(false)
 const recordText = ref('')
 const isEditingRecord = ref(false)
@@ -134,7 +137,9 @@ const handleCheckin = async () => {
     const success = await gadgetStore.doCheckin(recordText.value)
     if (success) {
       recordText.value = ''
-      // Could add a confetti effect here
+      // Center pop confetti
+      fireConfetti(0.5, 0.7)
+      uiStore.addToast('打卡成功！又是充满活力的一天 ✨', 'success', '已记录您的今日挑战')
     }
   } finally {
     loading.value = false
