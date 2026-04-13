@@ -19,7 +19,7 @@
       <div class="flex flex-wrap gap-4 w-full">
         <select
           v-model="selectedType"
-          class="px-4 py-2.5 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow cursor-pointer"
+          class="w-full sm:w-auto px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
           @change="loadHobbies"
         >
           <option value="">所有类型</option>
@@ -29,7 +29,7 @@
         </select>
         <select
           v-model="selectedStatus"
-          class="px-4 py-2.5 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow cursor-pointer"
+          class="w-full sm:w-auto px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
           @change="loadHobbies"
         >
           <option value="">所有状态</option>

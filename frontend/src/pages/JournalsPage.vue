@@ -21,12 +21,12 @@
           v-model="keyword"
           type="text"
           placeholder="搜索日志..."
-          class="flex-1 min-w-[12rem] px-4 py-3 border rounded-xl bg-white/50 dark:bg-theme-bg-dark/50 dark:border-slate-700/50 focus:ring-2 focus:ring-primary outline-none transition-shadow backdrop-blur-sm"
+          class="flex-1 min-w-[12rem] px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm"
           @input="debouncedSearch"
         />
         <select
           v-model="selectedArchive"
-          class="w-full sm:w-auto px-4 py-3 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow cursor-pointer"
+          class="w-full sm:w-auto px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
           @change="loadJournals"
         >
           <option value="">所有时间</option>
