@@ -132,7 +132,7 @@
           <Skeleton v-for="i in 3" :key="i" height="64px" />
         </div>
         <div v-else-if="latestNotes.length === 0">
-          <EmptyState title="未发现笔记" message="开始记录您的第一个灵感吧。" />
+          <EmptyState title="笔耕不辍" message="记录瞬时的灵感与深度思考。" />
         </div>
         <div v-else class="space-y-3">
           <router-link
@@ -157,7 +157,7 @@
           <Skeleton v-for="i in 3" :key="i" height="64px" />
         </div>
         <div v-else-if="latestJournals.length === 0">
-          <EmptyState title="暂无日志" message="点击上方新建按钮创建" />
+          <EmptyState title="岁月留痕" message="捕捉当下的情绪，给未来留一份回忆。" />
         </div>
         <div v-else class="space-y-3">
           <router-link
@@ -182,7 +182,7 @@
           <Skeleton v-for="i in 3" :key="i" height="64px" />
         </div>
         <div v-else-if="latestHobbies.length === 0">
-          <EmptyState title="暂无条目" message="点击上方新建按钮创建" />
+          <EmptyState title="趣享生活" message="标记你所热爱的，探索更广阔的兴趣宇宙。" />
         </div>
         <div v-else class="space-y-3">
           <router-link
