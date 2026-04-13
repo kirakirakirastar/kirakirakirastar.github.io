@@ -16,9 +16,9 @@
         class="w-full h-full transition-opacity duration-700"
         style="will-change: transform, filter, object-position;"
         :style="{
-          objectPosition: `var(--live-bg-pos-x, ${settingsStore.bgPosX}%) var(--live-bg-pos-y, ${settingsStore.bgPosY}%)`,
-          transform: `scale(var(--live-bg-scale, 1))`,
-          filter: `blur(var(--live-bg-blur, 0px))`
+          objectPosition: `var(--live-bg-pos, ${settingsStore.bgPosX}% ${settingsStore.bgPosY}%)`,
+          transform: `scale(var(--live-bg-scale, ${settingsStore.bgScale / 100}))`,
+          filter: `blur(var(--live-bg-blur, ${settingsStore.bgBlur}px))`
         }"
       />
     </div>
