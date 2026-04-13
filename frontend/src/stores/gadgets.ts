@@ -12,6 +12,7 @@ export interface Todo {
   priority: string
   start_date?: string | null
   due_date?: string | null
+  recurrence: string
   created_at: string
 }
 
@@ -103,11 +104,43 @@ export const useGadgetStore = defineStore('gadgets', () => {
     if (todo) {
       try {
         const updated = await todosApi.updateStatus(id, status)
+        
+        // Handle recurrence: spawn next occurrence if marked completed
+        if (status === 'completed' && todo.recurrence && todo.recurrence !== 'none') {
+          handleRecurrence(todo)
+        }
+
         todo.status = updated.status
         todo.completed = updated.completed
       } catch (e) {
         console.error('Failed to update todo status:', e)
       }
+    }
+  }
+
+  const handleRecurrence = (todo: Todo) => {
+    let nextDueDate: string | null = null
+    const now = dayjs().startOf('day')
+
+    if (todo.recurrence === 'daily') {
+      // If the task had a due date, increment it. Otherwise use tomorrow.
+      const baseDate = todo.due_date ? dayjs(todo.due_date) : now
+      nextDueDate = baseDate.add(1, 'day').format('YYYY-MM-DD')
+    } else if (todo.recurrence === 'weekly') {
+      const baseDate = todo.due_date ? dayjs(todo.due_date) : now
+      nextDueDate = baseDate.add(1, 'week').format('YYYY-MM-DD')
+    } else if (todo.recurrence === 'monthly') {
+      const baseDate = todo.due_date ? dayjs(todo.due_date) : now
+      nextDueDate = baseDate.add(1, 'month').format('YYYY-MM-DD')
+    }
+
+    if (nextDueDate) {
+      addTodo(todo.text, {
+        priority: todo.priority,
+        start_date: nextDueDate, // Recurring tasks usually start on their due day
+        due_date: nextDueDate,
+        recurrence: todo.recurrence
+      })
     }
   }
 

@@ -351,6 +351,7 @@ export const supabaseTodosApi = {
       priority: payloadUpdates?.priority || 'medium',
       start_date: payloadUpdates?.start_date || null,
       due_date: payloadUpdates?.due_date || null,
+      recurrence: payloadUpdates?.recurrence || 'none',
       status: 'pending'
     }
     

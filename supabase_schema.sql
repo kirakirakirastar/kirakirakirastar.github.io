@@ -43,6 +43,7 @@
     start_date date,
     due_date date,
     status text default 'pending',
+    recurrence text default 'none',
     completed_at timestamp with time zone,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
   );

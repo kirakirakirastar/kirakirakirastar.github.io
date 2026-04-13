@@ -37,6 +37,21 @@
             <span class="text-slate-400 text-xs">-</span>
             <input type="date" v-model="newTodoDueDate" class="bg-transparent text-xs outline-none w-[105px] dark:[color-scheme:dark]" />
           </div>
+
+          <!-- Recurrence -->
+          <button 
+            @click="toggleNewRecurrence"
+            class="px-2.5 py-1.5 border rounded-xl text-[10px] font-bold flex items-center gap-1.5 transition-all outline-none"
+            :class="newTodoRecurrence !== 'none' 
+              ? 'bg-primary/10 border-primary/20 text-primary' 
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'"
+            :title="'重复周期: ' + recurrenceLabel(newTodoRecurrence)"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span>{{ recurrenceLabel(newTodoRecurrence) }}</span>
+          </button>
         </div>
         
         <button 
@@ -99,6 +114,17 @@
             </div>
           </div>
 
+          <!-- Recurrence indicator in list -->
+          <div 
+            v-if="todo.recurrence && todo.recurrence !== 'none'" 
+            class="flex-shrink-0 p-1 text-primary/40 dark:text-primary/30"
+            :title="'循环任务: ' + recurrenceLabel(todo.recurrence)"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+          </div>
+
           <button 
             @click="gadgetStore.removeTodo(todo.id)"
             class="opacity-0 group-hover/item:opacity-100 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
@@ -123,18 +149,35 @@ const newTodoText = ref('')
 const newTodoPriority = ref('medium')
 const newTodoStartDate = ref('')
 const newTodoDueDate = ref('')
+const newTodoRecurrence = ref('none')
+
+const recurrenceOptions = ['none', 'daily', 'weekly', 'monthly']
+const toggleNewRecurrence = () => {
+  const currentIndex = recurrenceOptions.indexOf(newTodoRecurrence.value)
+  newTodoRecurrence.value = recurrenceOptions[(currentIndex + 1) % recurrenceOptions.length]
+}
+
+const recurrenceLabel = (r: string) => {
+  if (r === 'none') return '不重复'
+  if (r === 'daily') return '每日'
+  if (r === 'weekly') return '每周'
+  if (r === 'monthly') return '每月'
+  return r
+}
 
 const handleAdd = async () => {
   if (!newTodoText.value.trim()) return
   await gadgetStore.addTodo(newTodoText.value, {
     priority: newTodoPriority.value,
     start_date: newTodoStartDate.value || null,
-    due_date: newTodoDueDate.value || null
+    due_date: newTodoDueDate.value || null,
+    recurrence: newTodoRecurrence.value
   })
   newTodoText.value = ''
   newTodoPriority.value = 'medium'
   newTodoStartDate.value = ''
   newTodoDueDate.value = ''
+  newTodoRecurrence.value = 'none'
 }
 
 const toggleStatus = (todo: any) => {
