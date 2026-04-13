@@ -5,25 +5,27 @@
       <p class="text-gray-600 dark:text-gray-400">支持 Markdown 编写与实时预览</p>
     </div>
 
-    <form @submit.prevent="saveNote" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="space-y-4">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+    <form @submit.prevent="saveNote" class="space-y-6">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">标题</label>
+          <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">摘要</label>
+          <input v-model="form.summary" type="text" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">标签（逗号分隔）</label>
+          <input v-model="tagsInput" type="text" placeholder="Vue, Vite, Markdown" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+          <!-- Editor -->
           <div>
-            <label class="block text-sm font-medium mb-2">标题</label>
-            <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-2">摘要</label>
-            <input v-model="form.summary" type="text" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-2">标签（逗号分隔）</label>
-            <input v-model="tagsInput" type="text" placeholder="Vue, Vite, Markdown" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-2">Markdown 内容</label>
-            <div class="border rounded-lg dark:border-gray-600 overflow-hidden">
-              <div class="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
+            <label class="block text-sm font-medium mb-2">内容</label>
+            <div class="border rounded-lg dark:border-gray-600 overflow-hidden h-[500px] flex flex-col">
+              <div class="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600 flex-shrink-0">
                 <button type="button" @click="insertText('**', '**')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-bold">B</button>
                 <button type="button" @click="insertText('*', '*')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm italic">I</button>
                 <button type="button" @click="insertText('# ', '')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-bold">H1</button>
@@ -31,10 +33,9 @@
                 <button type="button" @click="insertText('- ', '')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">• 列表</button>
                 <button type="button" @click="insertText('1. ', '')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">1. 列表</button>
                 <button type="button" @click="insertText('> ', '')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">引用</button>
-                <button type="button" @click="insertText('\n```\n', '\n```\n')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">代码段</button>
-                <label class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm cursor-pointer ml-auto flex items-center text-primary dark:text-primary-light">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                  插图
+                <button type="button" @click="insertText('\n```\n', '\n```\n')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">代码</button>
+                <label class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm cursor-pointer">
+                  插入图片
                   <input type="file" accept="image/*" class="hidden" @change="handleImageUpload" />
                 </label>
               </div>
@@ -42,23 +43,24 @@
                 ref="textareaRef"
                 v-model="form.content_md" 
                 required 
-                rows="20" 
-                class="w-full px-4 py-3 border-0 bg-white dark:bg-gray-700 font-mono text-sm outline-none resize-y focus:ring-0"
+                class="w-full flex-1 p-4 border-0 bg-white dark:bg-gray-800 font-mono text-sm outline-none resize-none focus:ring-0"
               ></textarea>
             </div>
           </div>
-          <div class="flex gap-3">
-            <button type="submit" :disabled="saving" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light disabled:opacity-50 transition-colors">
-              {{ saving ? '保存中...' : '保存' }}
-            </button>
-            <router-link to="/notes" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">取消</router-link>
+
+          <!-- Preview -->
+          <div>
+            <label class="block text-sm font-medium mb-2">预览</label>
+            <div class="border rounded-lg dark:border-gray-600 h-[500px] overflow-auto p-4 bg-gray-50 dark:bg-gray-900/50 text-sm markdown-body" v-html="previewHtml"></div>
           </div>
         </div>
-      </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold mb-4">预览</h2>
-        <div class="markdown-body" v-html="previewHtml"></div>
+        <div class="flex gap-3 pt-4">
+          <button type="submit" :disabled="saving" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light disabled:opacity-50 transition-colors">
+            {{ saving ? '保存中...' : '保存' }}
+          </button>
+          <router-link to="/notes" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">取消</router-link>
+        </div>
       </div>
     </form>
   </div>
