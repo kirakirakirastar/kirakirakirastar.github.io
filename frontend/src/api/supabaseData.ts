@@ -251,16 +251,31 @@ export const supabaseHobbiesApi = {
 
 export const supabaseDashboardApi = {
   get: async () => {
-    const monthStart = new Date()
+    const now = new Date()
+    
+    const monthStart = new Date(now)
     monthStart.setDate(1)
     monthStart.setHours(0, 0, 0, 0)
     const monthStartStr = monthStart.toISOString()
+
+    const todayStart = new Date(now)
+    todayStart.setHours(0, 0, 0, 0)
+    const todayStartStr = todayStart.toISOString()
+
+    const weekStart = new Date(now)
+    const day = weekStart.getDay()
+    const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1)
+    weekStart.setDate(diff)
+    weekStart.setHours(0, 0, 0, 0)
+    const weekStartStr = weekStart.toISOString()
 
     const [
       { data: notes, count: notesCount },
       { data: journals, count: journalsCount },
       { data: hobbies, count: hobbiesCount },
-      { count: completedTodosCount },
+      { count: completedTodosToday },
+      { count: completedTodosWeek },
+      { count: completedTodosMonth },
       { count: monthNotesCount },
       { count: monthJournalsCount },
       { count: monthHobbiesCount },
@@ -268,7 +283,9 @@ export const supabaseDashboardApi = {
       supabase.from('notes').select('*', { count: 'exact' }).order('created_at', { ascending: false }).limit(5),
       supabase.from('journals').select('*', { count: 'exact' }).order('created_at', { ascending: false }).limit(5),
       supabase.from('hobbies').select('*', { count: 'exact' }).order('updated_at', { ascending: false }).limit(5),
-      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('completed', true),
+      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('completed', true).gte('completed_at', todayStartStr),
+      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('completed', true).gte('completed_at', weekStartStr),
+      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('completed', true).gte('completed_at', monthStartStr),
       supabase.from('notes').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
       supabase.from('journals').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
       supabase.from('hobbies').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
@@ -281,7 +298,9 @@ export const supabaseDashboardApi = {
         notes_count: notesCount || 0,
         journals_count: journalsCount || 0,
         hobbies_count: hobbiesCount || 0,
-        completed_todos: completedTodosCount || 0,
+        completed_todos_today: completedTodosToday || 0,
+        completed_todos_week: completedTodosWeek || 0,
+        completed_todos_month: completedTodosMonth || 0,
         month_updates: monthUpdates,
       },
       latest_notes: (notes || []).map((n: any) => ({ ...n, tags: normalizeTags(n.tags) })),
@@ -306,7 +325,8 @@ export const supabaseTodosApi = {
     return data
   },
   toggle: async (id: string, completed: boolean) => {
-    const { data, error } = await supabase.from('todos').update({ completed }).eq('id', id).select().single()
+    const payload = completed ? { completed, completed_at: new Date().toISOString() } : { completed, completed_at: null }
+    const { data, error } = await supabase.from('todos').update(payload).eq('id', id).select().single()
     if (error) throw error
     return data
   },
