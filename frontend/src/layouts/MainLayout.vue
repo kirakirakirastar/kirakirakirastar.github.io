@@ -142,6 +142,9 @@
 
     <!-- Notifications -->
     <Toast />
+
+    <!-- Global Search Palette -->
+    <SearchPalette :isOpen="isSearchOpen" @close="isSearchOpen = false" />
   </div>
 </template>
 
@@ -154,6 +157,7 @@ import { useSettingsStore } from '@/stores/settings'
 import SettingsModal from '@/components/SettingsModal.vue'
 import BackgroundEngine from '@/components/layout/BackgroundEngine.vue'
 import Toast from '@/components/ui/Toast.vue'
+import SearchPalette from '@/components/ui/SearchPalette.vue'
 
 const themeStore = useThemeStore()
 const authStore = useAuthStore()
@@ -176,6 +180,22 @@ const onSignOut = async () => {
 
 const mobileMenuOpen = ref(false)
 const isSettingsOpen = ref(false)
+const isSearchOpen = ref(false)
+
+const handleGlobalKeyDown = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault()
+    isSearchOpen.value = true
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeyDown)
+})
 
 const navItems = [
   { name: 'Dashboard', path: '/' },
