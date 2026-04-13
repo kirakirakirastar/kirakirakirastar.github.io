@@ -13,6 +13,7 @@ export interface Todo {
   start_date?: string | null
   due_date?: string | null
   recurrence: string
+  completed_at?: string | null
   created_at: string
 }
 
