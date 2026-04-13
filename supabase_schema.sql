@@ -39,7 +39,11 @@
     text text not null,
     completed boolean default false not null,
     user_id uuid references auth.users(id) on delete cascade not null,
+    priority text default 'medium',
+    start_date date,
     due_date date,
+    status text default 'pending',
+    completed_at timestamp with time zone,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
   );
 

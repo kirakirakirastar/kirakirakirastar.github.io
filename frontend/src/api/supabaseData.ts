@@ -283,9 +283,9 @@ export const supabaseDashboardApi = {
       supabase.from('notes').select('*', { count: 'exact' }).order('created_at', { ascending: false }).limit(5),
       supabase.from('journals').select('*', { count: 'exact' }).order('created_at', { ascending: false }).limit(5),
       supabase.from('hobbies').select('*', { count: 'exact' }).order('updated_at', { ascending: false }).limit(5),
-      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('completed', true).gte('completed_at', todayStartStr),
-      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('completed', true).gte('completed_at', weekStartStr),
-      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('completed', true).gte('completed_at', monthStartStr),
+      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', todayStartStr),
+      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', weekStartStr),
+      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', monthStartStr),
       supabase.from('notes').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
       supabase.from('journals').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
       supabase.from('hobbies').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
@@ -314,18 +314,57 @@ export const supabaseTodosApi = {
   list: async () => {
     const { data, error } = await supabase.from('todos').select('*').order('created_at', { ascending: false })
     if (error) throw error
-    return data || []
+    
+    // Lazy Evaluate Failures
+    const now = new Date()
+    now.setHours(0, 0, 0, 0)
+    const failedIds: string[] = []
+    
+    const todos = (data || []).map((t: any) => {
+      // Auto-migrate legacy boolean
+      if (t.completed === true && (!t.status || t.status === 'pending')) {
+        t.status = 'completed'
+      } else if (t.status === 'pending' && t.due_date) {
+        const dueDate = new Date(t.due_date)
+        if (dueDate < now) {
+          t.status = 'failed'
+          failedIds.push(t.id)
+        }
+      }
+      return t
+    })
+
+    // Fire and forget update
+    if (failedIds.length > 0) {
+      supabase.from('todos').update({ status: 'failed' }).in('id', failedIds).then()
+    }
+
+    return todos
   },
-  create: async (text: string, dueDate?: string | null) => {
+  create: async (text: string, payloadUpdates?: any) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
-    const payload = dueDate ? { text, user_id: user.id, due_date: dueDate } : { text, user_id: user.id }
+    
+    const payload = {
+      text,
+      user_id: user.id,
+      priority: payloadUpdates?.priority || 'medium',
+      start_date: payloadUpdates?.start_date || null,
+      due_date: payloadUpdates?.due_date || null,
+      status: 'pending'
+    }
+    
     const { data, error } = await supabase.from('todos').insert(payload).select().single()
     if (error) throw error
     return data
   },
-  toggle: async (id: string, completed: boolean) => {
-    const payload = completed ? { completed, completed_at: new Date().toISOString() } : { completed, completed_at: null }
+  updateStatus: async (id: string, status: string) => {
+    const isCompleted = status === 'completed'
+    const payload = {
+      status,
+      completed: isCompleted,
+      completed_at: isCompleted ? new Date().toISOString() : null
+    }
     const { data, error } = await supabase.from('todos').update(payload).eq('id', id).select().single()
     if (error) throw error
     return data

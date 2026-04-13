@@ -8,6 +8,9 @@ export interface Todo {
   id: string
   text: string
   completed: boolean
+  status: string
+  priority: string
+  start_date?: string | null
   due_date?: string | null
   created_at: string
 }
@@ -85,24 +88,25 @@ export const useGadgetStore = defineStore('gadgets', () => {
   }
 
   // --- Todo Actions ---
-  const addTodo = async (text: string, dueDate?: string | null) => {
+  const addTodo = async (text: string, payloadUpdates?: any) => {
     if (!text.trim()) return
     try {
-      const newTodo = await todosApi.create(text.trim(), dueDate)
+      const newTodo = await todosApi.create(text.trim(), payloadUpdates)
       todos.value.unshift(newTodo)
     } catch (e) {
       console.error('Failed to create todo:', e)
     }
   }
 
-  const toggleTodo = async (id: string) => {
+  const updateTodoStatus = async (id: string, status: string) => {
     const todo = todos.value.find(t => t.id === id)
     if (todo) {
       try {
-        const updated = await todosApi.toggle(id, !todo.completed)
+        const updated = await todosApi.updateStatus(id, status)
+        todo.status = updated.status
         todo.completed = updated.completed
       } catch (e) {
-        console.error('Failed to toggle todo:', e)
+        console.error('Failed to update todo status:', e)
       }
     }
   }
@@ -193,7 +197,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
 
   return {
     todos, checkin, announcements, loading,
-    initGadgets, addTodo, toggleTodo, removeTodo,
+    initGadgets, addTodo, updateTodoStatus, removeTodo,
     canCheckin, doCheckin, updateCheckinRecord, addAnnouncement, removeAnnouncement
   }
 })

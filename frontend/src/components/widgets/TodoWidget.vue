@@ -6,36 +6,44 @@
         <span>待办清单</span>
       </h2>
       <span class="text-xs font-semibold px-2 py-1 rounded-lg bg-primary/10 text-primary dark:text-primary-light">
-        {{ gadgetStore.todos.filter(t => !t.completed).length }} 待办
+        {{ gadgetStore.todos.filter(t => t.status === 'pending').length }} 待办
       </span>
     </div>
 
-    <!-- Add Input -->
-    <div class="flex flex-col sm:flex-row gap-2 mb-6">
-      <div class="relative flex-1">
-        <input 
-          v-model="newTodoText"
-          @keyup.enter="handleAdd"
-          type="text"
-          placeholder="添加新任务..."
-          class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-slate-200 placeholder-slate-400"
-        />
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="relative">
-          <input 
-            v-model="newTodoDate"
-            type="date"
-            class="px-3 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-slate-200 text-sm h-[48px] w-full"
-          />
+    <!-- Add Input Form -->
+    <div class="flex flex-col gap-3 mb-6 bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-100 dark:border-white/5 transition-all shadow-sm focus-within:ring-2 focus-within:ring-primary/30">
+      <input 
+        v-model="newTodoText"
+        @keyup.enter="handleAdd"
+        type="text"
+        placeholder="准备做些什么？"
+        class="w-full bg-transparent border-none focus:ring-0 outline-none text-slate-700 dark:text-slate-200 placeholder-slate-400 font-medium"
+      />
+      <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/60 dark:border-white/10 pt-3 mt-1">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Priority -->
+          <select 
+            v-model="newTodoPriority"
+            class="px-2 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-xs outline-none cursor-pointer text-slate-600 dark:text-slate-300 transition-colors focus:border-primary"
+          >
+            <option value="high">🔴 紧急</option>
+            <option value="medium">🟡 普通</option>
+            <option value="low">🔵 轻松</option>
+          </select>
+          
+          <!-- Dates -->
+          <div class="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-2 py-1 text-slate-600 dark:text-slate-300">
+            <input type="date" v-model="newTodoStartDate" class="bg-transparent text-xs outline-none w-[105px] dark:[color-scheme:dark]" />
+            <span class="text-slate-400 text-xs">-</span>
+            <input type="date" v-model="newTodoDueDate" class="bg-transparent text-xs outline-none w-[105px] dark:[color-scheme:dark]" />
+          </div>
         </div>
+        
         <button 
           @click="handleAdd"
-          class="flex-shrink-0 flex items-center justify-center h-[48px] w-[48px] rounded-2xl bg-primary text-white hover:scale-105 active:scale-95 transition-transform"
+          class="flex-shrink-0 flex items-center justify-center h-8 px-4 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-dark active:scale-95 transition-all hover:shadow-md"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
+          添加日程
         </button>
       </div>
     </div>
@@ -53,29 +61,41 @@
         <div 
           v-for="todo in gadgetStore.todos" 
           :key="todo.id"
-          class="flex items-center gap-3 p-3.5 rounded-2xl bg-white/50 dark:bg-slate-700/30 border border-transparent hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50 transition-all duration-300 group/item"
-          :class="{ 'opacity-60': todo.completed }"
+          class="flex items-center gap-3 p-3.5 rounded-2xl bg-white/50 dark:bg-slate-700/30 border-y border-r border-transparent hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50 transition-all duration-300 group/item relative overflow-hidden"
+          :class="[getPriorityColor(todo.priority), { 'opacity-60': todo.status === 'completed', 'opacity-80 bg-red-50/50 dark:bg-red-900/10': todo.status === 'failed' }]"
         >
           <button 
-            @click="gadgetStore.toggleTodo(todo.id)"
-            class="flex-shrink-0 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors"
-            :class="todo.completed ? 'bg-primary border-primary text-white' : 'border-slate-300 dark:border-slate-600'"
+            @click="toggleStatus(todo)"
+            class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center transition-colors shadow-sm"
+            :class="{
+              'bg-primary border-2 border-primary text-white': todo.status === 'completed',
+              'bg-red-100 dark:bg-red-900/50 border-2 border-red-400 text-red-500': todo.status === 'failed',
+              'border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-primary': todo.status === 'pending'
+            }"
           >
-            <svg v-if="todo.completed" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <svg v-if="todo.status === 'completed'" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <svg v-else-if="todo.status === 'failed'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
           
           <div class="flex-1 min-w-0 flex flex-col justify-center">
             <span 
-              class="text-sm font-medium text-slate-700 dark:text-slate-200 transition-all truncate block"
-              :class="{ 'line-through decoration-slate-400': todo.completed }"
+              class="text-sm font-medium transition-all truncate block"
+              :class="{ 
+                'text-slate-700 dark:text-slate-200': todo.status === 'pending',
+                'text-slate-400 line-through decoration-slate-400': todo.status === 'completed',
+                'text-red-700 dark:text-red-400 line-through decoration-red-400/50': todo.status === 'failed'
+              }"
             >
               {{ todo.text }}
             </span>
-            <div v-if="todo.due_date" class="text-[11px] mt-0.5 tracking-wide flex items-center gap-1" :class="getDateClass(todo.due_date, todo.completed)">
+            <div v-if="todo.start_date || todo.due_date" class="text-[11px] mt-0.5 tracking-wide flex items-center gap-1" :class="getDateClass(todo)">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-              {{ formatDueDate(todo.due_date) }}
+              {{ formatDateRange(todo.start_date, todo.due_date) }}
+              <span v-if="todo.status === 'failed'" class="ml-1 text-red-500 font-bold">(已失效)</span>
             </div>
           </div>
 
@@ -100,13 +120,37 @@ import { useGadgetStore } from '@/stores/gadgets'
 
 const gadgetStore = useGadgetStore()
 const newTodoText = ref('')
-const newTodoDate = ref('')
+const newTodoPriority = ref('medium')
+const newTodoStartDate = ref('')
+const newTodoDueDate = ref('')
 
 const handleAdd = async () => {
   if (!newTodoText.value.trim()) return
-  await gadgetStore.addTodo(newTodoText.value, newTodoDate.value || null)
+  await gadgetStore.addTodo(newTodoText.value, {
+    priority: newTodoPriority.value,
+    start_date: newTodoStartDate.value || null,
+    due_date: newTodoDueDate.value || null
+  })
   newTodoText.value = ''
-  newTodoDate.value = ''
+  newTodoPriority.value = 'medium'
+  newTodoStartDate.value = ''
+  newTodoDueDate.value = ''
+}
+
+const toggleStatus = (todo: any) => {
+  if (todo.status === 'pending') {
+    gadgetStore.updateTodoStatus(todo.id, 'completed')
+  } else {
+    // Allows toggling back from completed or failed to pending
+    gadgetStore.updateTodoStatus(todo.id, 'pending')
+  }
+}
+
+const getPriorityColor = (priority: string) => {
+  if (priority === 'high') return 'border-l-4 border-l-red-500'
+  if (priority === 'medium') return 'border-l-4 border-l-amber-400'
+  if (priority === 'low') return 'border-l-4 border-l-blue-400'
+  return 'border-l-4 border-l-slate-300'
 }
 
 const formatDueDate = (dateStr: string) => {
@@ -117,13 +161,27 @@ const formatDueDate = (dateStr: string) => {
   return dayjs(dateStr).format('MM-DD')
 }
 
-const getDateClass = (dateStr: string, completed: boolean) => {
-  if (completed) return 'text-slate-400 dark:text-slate-500'
-  const diffDays = dayjs(dateStr).startOf('day').diff(dayjs().startOf('day'), 'day')
+const formatDateRange = (start?: string | null, end?: string | null) => {
+  if (!start && !end) return ''
+  if (start && end) {
+    if (start === end) return formatDueDate(end)
+    return `${formatDueDate(start)} 至 ${formatDueDate(end)}`
+  }
+  if (end) return formatDueDate(end)
+  return `${formatDueDate(start!)} 起`
+}
+
+const getDateClass = (todo: any) => {
+  if (todo.status === 'completed') return 'text-slate-400 dark:text-slate-500'
+  if (todo.status === 'failed') return 'text-red-500 font-semibold'
+  
+  if (!todo.due_date) return 'text-slate-500 dark:text-slate-400'
+  
+  const diffDays = dayjs(todo.due_date).startOf('day').diff(dayjs().startOf('day'), 'day')
   if (diffDays < 0) return 'text-red-500 font-semibold'
   if (diffDays === 0) return 'text-orange-500 font-semibold'
   if (diffDays === 1) return 'text-amber-500'
-  return 'text-slate-400 dark:text-slate-500'
+  return 'text-slate-500 dark:text-slate-400'
 }
 </script>
 
