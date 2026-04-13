@@ -47,9 +47,31 @@
           class="w-full h-20 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-white/60 dark:border-slate-700/60 focus:border-secondary/50 focus:ring-2 focus:ring-secondary/10 transition-all text-sm resize-none outline-none text-slate-700 dark:text-slate-200"
         ></textarea>
       </div>
-      <div v-else-if="gadgetStore.checkin.last_record" class="bg-secondary/5 dark:bg-secondary/10 rounded-2xl p-4 border border-secondary/10">
-        <div class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">今日记录</div>
-        <p class="text-sm text-slate-600 dark:text-slate-300 italic">"{{ gadgetStore.checkin.last_record }}"</p>
+      <div v-else class="bg-secondary/5 dark:bg-secondary/10 rounded-2xl p-4 border border-secondary/10 relative group/record min-h-[90px] w-full">
+        <div class="flex justify-between items-center mb-2">
+          <div class="text-[10px] font-bold text-secondary uppercase tracking-widest">今日记录</div>
+          <!-- Edit & Actions -->
+          <div v-if="!isEditingRecord" class="opacity-0 group-hover/record:opacity-100 transition-opacity">
+            <button @click="startEditing" class="text-xs text-secondary hover:text-pink-500 font-bold transition-colors">修改</button>
+          </div>
+          <div v-else class="flex space-x-3">
+            <button @click="cancelEditing" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" :disabled="loadingRecord">取消</button>
+            <button @click="saveRecord" class="text-xs text-secondary hover:text-pink-500 font-bold transition-colors disabled:opacity-50" :disabled="loadingRecord">
+              {{ loadingRecord ? '保存中...' : '保存' }}
+            </button>
+          </div>
+        </div>
+
+        <div v-if="!isEditingRecord">
+          <p class="text-sm text-slate-600 dark:text-slate-300 italic whitespace-pre-wrap">{{ gadgetStore.checkin.last_record ? `"${gadgetStore.checkin.last_record}"` : '（暂无记录）' }}</p>
+        </div>
+        <div v-else>
+          <textarea 
+            v-model="editingText"
+            placeholder="修改今日感悟..."
+            class="w-full h-16 p-2 rounded-xl bg-white/60 dark:bg-slate-900/40 border border-secondary/30 focus:border-secondary focus:ring-1 focus:ring-secondary/20 transition-all text-sm resize-none outline-none text-slate-700 dark:text-slate-200"
+          ></textarea>
+        </div>
       </div>
     </div>
 
@@ -80,6 +102,31 @@ import { useGadgetStore } from '@/stores/gadgets'
 const gadgetStore = useGadgetStore()
 const loading = ref(false)
 const recordText = ref('')
+const isEditingRecord = ref(false)
+const editingText = ref('')
+const loadingRecord = ref(false)
+
+const startEditing = () => {
+  editingText.value = gadgetStore.checkin.last_record || ''
+  isEditingRecord.value = true
+}
+
+const cancelEditing = () => {
+  isEditingRecord.value = false
+  editingText.value = ''
+}
+
+const saveRecord = async () => {
+  loadingRecord.value = true
+  try {
+    const success = await gadgetStore.updateCheckinRecord(editingText.value)
+    if (success) {
+      isEditingRecord.value = false
+    }
+  } finally {
+    loadingRecord.value = false
+  }
+}
 
 const handleCheckin = async () => {
   loading.value = true

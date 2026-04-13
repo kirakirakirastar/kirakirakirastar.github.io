@@ -152,6 +152,25 @@ export const useGadgetStore = defineStore('gadgets', () => {
     }
   }
 
+  const updateCheckinRecord = async (record: string) => {
+    if (!authStore.user?.id) return false
+    
+    try {
+      const updated = await checkinApi.upsert({
+        user_id: authStore.user.id,
+        last_date: checkin.value.last_date,
+        streak: checkin.value.streak,
+        total_count: checkin.value.total_count,
+        last_record: record
+      })
+      checkin.value = updated
+      return true
+    } catch (e) {
+      console.error('Failed to update checkin record:', e)
+      return false
+    }
+  }
+
   // --- Announcement Actions (For management page) ---
   const addAnnouncement = async (text: string, type: string = 'info') => {
     try {
@@ -174,6 +193,6 @@ export const useGadgetStore = defineStore('gadgets', () => {
   return {
     todos, checkin, announcements, loading,
     initGadgets, addTodo, toggleTodo, removeTodo,
-    canCheckin, doCheckin, addAnnouncement, removeAnnouncement
+    canCheckin, doCheckin, updateCheckinRecord, addAnnouncement, removeAnnouncement
   }
 })
