@@ -75,7 +75,10 @@
                 <span class="text-xs font-mono text-primary bg-primary/10 px-2 py-0.5 rounded-full">{{ bgTintOpacityInput }}%</span>
               </div>
               <input 
-                type="range" v-model="bgTintOpacityInput" @input="applyBgParams" min="0" max="50" 
+                type="range" 
+                :value="bgTintOpacityInput" 
+                @input="e => { bgTintOpacityInput = Number((e.target as HTMLInputElement).value); applyBgParams() }" 
+                min="0" max="50" 
                 class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-primary"
               />
               <p class="text-[10px] text-slate-400 mt-2 px-1">调节此滑块可让全局背景（包括自定义图片）向主题色靠拢</p>
@@ -105,6 +108,7 @@
                     transform: `scale(${Number(bgScaleInput)/100}) translate(${Number(bgPosXInput) - 50}%, ${Number(bgPosYInput) - 50}%)`,
                     objectPosition: 'center'
                   }"
+                  style="will-change: transform;"
                 />
                 
                 <div class="relative z-10 flex flex-col items-center gap-2 text-slate-500 group-hover:text-primary transition-colors duration-300">
@@ -148,7 +152,7 @@
                     <label class="text-xs font-bold text-slate-500">透明度</label>
                     <span class="text-xs font-mono text-primary">{{ bgOpacityInput }}%</span>
                   </div>
-                  <input type="range" v-model="bgOpacityInput" @input="applyBgParams" min="0" max="100" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
+                  <input type="range" :value="bgOpacityInput" @input="e => { bgOpacityInput = Number((e.target as HTMLInputElement).value); applyBgParams() }" min="0" max="100" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
                 </div>
                 
                 <!-- Blur -->
@@ -157,7 +161,7 @@
                     <label class="text-xs font-bold text-slate-500">模糊度</label>
                     <span class="text-xs font-mono text-primary">{{ bgBlurInput }}px</span>
                   </div>
-                  <input type="range" v-model="bgBlurInput" @input="applyBgParams" min="0" max="30" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
+                  <input type="range" :value="bgBlurInput" @input="e => { bgBlurInput = Number((e.target as HTMLInputElement).value); applyBgParams() }" min="0" max="30" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
                 </div>
 
                 <!-- Scale (Zoom) -->
@@ -166,7 +170,7 @@
                     <label class="text-xs font-bold text-slate-500">缩放与裁剪 (Zoom)</label>
                     <span class="text-xs font-mono text-primary">{{ bgScaleInput }}%</span>
                   </div>
-                  <input type="range" v-model="bgScaleInput" @input="applyBgParams" min="10" max="400" step="1" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
+                  <input type="range" :value="bgScaleInput" @input="e => { bgScaleInput = Number((e.target as HTMLInputElement).value); applyBgParams() }" min="10" max="400" step="1" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
                   <p class="text-[9px] text-slate-400 mt-2">放大后配合位移滑块可实现图片裁剪效果</p>
                 </div>
                 
@@ -176,7 +180,7 @@
                     <label class="text-xs font-bold text-slate-500">水平位移</label>
                     <span class="text-xs font-mono text-primary">{{ bgPosXInput }}%</span>
                   </div>
-                  <input type="range" v-model="bgPosXInput" @input="applyBgParams" min="-100" max="200" step="1" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
+                  <input type="range" :value="bgPosXInput" @input="e => { bgPosXInput = Number((e.target as HTMLInputElement).value); applyBgParams() }" min="-100" max="200" step="1" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
                 </div>
 
                 <!-- Position Y -->
@@ -185,7 +189,7 @@
                     <label class="text-xs font-bold text-slate-500">垂直位移</label>
                     <span class="text-xs font-mono text-primary">{{ bgPosYInput }}%</span>
                   </div>
-                  <input type="range" v-model="bgPosYInput" @input="applyBgParams" min="-100" max="200" step="1" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
+                  <input type="range" :value="bgPosYInput" @input="e => { bgPosYInput = Number((e.target as HTMLInputElement).value); applyBgParams() }" min="-100" max="200" step="1" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
                 </div>
 
                 <!-- Fit Mode -->
@@ -231,7 +235,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useDebounceFn } from '@vueuse/core'
 
@@ -278,7 +282,6 @@ const onFileSelected = async (event: Event) => {
     alert('图片选择失败，请重试')
   } finally {
     isUploading.value = false
-    // Reset input value so same file can be selected again if needed
     target.value = ''
   }
 }
@@ -295,19 +298,24 @@ watch(() => props.isOpen, (open) => {
     bgPosYInput.value = settings.bgPosY
     bgFitInput.value = settings.bgFit
     // Ensure CSS vars match store values
-    syncCssVars()
+    nextTick(syncCssVars)
   }
 })
 
-// Direct CSS custom property update — zero Vue/VDOM overhead during slider drag
+/**
+ * DIRECT DOM UPDATE (PERFORMANCE CRITICAL)
+ * This bypasses Vue's Reactivity System during drag to ensure 60FPS
+ */
 const syncCssVars = () => {
-  const r = document.documentElement.style
-  r.setProperty('--live-tint-opacity',  String(Number(bgTintOpacityInput.value) / 100))
-  r.setProperty('--live-bg-opacity',    String(Number(bgOpacityInput.value) / 100))
-  r.setProperty('--live-bg-blur',       `${bgBlurInput.value}px`)
-  r.setProperty('--live-bg-scale',      String(Number(bgScaleInput.value) / 100))
-  r.setProperty('--live-bg-offset-x',   `${bgPosXInput.value - 50}%`)
-  r.setProperty('--live-bg-offset-y',   `${bgPosYInput.value - 50}%`)
+  const root = document.documentElement
+  const style = root.style
+  
+  style.setProperty('--live-tint-opacity',  String(bgTintOpacityInput.value / 100))
+  style.setProperty('--live-bg-opacity',    String(bgOpacityInput.value / 100))
+  style.setProperty('--live-bg-blur',       `${bgBlurInput.value}px`)
+  style.setProperty('--live-bg-scale',      String(bgScaleInput.value / 100))
+  style.setProperty('--live-bg-offset-x',   `${bgPosXInput.value - 50}%`)
+  style.setProperty('--live-bg-offset-y',   `${bgPosYInput.value - 50}%`)
 }
 
 const themeOptions = [
@@ -321,7 +329,7 @@ const setTheme = (colorId: 'blue' | 'purple' | 'emerald' | 'rose') => {
   settings.updateSettings({ themeColor: colorId })
 }
 
-// Debounce URL updates to prevent network spam and string splicing bugs
+// Debounce URL updates
 const debouncedBgUpdate = useDebounceFn((url: string) => {
   settings.updateSettings({ bgUrl: url })
 }, 300)
@@ -331,28 +339,28 @@ const applyBgUrl = () => {
   debouncedBgUpdate(url)
 }
 
-// Debounced Pinia/localStorage save — fires 500ms after last slider change
-let saveTimer: ReturnType<typeof setTimeout> | null = null
-const scheduleSave = () => {
-  if (saveTimer) clearTimeout(saveTimer)
-  saveTimer = setTimeout(() => {
-    settings.updateSettings({
-      bgOpacity:     Number(bgOpacityInput.value),
-      bgBlur:        Number(bgBlurInput.value),
-      bgScale:       Number(bgScaleInput.value),
-      bgTintOpacity: Number(bgTintOpacityInput.value),
-      bgPosX:        Number(bgPosXInput.value),
-      bgPosY:        Number(bgPosYInput.value),
-      bgFit:         bgFitInput.value,
-    })
-    saveTimer = null
-  }, 500)
-}
+/**
+ * Debounced Pinia Save
+ * Prevents constant disk/store writes during slider movement
+ */
+const scheduleSave = useDebounceFn(() => {
+  settings.updateSettings({
+    bgOpacity:     bgOpacityInput.value,
+    bgBlur:        bgBlurInput.value,
+    bgScale:       bgScaleInput.value,
+    bgTintOpacity: bgTintOpacityInput.value,
+    bgPosX:        bgPosXInput.value,
+    bgPosY:        bgPosYInput.value,
+    bgFit:         bgFitInput.value,
+  })
+}, 150) // Short debounce for snappy state sync without blocking
 
-// Slider @input handler: directly set CSS vars (instant, no Vue overhead) + schedule save
+/**
+ * Handle Slider Input (@input)
+ */
 const applyBgParams = () => {
-  syncCssVars()
-  scheduleSave()
+  syncCssVars()   // Instant Visual Sync (Native CSS Variable)
+  scheduleSave()  // Debounced Pinia Sync (Reactivity System)
 }
 
 const resetBackground = () => {
@@ -373,3 +381,4 @@ const close = () => {
   emit('close')
 }
 </script>
+

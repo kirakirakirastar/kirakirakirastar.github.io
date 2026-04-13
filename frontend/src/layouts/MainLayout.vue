@@ -7,17 +7,17 @@
     <div 
       v-if="settingsStore.bgUrl"
       class="fixed inset-0 pointer-events-none -z-10 overflow-hidden"
-      style="will-change: opacity;"
+      style="will-change: opacity; transform: translateZ(0);"
       :style="{ opacity: 'var(--live-bg-opacity, 0.5)' }"
     >
       <img 
         :src="settingsStore.bgUrl"
         :class="[settingsStore.bgFit === 'cover' ? 'object-cover' : 'object-contain']"
         class="w-full h-full transition-opacity duration-700"
-        style="will-change: transform, filter;"
+        style="will-change: transform, filter; transform: translateZ(0);"
         :style="{
           objectPosition: 'center',
-          transform: `scale(var(--live-bg-scale, ${settingsStore.bgScale / 100})) translate(var(--live-bg-offset-x, ${settingsStore.bgPosX - 50}%), var(--live-bg-offset-y, ${settingsStore.bgPosY - 50}%))`,
+          transform: `scale(var(--live-bg-scale, ${settingsStore.bgScale / 100})) translate(var(--live-bg-offset-x, ${settingsStore.bgPosX - 50}%), var(--live-bg-offset-y, ${settingsStore.bgPosY - 50}%)) translateZ(0)`,
           filter: `blur(var(--live-bg-blur, ${settingsStore.bgBlur}px))`
         }"
       />
