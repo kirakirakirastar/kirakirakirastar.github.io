@@ -36,27 +36,56 @@
           </div>
         </div>
 
-        <!-- Custom Background URL -->
+        <!-- Custom Background Selection -->
         <div>
-          <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">自定义背景图片 URL</h3>
-          <div class="flex gap-2">
-            <input 
-              :value="bgUrlInput" 
-              type="text" 
-              placeholder="https://example.com/wallpaper.jpg"
-              class="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-slate-200"
-              @input="e => { bgUrlInput = (e.target as HTMLInputElement).value; applyBgUrl() }"
-            />
-            <button 
+          <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">自定义背景图片</h3>
+          
+          <div 
+            @click="triggerFileSelect"
+            class="relative group cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-primary dark:hover:border-primary transition-all duration-300 bg-slate-50 dark:bg-slate-900/30 aspect-video flex flex-col items-center justify-center gap-3"
+          >
+            <!-- Preview or Placeholder -->
+            <img 
               v-if="bgUrlInput" 
-              @click="bgUrlInput = ''; applyBgUrl()" 
-              class="px-3 py-2 bg-slate-200 dark:bg-slate-800 text-slate-500 rounded-xl hover:text-red-500 transition-colors"
-              title="清除图片"
+              :src="bgUrlInput" 
+              class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
+            />
+            
+            <div class="relative z-10 flex flex-col items-center gap-2 text-slate-500 group-hover:text-primary transition-colors">
+              <div v-if="isUploading" class="flex flex-col items-center gap-2">
+                <svg class="w-10 h-10 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-sm font-medium">正在读取图片...</span>
+              </div>
+              <template v-else>
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span class="text-sm font-medium">{{ bgUrlInput ? '更换背景图片' : '选择本地图片上传' }}</span>
+                <span class="text-[10px] opacity-70">支持 JPG, PNG, WebP</span>
+              </template>
+            </div>
+          </div>
+
+          <!-- Hidden File Input -->
+          <input 
+            type="file" 
+            ref="fileInput" 
+            class="hidden" 
+            accept="image/*" 
+            @change="onFileSelected"
+          />
+
+          <div v-if="bgUrlInput" class="mt-3 flex justify-end">
+            <button 
+              @click.stop="bgUrlInput = ''; applyBgUrl()" 
+              class="text-xs text-red-500 hover:text-red-700 font-medium flex items-center gap-1 transition-colors"
             >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              移除当前背景
             </button>
           </div>
-          <p class="text-xs text-slate-500 mt-2">留空以使用默认纯色背景</p>
         </div>
 
         <!-- Background Controls -->
@@ -136,12 +165,40 @@ const emit = defineEmits<{
 }>()
 
 const settings = useSettingsStore()
+import { uploadImageLocally } from '@/api/supabaseData'
 
 const bgUrlInput = ref(settings.bgUrl)
 const bgOpacityInput = ref(settings.bgOpacity)
 const bgBlurInput = ref(settings.bgBlur)
 const bgScaleInput = ref(settings.bgScale)
 const bgTintOpacityInput = ref(settings.bgTintOpacity)
+
+const fileInput = ref<HTMLInputElement | null>(null)
+const isUploading = ref(false)
+
+const triggerFileSelect = () => {
+  fileInput.value?.click()
+}
+
+const onFileSelected = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  try {
+    isUploading.value = true
+    const { url } = await uploadImageLocally(file)
+    bgUrlInput.value = url
+    applyBgUrl()
+  } catch (err) {
+    console.error('Failed to upload image', err)
+    alert('图片选择失败，请重试')
+  } finally {
+    isUploading.value = false
+    // Reset input value so same file can be selected again if needed
+    target.value = ''
+  }
+}
 
 // Sync local refs and CSS vars when modal opens
 watch(() => props.isOpen, (open) => {
