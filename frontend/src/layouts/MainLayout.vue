@@ -14,10 +14,10 @@
         :src="settingsStore.bgUrl"
         :class="[settingsStore.bgFit === 'cover' ? 'object-cover' : 'object-contain']"
         class="w-full h-full transition-opacity duration-700"
-        style="will-change: transform, filter, object-position;"
+        style="will-change: transform, filter;"
         :style="{
-          objectPosition: `var(--live-bg-pos, ${settingsStore.bgPosX}% ${settingsStore.bgPosY}%)`,
-          transform: `scale(var(--live-bg-scale, ${settingsStore.bgScale / 100}))`,
+          objectPosition: 'center',
+          transform: `scale(var(--live-bg-scale, ${settingsStore.bgScale / 100})) translate(var(--live-bg-offset-x, ${settingsStore.bgPosX - 50}%), var(--live-bg-offset-y, ${settingsStore.bgPosY - 50}%))`,
           filter: `blur(var(--live-bg-blur, ${settingsStore.bgBlur}px))`
         }"
       />

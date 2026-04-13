@@ -102,8 +102,8 @@
                   class="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-40 transition-all duration-500"
                   :class="[bgFitInput === 'cover' ? 'object-cover' : 'object-contain']"
                   :style="{
-                    transform: `scale(${Number(bgScaleInput)/100})`,
-                    objectPosition: `${Number(bgPosXInput)}% ${Number(bgPosYInput)}%`
+                    transform: `scale(${Number(bgScaleInput)/100}) translate(${Number(bgPosXInput) - 50}%, ${Number(bgPosYInput) - 50}%)`,
+                    objectPosition: 'center'
                   }"
                 />
                 
@@ -306,7 +306,8 @@ const syncCssVars = () => {
   r.setProperty('--live-bg-opacity',    String(Number(bgOpacityInput.value) / 100))
   r.setProperty('--live-bg-blur',       `${bgBlurInput.value}px`)
   r.setProperty('--live-bg-scale',      String(Number(bgScaleInput.value) / 100))
-  r.setProperty('--live-bg-pos',        `${bgPosXInput.value}% ${bgPosYInput.value}%`)
+  r.setProperty('--live-bg-offset-x',   `${bgPosXInput.value - 50}%`)
+  r.setProperty('--live-bg-offset-y',   `${bgPosYInput.value - 50}%`)
 }
 
 const themeOptions = [
