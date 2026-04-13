@@ -22,7 +22,30 @@
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Markdown 内容</label>
-            <textarea v-model="form.content_md" required rows="20" class="w-full px-4 py-3 border rounded-lg font-mono text-sm dark:bg-gray-700 dark:border-gray-600"></textarea>
+            <div class="border rounded-lg dark:border-gray-600 overflow-hidden">
+              <div class="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
+                <button type="button" @click="insertText('**', '**')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-bold">B</button>
+                <button type="button" @click="insertText('*', '*')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm italic">I</button>
+                <button type="button" @click="insertText('# ', '')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-bold">H1</button>
+                <button type="button" @click="insertText('## ', '')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-bold">H2</button>
+                <button type="button" @click="insertText('- ', '')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">• 列表</button>
+                <button type="button" @click="insertText('1. ', '')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">1. 列表</button>
+                <button type="button" @click="insertText('> ', '')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">引用</button>
+                <button type="button" @click="insertText('\n```\n', '\n```\n')" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">代码段</button>
+                <label class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm cursor-pointer ml-auto flex items-center text-primary dark:text-primary-light">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                  插图
+                  <input type="file" accept="image/*" class="hidden" @change="handleImageUpload" />
+                </label>
+              </div>
+              <textarea 
+                ref="textareaRef"
+                v-model="form.content_md" 
+                required 
+                rows="20" 
+                class="w-full px-4 py-3 border-0 bg-white dark:bg-gray-700 font-mono text-sm outline-none resize-y focus:ring-0"
+              ></textarea>
+            </div>
           </div>
           <div class="flex gap-3">
             <button type="submit" :disabled="saving" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light disabled:opacity-50 transition-colors">
@@ -47,6 +70,8 @@ import { useRoute, useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import { notesApi } from '@/api/notes'
+import { uploadApi } from '@/api/upload'
+import { resolveAssetUrl } from '@/api/http'
 
 const route = useRoute()
 const router = useRouter()
@@ -58,6 +83,43 @@ const form = ref({
   summary: '',
   content_md: '# 标题\n\n在这里写内容...',
 })
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+
+const insertText = (before: string, after: string = '') => {
+  const el = textareaRef.value
+  if (!el) return
+  
+  const start = el.selectionStart
+  const end = el.selectionEnd
+  const selectedText = form.value.content_md.substring(start, end)
+  
+  const newText = form.value.content_md.substring(0, start) + before + selectedText + after + form.value.content_md.substring(end)
+  form.value.content_md = newText
+  
+  // Set cursor position back after Vue updates
+  setTimeout(() => {
+    el.focus()
+    el.setSelectionRange(start + before.length, start + before.length + selectedText.length)
+  }, 0)
+}
+
+const handleImageUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  try {
+    const result = await uploadApi.image(file)
+    const imgMd = `![${result.original_name}](${resolveAssetUrl(result.url)})`
+    insertText(imgMd, '')
+  } catch (error) {
+    console.error('上传图片失败:', error)
+    alert('图片上传失败')
+  } finally {
+    target.value = '' // reset
+  }
+}
+
 
 const md = new MarkdownIt({
   highlight: function (str, lang) {

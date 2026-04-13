@@ -196,7 +196,7 @@ const isSettingsOpen = ref(false)
 
 const navItems = [
   { name: 'Dashboard', path: '/' },
-  { name: '代码笔记', path: '/notes' },
+  { name: '学习笔记', path: '/notes' },
   { name: '个人日志', path: '/journals' },
   { name: '爱好追踪', path: '/hobbies' },
 ]

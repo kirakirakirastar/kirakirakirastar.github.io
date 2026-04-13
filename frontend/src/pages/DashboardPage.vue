@@ -23,7 +23,7 @@
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
           </div>
           <div class="text-3xl font-black text-slate-800 dark:text-white mb-1">{{ stats.notes_count }}</div>
-          <div class="text-sm text-slate-500 dark:text-slate-200 font-semibold tracking-wide">代码笔记</div>
+          <div class="text-sm text-slate-500 dark:text-slate-200 font-semibold tracking-wide">学习笔记</div>
         </div>
       </div>
 

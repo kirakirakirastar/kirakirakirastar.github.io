@@ -2,7 +2,7 @@
   <div class="w-full px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
     <div class="flex justify-between items-end mb-10">
       <div>
-        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">代码笔记</h1>
+        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">学习笔记</h1>
         <p class="text-gray-500 dark:text-gray-400">所有技术探索的堆叠与存放区</p>
       </div>
       <router-link
