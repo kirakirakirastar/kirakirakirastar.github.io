@@ -14,49 +14,14 @@ export const useSettingsStore = defineStore('settings', () => {
   const bgPosY = ref(50)
   const bgFit = ref<'cover' | 'contain'>('cover')
 
-  // Debounced localStorage write — avoids blocking the main thread on every slider tick
-  let saveTimer: ReturnType<typeof setTimeout> | null = null
-  const scheduleSave = () => {
-    if (saveTimer) clearTimeout(saveTimer)
-    saveTimer = setTimeout(() => {
-      localStorage.setItem('app-settings', JSON.stringify({
-        themeColor: themeColor.value,
-        bgUrl: bgUrl.value,
-        bgOpacity: bgOpacity.value,
-        bgBlur: bgBlur.value,
-        bgScale: bgScale.value,
-        bgTintOpacity: bgTintOpacity.value,
-        bgPosX: bgPosX.value,
-        bgPosY: bgPosY.value,
-        bgFit: bgFit.value,
-      }))
-    }, 500)
-  }
-
-  const initSettings = () => {
-    const saved = localStorage.getItem('app-settings')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        if (parsed.themeColor) themeColor.value = parsed.themeColor
-        if (parsed.bgUrl !== undefined) bgUrl.value = parsed.bgUrl
-        if (parsed.bgOpacity !== undefined) bgOpacity.value = parsed.bgOpacity
-        if (parsed.bgBlur !== undefined) bgBlur.value = parsed.bgBlur
-        if (parsed.bgScale !== undefined) bgScale.value = parsed.bgScale
-        if (parsed.bgTintOpacity !== undefined) bgTintOpacity.value = parsed.bgTintOpacity
-        if (parsed.bgPosX !== undefined) bgPosX.value = parsed.bgPosX
-        if (parsed.bgPosY !== undefined) bgPosY.value = parsed.bgPosY
-        if (parsed.bgFit !== undefined) bgFit.value = parsed.bgFit
-      } catch (e) {
-        console.error('Failed to parse settings', e)
-      }
-    }
-    applyThemeClass()
-  }
-
   const applyThemeClass = () => {
     document.documentElement.classList.remove('theme-purple', 'theme-blue', 'theme-emerald', 'theme-rose')
     document.documentElement.classList.add(`theme-${themeColor.value}`)
+  }
+
+  const initSettings = () => {
+    // Note: Hydration is now handled by persistencePlugin
+    applyThemeClass()
   }
 
   const updateSettings = (updates: Partial<{
@@ -70,7 +35,6 @@ export const useSettingsStore = defineStore('settings', () => {
     bgPosY: number
     bgFit: 'cover' | 'contain'
   }>) => {
-    // Only trigger DOM class change when theme color actually changes
     const colorChanged = updates.themeColor !== undefined && updates.themeColor !== themeColor.value
 
     if (updates.themeColor) themeColor.value = updates.themeColor
@@ -83,11 +47,7 @@ export const useSettingsStore = defineStore('settings', () => {
     if (updates.bgPosY !== undefined) bgPosY.value = updates.bgPosY
     if (updates.bgFit !== undefined) bgFit.value = updates.bgFit
 
-    // Only update DOM class when color actually changed — not on every slider tick
     if (colorChanged) applyThemeClass()
-
-    // Debounced save — won't write to disk until 500ms after last change
-    scheduleSave()
   }
 
   return {
@@ -95,4 +55,6 @@ export const useSettingsStore = defineStore('settings', () => {
     bgPosX, bgPosY, bgFit,
     initSettings, updateSettings,
   }
+}, {
+  persist: { key: 'app-settings' }
 })

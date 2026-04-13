@@ -4,11 +4,11 @@
 
 @layer base {
   :root, .theme-blue {
-    --color-primary: #2563eb;
-    --color-primary-light: #60a5fa;
+    --color-primary: var(--live-primary-color, #2563eb);
+    --color-primary-light: var(--live-primary-light, #60a5fa);
     --color-secondary: #0ea5e9;
     --color-secondary-light: #7dd3fc;
-    --color-accent-soft: rgba(37, 99, 235, 0.1);
+    --color-accent-soft: rgba(var(--live-primary-color, 37, 99, 235), 0.1);
     --color-bg-page: #f8fafc;
     --color-bg-page-dark: #0f172a;
     --color-bg-card-dark: #1e293b;

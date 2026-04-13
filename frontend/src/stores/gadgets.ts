@@ -380,5 +380,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
     initGadgets, addTodo, updateTodoStatus, postponeTodo, updateTodo, failTodo, removeTodo,
     canCheckin, doCheckin, updateCheckinRecord, addAnnouncement, removeAnnouncement
   }
+}, {
+  persist: true
 })
 

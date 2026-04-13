@@ -5,6 +5,7 @@
     <img 
       v-if="settingsStore.bgUrl"
       :src="settingsStore.bgUrl"
+      @load="handleImageLoad"
       :class="[settingsStore.bgFit === 'cover' ? 'object-cover' : 'object-contain']"
       class="w-full h-full transition-opacity duration-700"
       style="will-change: transform, filter; transform: translateZ(0);"
@@ -26,6 +27,7 @@
 <script setup lang="ts">
 import { computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import { getDominantColor } from '@/utils/colorExtraction'
 
 const settingsStore = useSettingsStore()
 
@@ -52,6 +54,18 @@ onMounted(() => {
   updateCssVars()
 })
 
+const handleImageLoad = async () => {
+  if (!settingsStore.bgUrl) return
+  try {
+    const color = await getDominantColor(settingsStore.bgUrl)
+    document.documentElement.style.setProperty('--live-primary-color', color)
+    // Also derive a lighter version for hover states/badges
+    document.documentElement.style.setProperty('--live-primary-light', color.replace('%)', ', 0.15)'))
+  } catch (e) {
+    console.error('Failed to extract color:', e)
+  }
+}
+
 // Update CSS variables when settings change
 watch([
   () => settingsStore.bgTintOpacity,
@@ -59,7 +73,8 @@ watch([
   () => settingsStore.bgBlur,
   () => settingsStore.bgScale,
   () => settingsStore.bgPosX,
-  () => settingsStore.bgPosY
+  () => settingsStore.bgPosY,
+  () => settingsStore.bgUrl
 ], () => {
   updateCssVars()
 })

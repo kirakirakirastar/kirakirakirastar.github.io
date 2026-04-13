@@ -25,7 +25,12 @@
           </div>
           <Skeleton v-if="loading" width="60px" height="40px" custom-class="mb-2" />
           <div v-else class="text-4xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{{ stats.notes_count }}</div>
-          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">学习笔记</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
+            <span>学习笔记</span>
+            <div class="flex gap-1 ml-2">
+              <div v-for="i in 7" :key="i" class="w-1 h-1 rounded-full" :class="i <= (gadgetStore.checkin.streak % 7 || (gadgetStore.checkin.streak > 0 ? 7 : 0)) ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -37,7 +42,12 @@
           </div>
           <Skeleton v-if="loading" width="60px" height="40px" custom-class="mb-2" />
           <div v-else class="text-4xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{{ stats.journals_count }}</div>
-          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">个人日志</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
+            <span>个人日志</span>
+            <div class="flex gap-1 ml-2">
+              <div v-for="i in 7" :key="i" class="w-1 h-1 rounded-full" :class="i <= (gadgetStore.checkin.streak % 7 || (gadgetStore.checkin.streak > 0 ? 7 : 0)) ? 'bg-purple-500' : 'bg-slate-200 dark:bg-slate-700'"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -49,7 +59,12 @@
           </div>
           <Skeleton v-if="loading" width="60px" height="40px" custom-class="mb-2" />
           <div v-else class="text-4xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{{ stats.hobbies_count }}</div>
-          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">爱好条目</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
+            <span>爱好条目</span>
+            <div class="flex gap-1 ml-2">
+              <div v-for="i in 7" :key="i" class="w-1 h-1 rounded-full" :class="i <= (gadgetStore.checkin.streak % 7 || (gadgetStore.checkin.streak > 0 ? 7 : 0)) ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -85,7 +100,12 @@
           </div>
           <Skeleton v-if="loading" width="60px" height="40px" custom-class="mb-2" />
           <div v-else class="text-4xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{{ stats.month_updates }}</div>
-          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">本月更新</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
+            <span>本月更新</span>
+            <div class="flex gap-1 ml-2">
+              <div v-for="i in 7" :key="i" class="w-1 h-1 rounded-full" :class="i <= (gadgetStore.checkin.streak % 7 || (gadgetStore.checkin.streak > 0 ? 7 : 0)) ? 'bg-amber-500' : 'bg-slate-200 dark:bg-slate-700'"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
