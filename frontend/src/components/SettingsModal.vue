@@ -176,7 +176,7 @@
                     <label class="text-xs font-bold text-slate-500">水平位移</label>
                     <span class="text-xs font-mono text-primary">{{ bgPosXInput }}%</span>
                   </div>
-                  <input type="range" v-model="bgPosXInput" @input="applyBgParams" min="0" max="100" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
+                  <input type="range" v-model="bgPosXInput" @input="applyBgParams" min="-100" max="200" step="1" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
                 </div>
 
                 <!-- Position Y -->
@@ -185,7 +185,7 @@
                     <label class="text-xs font-bold text-slate-500">垂直位移</label>
                     <span class="text-xs font-mono text-primary">{{ bgPosYInput }}%</span>
                   </div>
-                  <input type="range" v-model="bgPosYInput" @input="applyBgParams" min="0" max="100" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
+                  <input type="range" v-model="bgPosYInput" @input="applyBgParams" min="-100" max="200" step="1" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" />
                 </div>
 
                 <!-- Fit Mode -->
