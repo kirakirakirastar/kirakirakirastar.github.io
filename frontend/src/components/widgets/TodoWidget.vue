@@ -125,8 +125,6 @@
             </svg>
           </div>
 
-          </div>
-          
           <div class="flex items-center opacity-0 group-hover/item:opacity-100 transition-opacity">
             <!-- Postpone -->
             <button 
