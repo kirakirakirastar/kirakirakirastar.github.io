@@ -47,7 +47,9 @@
 
     <!-- Notes List -->
     <div v-if="loading" class="text-center py-12 text-gray-400 animate-pulse">加载中...</div>
-    <div v-else-if="notes.length === 0" class="text-center py-12 text-gray-500">暂无笔记</div>
+    <div v-else-if="notes.length === 0">
+      <EmptyState title="暂无笔记" message="点击上方新建按钮创建" />
+    </div>
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
       <div
         v-for="note in notes"
@@ -82,6 +84,7 @@ import { ref, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import { notesApi } from '@/api/notes'
 import { useAuthStore } from '@/stores/auth'
+import EmptyState from '@/components/ui/EmptyState.vue'
 
 const authStore = useAuthStore()
 const loading = ref(true)
