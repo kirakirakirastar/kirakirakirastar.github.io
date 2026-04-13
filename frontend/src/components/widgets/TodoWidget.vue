@@ -105,20 +105,49 @@
           </button>
           
           <div class="flex-1 min-w-0 flex flex-col justify-center">
-            <span 
-              class="text-sm font-medium transition-all truncate block"
-              :class="{ 
-                'text-slate-700 dark:text-slate-200': todo.status === 'pending',
-                'text-slate-400 line-through decoration-slate-400': todo.status === 'completed',
-                'text-red-700 dark:text-red-400 line-through decoration-red-400/50': todo.status === 'failed'
-              }"
-            >
-              {{ todo.text }}
-            </span>
-            <div v-if="todo.start_date || todo.due_date" class="text-[11px] mt-0.5 tracking-wide flex items-center gap-1" :class="getDateClass(todo)">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-              {{ formatDateRange(todo.start_date, todo.due_date) }}
-              <span v-if="todo.status === 'failed'" class="ml-1 text-red-500 font-bold">(已失效)</span>
+            <!-- Normal Mode: Text & Dates -->
+            <template v-if="editingTodoId !== todo.id">
+              <span 
+                @dblclick="startEditing(todo)"
+                class="text-sm font-medium transition-all truncate block cursor-text select-none"
+                :class="{ 
+                  'text-slate-700 dark:text-slate-200': todo.status === 'pending',
+                  'text-slate-400 line-through decoration-slate-400': todo.status === 'completed',
+                  'text-red-700 dark:text-red-400 line-through decoration-red-400/50': todo.status === 'failed'
+                }"
+              >
+                {{ todo.text }}
+              </span>
+              <div @dblclick="startEditing(todo)" v-if="todo.start_date || todo.due_date" class="text-[11px] mt-0.5 tracking-wide flex items-center gap-1 cursor-pointer" :class="getDateClass(todo)">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                {{ formatDateRange(todo.start_date, todo.due_date) }}
+                <span v-if="todo.status === 'failed'" class="ml-1 text-red-500 font-bold">(已失效)</span>
+              </div>
+            </template>
+
+            <!-- Edit Mode: Inputs -->
+            <div v-else class="space-y-2 py-1">
+              <input 
+                v-model="tempTodoText"
+                @keyup.enter="saveEditing(todo)"
+                @keyup.esc="cancelEditing"
+                type="text"
+                class="w-full bg-white dark:bg-slate-800 border border-primary/30 dark:border-primary/20 rounded-lg px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                autofocus
+              />
+              <div class="flex items-center gap-1">
+                <input 
+                  v-model="tempTodoStartDate"
+                  type="date"
+                  class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 rounded-lg px-1.5 py-0.5 text-[10px] outline-none [color-scheme:dark]"
+                />
+                <span class="text-slate-400">-</span>
+                <input 
+                  v-model="tempTodoDueDate"
+                  type="date"
+                  class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 rounded-lg px-1.5 py-0.5 text-[10px] outline-none [color-scheme:dark]"
+                />
+              </div>
             </div>
           </div>
 
@@ -146,47 +175,84 @@
           </button>
           
           <div class="flex items-center opacity-0 group-hover/item:opacity-100 transition-opacity ml-1">
-            <!-- Postpone Group -->
-            <div v-if="todo.status === 'pending'" class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg mr-1 overflow-hidden p-0.5">
+            <!-- Edit Actions (Save/Cancel) -->
+            <template v-if="editingTodoId === todo.id">
               <button 
-                @click="gadgetStore.postponeTodo(todo.id, 1)"
-                class="px-1.5 py-1 text-[9px] font-black text-slate-500 hover:text-primary hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all"
-                title="推迟1天"
-              >+1D</button>
+                @click="saveEditing(todo)"
+                class="p-1.5 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
+                title="保存"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
               <button 
-                @click="gadgetStore.postponeTodo(todo.id, 3)"
-                class="px-1.5 py-1 text-[9px] font-black text-slate-500 hover:text-primary hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all border-l border-slate-200 dark:border-white/5"
-                title="推迟3天"
-              >+3D</button>
-              <button 
-                @click="gadgetStore.postponeTodo(todo.id, 7)"
-                class="px-1.5 py-1 text-[9px] font-black text-slate-500 hover:text-primary hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all border-l border-slate-200 dark:border-white/5"
-                title="推迟1周"
-              >+1W</button>
-            </div>
+                @click="cancelEditing"
+                class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                title="取消"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </template>
 
-            <!-- Manual Fail -->
-            <button 
-              v-if="todo.status === 'pending'"
-              @click="gadgetStore.failTodo(todo.id)"
-              class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-              title="标记为失败"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
+            <!-- Regular Actions -->
+            <template v-else>
+              <!-- Edit Toggle -->
+              <button 
+                v-if="todo.status === 'pending'"
+                @click="startEditing(todo)"
+                class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+                title="编辑内容"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+              </button>
 
-            <!-- Delete -->
-            <button 
-              @click="gadgetStore.removeTodo(todo.id)"
-              class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-              title="删除任务"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-              </svg>
-            </button>
+              <!-- Postpone Group -->
+              <div v-if="todo.status === 'pending'" class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg mr-1 overflow-hidden p-0.5">
+                <button 
+                  @click="gadgetStore.postponeTodo(todo.id, 1)"
+                  class="px-1.5 py-1 text-[9px] font-black text-slate-500 hover:text-primary hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all"
+                  title="推迟1天"
+                >+1D</button>
+                <button 
+                  @click="gadgetStore.postponeTodo(todo.id, 3)"
+                  class="px-1.5 py-1 text-[9px] font-black text-slate-500 hover:text-primary hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all border-l border-slate-200 dark:border-white/5"
+                  title="推迟3天"
+                >+3D</button>
+                <button 
+                  @click="gadgetStore.postponeTodo(todo.id, 7)"
+                  class="px-1.5 py-1 text-[9px] font-black text-slate-500 hover:text-primary hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all border-l border-slate-200 dark:border-white/5"
+                  title="推迟1周"
+                >+1W</button>
+              </div>
+
+              <!-- Manual Fail -->
+              <button 
+                v-if="todo.status === 'pending'"
+                @click="gadgetStore.failTodo(todo.id)"
+                class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                title="标记为失败"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+
+              <!-- Delete -->
+              <button 
+                @click="gadgetStore.removeTodo(todo.id)"
+                class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                title="删除任务"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </template>
           </div>
         </div>
       </transition-group>
@@ -273,6 +339,33 @@ const newTodoStartDate = ref(todayStr)
 const newTodoDueDate = ref(todayStr)
 const newTodoRecurrence = ref('none')
 const showArchive = ref(false)
+
+// Editing State
+const editingTodoId = ref<string | null>(null)
+const tempTodoText = ref('')
+const tempTodoStartDate = ref('')
+const tempTodoDueDate = ref('')
+
+const startEditing = (todo: any) => {
+  editingTodoId.value = todo.id
+  tempTodoText.value = todo.text
+  tempTodoStartDate.value = todo.start_date || ''
+  tempTodoDueDate.value = todo.due_date || ''
+}
+
+const cancelEditing = () => {
+  editingTodoId.value = null
+}
+
+const saveEditing = async (todo: any) => {
+  if (!tempTodoText.value.trim()) return
+  await gadgetStore.updateTodo(todo.id, {
+    text: tempTodoText.value.trim(),
+    start_date: tempTodoStartDate.value || null,
+    due_date: tempTodoDueDate.value || null
+  })
+  editingTodoId.value = null
+}
 
 const activeTodos = computed(() => {
   return gadgetStore.todos.filter(t => {
