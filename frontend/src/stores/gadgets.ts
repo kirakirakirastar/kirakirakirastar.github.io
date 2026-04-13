@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import dayjs from 'dayjs'
 import { todosApi, checkinApi, announcementsApi } from '@/api/gadgets'
 import { useAuthStore } from '@/stores/auth'
+import { supabase } from '@/api/supabase'
+import { getErrorMessage } from '@/utils/error'
 
 export interface Todo {
   id: string
@@ -43,6 +45,8 @@ export const useGadgetStore = defineStore('gadgets', () => {
   const loading = ref(false)
 
   let currentRequestId = 0
+  let todoChannel: any = null
+  let checkinChannel: any = null
 
   const initGadgets = async () => {
     const requestId = ++currentRequestId
@@ -57,28 +61,28 @@ export const useGadgetStore = defineStore('gadgets', () => {
           announcementsApi.list()
         ])
         
-        if (requestId !== currentRequestId) return // Abort if a newer request started
+        if (requestId !== currentRequestId) return
         
         todos.value = todosRes.status === 'fulfilled' ? todosRes.value : []
         checkin.value = checkinRes.status === 'fulfilled' ? (checkinRes.value || { last_date: null, streak: 0, total_count: 0 }) : { last_date: null, streak: 0, total_count: 0 }
         announcements.value = announcementsRes.status === 'fulfilled' ? announcementsRes.value : []
+
+        // Setup Real-time
+        setupRealtime()
       } else {
         // Guest: Only fetch announcements
         try {
           const announcementsData = await announcementsApi.list()
-          
-          if (requestId !== currentRequestId) return // Abort if a newer request started
-          
+          if (requestId !== currentRequestId) return
           announcements.value = announcementsData
         } catch (e) {
           console.error('Failed to fetch announcements for guest:', e)
         }
         
-        if (requestId !== currentRequestId) return // Abort if a newer request started
-        
-        // Reset private data
+        if (requestId !== currentRequestId) return
         todos.value = []
         checkin.value = { last_date: null, streak: 0, total_count: 0 }
+        cleanupRealtime()
       }
     } catch (e) {
       console.error('Critical failure in initGadgets:', e)
@@ -89,33 +93,121 @@ export const useGadgetStore = defineStore('gadgets', () => {
     }
   }
 
+  const setupRealtime = () => {
+    cleanupRealtime()
+    
+    if (!authStore.user) return
+
+    // Subscribe to todos for current user
+    todoChannel = supabase
+      .channel('todos-realtime')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'todos',
+        filter: `user_id=eq.${authStore.user.id}`
+      }, (payload) => {
+        handleTodoRealtime(payload)
+      })
+      .subscribe()
+
+    // Subscribe to checkins
+    checkinChannel = supabase
+      .channel('checkins-realtime')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'checkins',
+        filter: `user_id=eq.${authStore.user.id}`
+      }, (payload) => {
+        if (payload.new) checkin.value = payload.new as CheckinState
+      })
+      .subscribe()
+  }
+
+  const cleanupRealtime = () => {
+    if (todoChannel) supabase.removeChannel(todoChannel)
+    if (checkinChannel) supabase.removeChannel(checkinChannel)
+    todoChannel = null
+    checkinChannel = null
+  }
+
+  const handleTodoRealtime = (payload: any) => {
+    const { eventType, new: newRecord, old: oldRecord } = payload
+    
+    if (eventType === 'INSERT') {
+      if (!todos.value.find(t => t.id === newRecord.id)) {
+        todos.value.unshift(newRecord as Todo)
+      }
+    } else if (eventType === 'UPDATE') {
+      const index = todos.value.findIndex(t => t.id === newRecord.id)
+      if (index !== -1) {
+        todos.value[index] = { ...todos.value[index], ...newRecord }
+      }
+    } else if (eventType === 'DELETE') {
+      todos.value = todos.value.filter(t => t.id !== oldRecord.id)
+    }
+  }
+
   // --- Todo Actions ---
   const addTodo = async (text: string, payloadUpdates?: any) => {
     if (!text.trim()) return
+    
+    // Optimistic Update
+    const tempId = `temp-${Date.now()}`
+    const tempTodo: Todo = {
+      id: tempId,
+      text: text.trim(),
+      completed: false,
+      status: 'pending',
+      priority: payloadUpdates?.priority || 'medium',
+      recurrence: payloadUpdates?.recurrence || 'none',
+      created_at: new Date().toISOString(),
+      ...payloadUpdates
+    }
+    
+    todos.value.unshift(tempTodo)
+
     try {
       const newTodo = await todosApi.create(text.trim(), payloadUpdates)
-      todos.value.unshift(newTodo)
+      // Replace temp id with real id
+      const index = todos.value.findIndex(t => t.id === tempId)
+      if (index !== -1) {
+        todos.value[index] = newTodo
+      }
     } catch (e) {
-      console.error('Failed to create todo:', e)
+      // Rollback
+      todos.value = todos.value.filter(t => t.id !== tempId)
+      console.error(getErrorMessage(e))
     }
   }
 
   const updateTodoStatus = async (id: string, status: string) => {
     const todo = todos.value.find(t => t.id === id)
-    if (todo) {
-      try {
-        const updated = await todosApi.updateStatus(id, status)
-        
-        // Handle recurrence: spawn next occurrence if marked completed
-        if (status === 'completed' && todo.recurrence && todo.recurrence !== 'none') {
-          handleRecurrence(todo)
-        }
+    if (!todo) return
 
-        todo.status = updated.status
-        todo.completed = updated.completed
-      } catch (e) {
-        console.error('Failed to update todo status:', e)
+    const oldStatus = todo.status
+    const oldCompleted = todo.completed
+
+    // Optimistic Update
+    todo.status = status
+    todo.completed = status === 'completed'
+
+    try {
+      const updated = await todosApi.updateStatus(id, status)
+      
+      if (status === 'completed' && todo.recurrence && todo.recurrence !== 'none') {
+        handleRecurrence(todo)
       }
+
+      // Sync with exact server data
+      todo.status = updated.status
+      todo.completed = updated.completed
+    } catch (e) {
+      // Rollback
+      todo.status = oldStatus
+      todo.completed = oldCompleted
+      console.error(getErrorMessage(e))
     }
   }
 
@@ -124,7 +216,6 @@ export const useGadgetStore = defineStore('gadgets', () => {
     const now = dayjs().startOf('day')
 
     if (todo.recurrence === 'daily') {
-      // If the task had a due date, increment it. Otherwise use tomorrow.
       const baseDate = todo.due_date ? dayjs(todo.due_date) : now
       nextDueDate = baseDate.add(1, 'day').format('YYYY-MM-DD')
     } else if (todo.recurrence === 'weekly') {
@@ -138,7 +229,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
     if (nextDueDate) {
       addTodo(todo.text, {
         priority: todo.priority,
-        start_date: nextDueDate, // Recurring tasks usually start on their due day
+        start_date: nextDueDate,
         due_date: nextDueDate,
         recurrence: todo.recurrence
       })
@@ -147,34 +238,30 @@ export const useGadgetStore = defineStore('gadgets', () => {
 
   const postponeTodo = async (id: string, days: number = 1) => {
     const todo = todos.value.find(t => t.id === id)
-    if (todo) {
-      const updates: any = {}
-      if (todo.start_date) {
-        updates.start_date = dayjs(todo.start_date).add(days, 'day').format('YYYY-MM-DD')
-      }
-      if (todo.due_date) {
-        updates.due_date = dayjs(todo.due_date).add(days, 'day').format('YYYY-MM-DD')
-      }
-      
-      // If no dates set, postpone creates a due date relative to today
-      if (!todo.start_date && !todo.due_date) {
-        updates.due_date = dayjs().add(days, 'day').format('YYYY-MM-DD')
-      }
+    if (!todo) return
 
-      await updateTodo(id, updates)
-    }
+    const updates: any = {}
+    if (todo.start_date) updates.start_date = dayjs(todo.start_date).add(days, 'day').format('YYYY-MM-DD')
+    if (todo.due_date) updates.due_date = dayjs(todo.due_date).add(days, 'day').format('YYYY-MM-DD')
+    if (!todo.start_date && !todo.due_date) updates.due_date = dayjs().add(days, 'day').format('YYYY-MM-DD')
+
+    // Optional: Optimistic update for postpone too, but it's less frequent
+    await updateTodo(id, updates)
   }
 
   const updateTodo = async (id: string, updates: any) => {
     const todo = todos.value.find(t => t.id === id)
-    if (todo) {
-      try {
-        const data = await todosApi.update(id, updates)
-        // Update local state with returned data
-        Object.assign(todo, data)
-      } catch (e) {
-        console.error('Failed to update todo:', e)
-      }
+    if (!todo) return
+
+    const backup = { ...todo }
+    Object.assign(todo, updates)
+
+    try {
+      const data = await todosApi.update(id, updates)
+      Object.assign(todo, data)
+    } catch (e) {
+      Object.assign(todo, backup)
+      console.error(getErrorMessage(e))
     }
   }
 
@@ -183,11 +270,14 @@ export const useGadgetStore = defineStore('gadgets', () => {
   }
 
   const removeTodo = async (id: string) => {
+    const backup = [...todos.value]
+    todos.value = todos.value.filter(t => t.id !== id)
+
     try {
       await todosApi.delete(id)
-      todos.value = todos.value.filter(t => t.id !== id)
     } catch (e) {
-      console.error('Failed to delete todo:', e)
+      todos.value = backup
+      console.error(getErrorMessage(e))
     }
   }
 
@@ -206,24 +296,33 @@ export const useGadgetStore = defineStore('gadgets', () => {
     const last = checkin.value.last_date ? dayjs(checkin.value.last_date) : null
     
     let newStreak = 1
-    // Simple logic: if checked in yesterday, increment. Otherwise reset to 1.
     if (last && now.subtract(1, 'day').isSame(last, 'day')) {
       newStreak = (checkin.value.streak || 0) + 1
     }
 
+    const backup = { ...checkin.value }
+    // Optimistic
+    checkin.value = {
+      ...checkin.value,
+      last_date: now.format('YYYY-MM-DD'),
+      streak: newStreak,
+      total_count: (checkin.value.total_count || 0) + 1,
+      last_record: record
+    }
+
     try {
-      // Use authStore.user.id for explicit sync mapping
       const updated = await checkinApi.upsert({
         user_id: authStore.user?.id,
         last_date: now.format('YYYY-MM-DD'),
         streak: newStreak,
-        total_count: (checkin.value.total_count || 0) + 1,
+        total_count: (backup.total_count || 0) + 1,
         last_record: record
       })
       checkin.value = updated
       return true
     } catch (e) {
-      console.error('Failed to checkin:', e)
+      checkin.value = backup
+      console.error(getErrorMessage(e))
       return false
     }
   }
@@ -231,6 +330,9 @@ export const useGadgetStore = defineStore('gadgets', () => {
   const updateCheckinRecord = async (record: string) => {
     if (!authStore.user?.id) return false
     
+    const backup = { ...checkin.value }
+    checkin.value.last_record = record
+
     try {
       const updated = await checkinApi.upsert({
         user_id: authStore.user.id,
@@ -242,29 +344,36 @@ export const useGadgetStore = defineStore('gadgets', () => {
       checkin.value = updated
       return true
     } catch (e) {
-      console.error('Failed to update checkin record:', e)
+      checkin.value = backup
+      console.error(getErrorMessage(e))
       return false
     }
   }
 
-  // --- Announcement Actions (For management page) ---
+  // --- Announcement Actions ---
   const addAnnouncement = async (text: string, type: string = 'info') => {
     try {
       const newAnn = await announcementsApi.create(text, type)
       announcements.value.unshift(newAnn)
     } catch (e) {
-      console.error('Failed to create announcement:', e)
+      console.error(getErrorMessage(e))
     }
   }
 
   const removeAnnouncement = async (id: string) => {
+    const backup = [...announcements.value]
+    announcements.value = announcements.value.filter(a => a.id !== id)
     try {
       await announcementsApi.delete(id)
-      announcements.value = announcements.value.filter(a => a.id !== id)
     } catch (e) {
-      console.error('Failed to delete announcement:', e)
+      announcements.value = backup
+      console.error(getErrorMessage(e))
     }
   }
+
+  onUnmounted(() => {
+    cleanupRealtime()
+  })
 
   return {
     todos, checkin, announcements, loading,
@@ -272,3 +381,4 @@ export const useGadgetStore = defineStore('gadgets', () => {
     canCheckin, doCheckin, updateCheckinRecord, addAnnouncement, removeAnnouncement
   }
 })
+

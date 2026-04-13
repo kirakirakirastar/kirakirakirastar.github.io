@@ -50,18 +50,32 @@ const normalizeTags = (tagsRaw: any) => {
 
 export const supabaseNotesApi = {
   list: async (params?: any) => {
-    const { data, error } = await supabase.from('notes').select('*').order('created_at', { ascending: false })
+    let query = supabase.from('notes').select('*')
+    
+    if (params?.keyword) {
+      const kw = `%${params.keyword}%`
+      query = query.or(`title.ilike.${kw},summary.ilike.${kw},content_md.ilike.${kw}`)
+    }
+
+    if (params?.tag) {
+      // Tags are stored as JSONB array of strings or objects.
+      // If it's a string array: .contains('tags', ['tagname'])
+      // But based on create(), it's passed as data.tags (array)
+      query = query.contains('tags', [params.tag])
+    }
+
+    if (params?.year) {
+      const year = Number(params.year)
+      const month = params.month ? Number(params.month) : null
+      const start = month ? new Date(year, month - 1, 1).toISOString() : new Date(year, 0, 1).toISOString()
+      const end = month ? new Date(year, month, 0, 23, 59, 59, 999).toISOString() : new Date(year, 11, 31, 23, 59, 59, 999).toISOString()
+      query = query.gte('created_at', start).lte('created_at', end)
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false })
     if (error) throw error
     
-    let notes = (data || []).map((n: any) => ({ ...n, tags: normalizeTags(n.tags) }))
-
-    notes = notes.filter((note: any) => {
-      const keywordMatch = includesKeyword([note.title, note.summary, note.content_md], params?.keyword)
-      const tagMatch = !params?.tag || note.tags.some((tag: any) => tag.name === params.tag)
-      const archiveMatch = matchesArchive(note.created_at, params?.year, params?.month)
-      return keywordMatch && tagMatch && archiveMatch
-    })
-    return notes
+    return (data || []).map((n: any) => ({ ...n, tags: normalizeTags(n.tags) }))
   },
 
   create: async (data: any) => {
@@ -123,16 +137,24 @@ export const supabaseNotesApi = {
 
 export const supabaseJournalsApi = {
   list: async (params?: any) => {
-    const { data, error } = await supabase.from('journals').select('*').order('created_at', { ascending: false })
+    let query = supabase.from('journals').select('*')
+
+    if (params?.keyword) {
+      const kw = `%${params.keyword}%`
+      query = query.or(`title.ilike.${kw},excerpt.ilike.${kw}`)
+    }
+
+    if (params?.year) {
+      const year = Number(params.year)
+      const month = params.month ? Number(params.month) : null
+      const start = month ? new Date(year, month - 1, 1) : new Date(year, 0, 1)
+      const end = month ? new Date(year, month, 0, 23, 59, 59) : new Date(year, 11, 31, 23, 59, 59)
+      query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString())
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false })
     if (error) throw error
-    
-    let journals = data || []
-    journals = journals.filter((journal: any) => {
-      const keywordMatch = includesKeyword([journal.title, journal.excerpt, journal.content_html], params?.keyword)
-      const archiveMatch = matchesArchive(journal.created_at, params?.year, params?.month)
-      return keywordMatch && archiveMatch
-    })
-    return journals
+    return data || []
   },
 
   create: async (data: any) => {
