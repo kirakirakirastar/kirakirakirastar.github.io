@@ -135,17 +135,24 @@ const currentItems = computed(() => {
 const loadAll = async () => {
   loading.value = true
   try {
-    const [notes, journals, hobbies] = await Promise.all([
+    // 采用更具容错性的并发处理，防止单一模块失败阻塞全局
+    const [notesRes, journalsRes, hobbiesRes] = await Promise.allSettled([
       supabaseNotesApi.listTrash(),
       supabaseJournalsApi.listTrash(),
       supabaseHobbiesApi.listTrash()
     ])
-    trashedNotes.value = notes
-    trashedJournals.value = journals
-    trashedHobbies.value = hobbies
+    
+    if (notesRes.status === 'fulfilled') trashedNotes.value = notesRes.value
+    if (journalsRes.status === 'fulfilled') trashedJournals.value = journalsRes.value
+    if (hobbiesRes.status === 'fulfilled') trashedHobbies.value = hobbiesRes.value
+    
+    // 如果有失败的（通常是数据库字段未准备好），进行静默处理或个别提示
+    if (hobbiesRes.status === 'rejected') {
+      console.warn('Hobbies trash failed to load, probably missing deleted_at column:', hobbiesRes.reason)
+    }
   } catch (err) {
-    console.error('Failed to load trash:', err)
-    uiStore.addToast('无法加载回收站内容', 'error')
+    console.error('Critical failed to load trash:', err)
+    uiStore.addToast('回收站服务暂时不可用', 'error')
   } finally {
     loading.value = false
   }
