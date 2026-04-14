@@ -1,10 +1,10 @@
 <template>
-  <div class="mini-heatmap flex gap-[3px] select-none pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity duration-500">
-    <div v-for="(week, weekIndex) in miniData" :key="weekIndex" class="flex flex-col gap-[3px]">
+  <div class="mini-heatmap flex gap-[3.5px] select-none pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity duration-500">
+    <div v-for="(week, weekIndex) in miniData" :key="weekIndex" class="flex flex-col gap-[3.5px]">
       <div 
         v-for="(day, dayIndex) in week" 
         :key="dayIndex"
-        class="w-[6px] h-[6px] rounded-[1.5px] transition-colors duration-500"
+        class="w-[6px] h-[6px] rounded-[1.8px] transition-colors duration-500"
         :style="getCellStyle(day)"
       ></div>
     </div>

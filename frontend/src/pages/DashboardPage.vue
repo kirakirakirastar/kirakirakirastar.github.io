@@ -22,8 +22,8 @@
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
       <div 
         @click="toggleCategory('notes')"
-        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-300 cursor-pointer relative overflow-hidden" 
-        :class="activeHeatmapCategory === 'notes' ? 'border-indigo-500/50 shadow-[0_20px_50px_rgba(99,102,241,0.2)] ring-2 ring-indigo-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-1'"
+        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-500 cursor-pointer relative overflow-hidden" 
+        :class="activeHeatmapCategory === 'notes' ? 'border-indigo-500/50 shadow-[0_20px_50px_rgba(99,102,241,0.2)] ring-2 ring-indigo-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-2'"
         style="--delay: 200ms"
       >
         <div class="flex flex-col h-full">
@@ -45,8 +45,8 @@
 
       <div 
         @click="toggleCategory('journals')"
-        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-300 cursor-pointer relative overflow-hidden" 
-        :class="activeHeatmapCategory === 'journals' ? 'border-purple-500/50 shadow-[0_20px_50px_rgba(168,85,247,0.2)] ring-2 ring-purple-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-1'"
+        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-500 cursor-pointer relative overflow-hidden" 
+        :class="activeHeatmapCategory === 'journals' ? 'border-purple-500/50 shadow-[0_20px_50px_rgba(168,85,247,0.2)] ring-2 ring-purple-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-2'"
         style="--delay: 300ms"
       >
         <div class="flex flex-col h-full">
@@ -68,8 +68,8 @@
 
       <div 
         @click="toggleCategory('hobbies')"
-        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-300 cursor-pointer relative overflow-hidden" 
-        :class="activeHeatmapCategory === 'hobbies' ? 'border-blue-500/50 shadow-[0_20px_50px_rgba(59,130,246,0.2)] ring-2 ring-blue-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-1'"
+        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-500 cursor-pointer relative overflow-hidden" 
+        :class="activeHeatmapCategory === 'hobbies' ? 'border-blue-500/50 shadow-[0_20px_50px_rgba(59,130,246,0.2)] ring-2 ring-blue-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-2'"
         style="--delay: 400ms"
       >
         <div class="flex flex-col h-full">
@@ -92,8 +92,8 @@
       <!-- Todos Stat -->
       <div 
         @click="toggleCategory('todos')"
-        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-300 cursor-pointer relative overflow-hidden" 
-        :class="activeHeatmapCategory === 'todos' ? 'border-emerald-500/50 shadow-[0_20px_50px_rgba(16,185,129,0.2)] ring-2 ring-emerald-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-1'"
+        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-500 cursor-pointer relative overflow-hidden" 
+        :class="activeHeatmapCategory === 'todos' ? 'border-emerald-500/50 shadow-[0_20px_50px_rgba(16,185,129,0.2)] ring-2 ring-emerald-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-2'"
         style="--delay: 500ms"
       >
         <div class="flex flex-col h-full">
@@ -124,10 +124,10 @@
       <!-- Master Perspective Stat (All Categories) -->
       <div 
         @click="activeHeatmapCategory = 'all'; selectedDate = null; isHeatmapExpanded = !isHeatmapExpanded"
-        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-700 cursor-pointer relative overflow-hidden" 
+        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-500 cursor-pointer relative overflow-hidden" 
         :class="[
           isHeatmapExpanded ? 'col-span-2 md:col-span-3 lg:col-span-5' : '',
-          activeHeatmapCategory === 'all' ? 'border-amber-500 shadow-[0_20px_60px_rgba(245,158,11,0.25)] ring-2 ring-amber-500/30 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-2xl hover:-translate-y-1'
+          activeHeatmapCategory === 'all' ? 'border-amber-500 shadow-[0_20px_60px_rgba(245,158,11,0.25)] ring-2 ring-amber-500/30 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-2xl hover:-translate-y-2'
         ]"
         style="--delay: 600ms"
       >
@@ -157,7 +157,8 @@
 
           <!-- Heatmap Content -->
           <div 
-            class="transition-all duration-700 ease-in-out"
+            class="transition-all duration-500 ease-in-out"
+            @click.stop
             :class="isHeatmapExpanded ? 'mt-10 opacity-100 scale-100' : 'max-h-0 opacity-0 scale-95 pointer-events-none'"
           >
             <ActivityHeatmap 

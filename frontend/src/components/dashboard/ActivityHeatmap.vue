@@ -318,7 +318,11 @@ const getCellStyle = (day: any) => {
 
   const intensity = Math.min(0.2 + (currentCount * 0.15), 1)
   
-  const hasContentToFill = currentCount > 0 || (isFuture && day.count.schedules > 0)
+  // Visibility filters per user request
+  const showSchedules = props.activeCategory === 'all' || props.activeCategory === 'schedules'
+  const showCheckins = props.activeCategory === 'all' || props.activeCategory === 'checkins'
+
+  const hasContentToFill = currentCount > 0 || (isFuture && day.count.schedules > 0 && showSchedules)
 
   return {
     ...(hasContentToFill ? {
@@ -327,9 +331,9 @@ const getCellStyle = (day: any) => {
       boxShadow: currentCount > 3 ? `0 0 20px ${targetColor}60` : 'none',
     } : {}),
     transform: 'scale(1)',
-    border: isFuture ? '1px dashed rgba(148, 163, 184, 0.4)' : 'none',
-    // Border highlight for any day with a check-in (supports reconstructed history)
-    ...((day.count.checkins > 0 || (day.date === dayjs().format('YYYY-MM-DD') && props.todayCheckedIn)) ? {
+    border: (isFuture && showSchedules) ? '1px dashed rgba(148, 163, 184, 0.4)' : 'none',
+    // Border highlight for any day with a check-in (supports reconstructed history), filtered by category
+    ...((showCheckins && (day.count.checkins > 0 || (day.date === dayjs().format('YYYY-MM-DD') && props.todayCheckedIn))) ? {
       outline: '2.5px solid #f59e0b',
       outlineOffset: '2px',
       boxShadow: `0 0 15px #f59e0b90, ${currentCount > 3 ? `0 0 20px ${targetColor}60` : '0 0 0 transparent'}`,
