@@ -165,6 +165,7 @@
               :activities="activities" 
               :active-category="activeHeatmapCategory" 
               :selected-date="selectedDate"
+              :today-checked-in="!gadgetStore.canCheckin()"
               @day-click="selectedDate = $event"
             />
           </div>

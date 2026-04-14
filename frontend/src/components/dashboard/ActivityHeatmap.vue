@@ -42,21 +42,13 @@
           </button>
         </div>
 
-        <button 
-          @click.stop="isCollapsed = !isCollapsed"
-          class="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 text-slate-400 transition-all duration-500 hover:shadow-lg active:scale-95 group"
-        >
-          <svg class="w-5 h-5 transition-transform duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) group-hover:text-primary" :class="{ 'rotate-180': isCollapsed }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
+
       </div>
     </div>
 
     <!-- Main Content Area: Centered Grid -->
     <div 
-      class="grid-container transition-all duration-700 ease-in-out w-full"
-      :class="isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[800px] opacity-100 overflow-visible'"
+    class="grid-container transition-all duration-700 ease-in-out w-full max-h-[800px] opacity-100 overflow-visible"
     >
       <div class="flex w-full items-start px-2">
         <!-- Y-Axis: Day Labels -->
@@ -159,13 +151,14 @@ const props = defineProps<{
   activities: Record<string, DayCount>
   activeCategory: keyof DayCount | 'all'
   selectedDate?: string | null
+  todayCheckedIn?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'day-click', date: string | null): void
 }>()
 
-const isCollapsed = ref(false)
+
 const selectedYear = ref<'rolling' | number>('rolling')
 
 const categories = [
@@ -277,7 +270,13 @@ const getCellStyle = (day: any) => {
     backgroundColor: targetColor,
     opacity: intensity,
     boxShadow: currentCount > 3 ? `0 0 20px ${targetColor}60` : 'none',
-    transform: `scale(${isCollapsed.value ? 0.85 : 1})`
+    transform: 'scale(1)',
+    ...(day.date === dayjs().format('YYYY-MM-DD') && props.todayCheckedIn ? {
+      outline: '2.5px solid #f59e0b',
+      outlineOffset: '2px',
+      boxShadow: `0 0 15px #f59e0b90, ${currentCount > 3 ? `0 0 20px ${targetColor}60` : '0 0 0 transparent'}`,
+      zIndex: 10
+    } : {})
   }
 }
 </script>
