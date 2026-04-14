@@ -227,12 +227,12 @@ const heatmapData = computed(() => {
 })
 
 const getCellStyle = (day: any) => {
-  const currentCount = activeCategory.value === 'all' ? day.count.total : day.count[activeCategory.value]
+  const currentCount = props.activeCategory === 'all' ? day.count.total : day.count[props.activeCategory]
   if (currentCount === 0) return {}
 
   let targetColor = ''
-  if (activeCategory.value !== 'all') {
-    targetColor = categories.find(c => c.id === activeCategory.value)?.color || '#6366f1'
+  if (props.activeCategory !== 'all') {
+    targetColor = categories.find(c => c.id === props.activeCategory)?.color || '#6366f1'
   } else {
     const catData = [
       { id: 'notes', val: day.count.notes, col: '#6366f1' },
