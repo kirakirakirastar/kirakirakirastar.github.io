@@ -8,11 +8,20 @@
         <div class="flex justify-between items-start mb-4">
           <div>
             <h1 class="text-3xl font-bold mb-2">{{ journal.title }}</h1>
-            <div class="flex items-center gap-4 text-gray-500 text-sm">
+            <div class="flex items-center gap-4 text-gray-500 text-sm mb-4">
               <span>{{ formatDate(journal.created_at) }}</span>
               <span class="flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 阅读 {{ readingTime }} 分钟
+              </span>
+            </div>
+            <div v-if="journal.tags && journal.tags.length > 0" class="flex flex-wrap gap-2">
+              <span
+                v-for="tag in journal.tags"
+                :key="tag.id"
+                class="px-2.5 py-1 text-xs font-medium bg-secondary/10 text-secondary dark:text-secondary-light border border-secondary/20 rounded-full"
+              >
+                {{ tag.name }}
               </span>
             </div>
           </div>

@@ -19,6 +19,7 @@ export interface Journal {
   excerpt: string
   content_html: string
   content_json: string
+  tags: Tag[]
   created_at: string
   updated_at: string
 }

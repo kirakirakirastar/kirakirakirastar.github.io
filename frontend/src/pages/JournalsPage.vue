@@ -25,6 +25,14 @@
           @input="debouncedSearch"
         />
         <select
+          v-model="selectedTag"
+          class="w-full sm:w-auto px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
+          @change="loadJournals"
+        >
+          <option value="">所有标签</option>
+          <option v-for="tag in tags" :key="tag.id" :value="tag.name">{{ tag.name }}</option>
+        </select>
+        <select
           v-model="selectedArchive"
           class="w-full sm:w-auto px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
           @change="loadJournals"
@@ -67,7 +75,16 @@
             <span class="text-sm text-gray-400 whitespace-nowrap ml-4">{{ formatDate(journal.created_at) }}</span>
           </div>
           <p class="text-gray-600 dark:text-gray-300 mb-3 line-clamp-3 leading-relaxed">{{ journal.excerpt || '暂无摘要' }}</p>
-          <div class="flex items-center justify-end mt-4">
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span
+              v-for="tag in journal.tags"
+              :key="tag.id"
+              class="px-2.5 py-1 text-xs font-medium bg-secondary/10 text-secondary dark:text-secondary-light border border-secondary/20 rounded-full"
+            >
+              {{ tag.name }}
+            </span>
+          </div>
+          <div class="flex items-center justify-end mt-2">
             <span class="text-sm text-secondary dark:text-secondary-light font-medium group-hover:translate-x-1 transition-transform">查看详情 &rarr;</span>
           </div>
         </router-link>
@@ -86,8 +103,10 @@ import Skeleton from '@/components/ui/Skeleton.vue'
 const authStore = useAuthStore()
 const loading = ref(true)
 const journals = ref<any[]>([])
+const tags = ref<any[]>([])
 const archives = ref<any[]>([])
 const keyword = ref('')
+const selectedTag = ref('')
 const selectedArchive = ref('')
 
 let searchTimer: any = null
@@ -103,6 +122,7 @@ const loadJournals = async () => {
   try {
     const params: any = {}
     if (keyword.value) params.keyword = keyword.value
+    if (selectedTag.value) params.tag = selectedTag.value
     if (selectedArchive.value) {
       const [year, month] = selectedArchive.value.split('-').map(Number)
       params.year = year
@@ -116,17 +136,18 @@ const loadJournals = async () => {
   }
 }
 
-const loadArchives = async () => {
+const loadFilters = async () => {
   try {
+    tags.value = await journalsApi.tags()
     archives.value = await journalsApi.archives()
   } catch (error) {
-    console.error('加载归档失败:', error)
+    console.error('加载筛选数据失败:', error)
   }
 }
 
 onMounted(() => {
   loadJournals()
-  loadArchives()
+  loadFilters()
 })
 </script>
 

@@ -138,12 +138,16 @@ export const supabaseNotesApi = {
 }
 
 export const supabaseJournalsApi = {
-  list: async (params?: any) => {
+  list: async (params?: any): Promise<Journal[]> => {
     let query = supabase.from('journals').select('*')
 
     if (params?.keyword) {
       const kw = `%${params.keyword}%`
       query = query.or(`title.ilike.${kw},excerpt.ilike.${kw}`)
+    }
+
+    if (params?.tag) {
+      query = query.contains('tags', [params.tag])
     }
 
     if (params?.year) {
@@ -156,38 +160,40 @@ export const supabaseJournalsApi = {
 
     const { data, error } = await query.order('created_at', { ascending: false })
     if (error) throw error
-    return data || []
+    return (data || []).map((j: any) => ({ ...j, tags: normalizeTags(j.tags) }))
   },
 
-  create: async (data: any) => {
+  create: async (data: any): Promise<Journal> => {
     const payload = {
       title: data.title,
       excerpt: data.excerpt || '',
       content_html: data.content_html || '',
       content_json: data.content_json || '{}',
+      tags: data.tags || [],
     }
     const { data: created, error } = await supabase.from('journals').insert(payload).select().single()
     if (error) throw error
-    return created
+    return { ...created, tags: normalizeTags(created.tags) }
   },
 
-  get: async (id: number) => {
+  get: async (id: number): Promise<Journal> => {
     const { data, error } = await supabase.from('journals').select('*').eq('id', id).single()
     if (error) throw error
-    return data
+    return { ...data, tags: normalizeTags(data.tags) }
   },
 
-  update: async (id: number, data: any) => {
+  update: async (id: number, data: any): Promise<Journal> => {
     const payload = {
       title: data.title,
       excerpt: data.excerpt || '',
       content_html: data.content_html || '',
       content_json: data.content_json || '{}',
+      tags: data.tags || [],
       updated_at: new Date().toISOString(),
     }
     const { data: updated, error } = await supabase.from('journals').update(payload).eq('id', id).select().single()
     if (error) throw error
-    return updated
+    return { ...updated, tags: normalizeTags(updated.tags) }
   },
 
   delete: async (id: number) => {
@@ -200,6 +206,19 @@ export const supabaseJournalsApi = {
     const { data, error } = await supabase.from('journals').select('created_at')
     if (error) throw error
     return buildArchives(data || [])
+  },
+  
+  tags: async () => {
+    const { data, error } = await supabase.from('journals').select('tags')
+    if (error) throw error
+    const tagMap = new Map<string, any>()
+    for (const journal of data || []) {
+      const tags = normalizeTags(journal.tags)
+      for (const tag of tags) {
+        if (!tagMap.has(tag.name)) tagMap.set(tag.name, tag)
+      }
+    }
+    return [...tagMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
   },
 }
 

@@ -15,6 +15,10 @@
           <label class="block text-sm font-medium mb-2">摘要</label>
           <input v-model="form.excerpt" type="text" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
         </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">标签（逗号分隔）</label>
+          <input v-model="tagsInput" type="text" placeholder="生活, 随笔, 计划" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
+        </div>
 
         <!-- Rich Text Toolbar -->
         <div>
@@ -61,11 +65,14 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { journalsApi } from '@/api/journals'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
+import { useUiStore } from '@/stores/ui'
 
+const uiStore = useUiStore()
 const route = useRoute()
 const router = useRouter()
 const isEdit = computed(() => Boolean(route.params.id))
 const saving = ref(false)
+const tagsInput = ref('')
 const form = ref({
   title: '',
   excerpt: '',
@@ -100,6 +107,7 @@ const loadJournal = async () => {
     content_html: data.content_html,
     content_json: data.content_json,
   }
+  tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
   editor.value?.commands.setContent(data.content_html)
 }
 
@@ -120,16 +128,22 @@ const handleImageUpload = async (event: Event) => {
 const saveJournal = async () => {
   saving.value = true
   try {
+    const payload = {
+      ...form.value,
+      tags: tagsInput.value.split(',').map(t => t.trim()).filter(Boolean),
+    }
     if (isEdit.value) {
-      await journalsApi.update(Number(route.params.id), form.value)
+      await journalsApi.update(Number(route.params.id), payload)
+      uiStore.addToast('保存成功', 'success')
       router.push(`/journals/${route.params.id}`)
     } else {
-      const created = await journalsApi.create(form.value)
+      const created = await journalsApi.create(payload)
+      uiStore.addToast('保存成功', 'success')
       router.push(`/journals/${created.id}`)
     }
   } catch (error) {
     console.error('保存日志失败:', error)
-    alert('保存失败，请稍后重试')
+    uiStore.addToast('保存失败', 'error', '请稍后重试')
   } finally {
     saving.value = false
   }
