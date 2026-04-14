@@ -208,7 +208,7 @@ const heatmapData = computed(() => {
   
   if (selectedYear.value === 'rolling') {
     endDate = dayjs().add(6, 'month') 
-    startDate = dayjs().subtract(1, 'year').startOf('month').startOf('week') // Ensure start of month 12 months ago
+    startDate = dayjs().subtract(6, 'month').startOf('month').startOf('week') // Match future projection (6 months past)
   } else {
     // Fixed calendar year: Jan 1 to Dec 31
     startDate = dayjs(`${selectedYear.value}-01-01`).startOf('week')
@@ -328,7 +328,8 @@ const getCellStyle = (day: any) => {
     } : {}),
     transform: 'scale(1)',
     border: isFuture ? '1px dashed rgba(148, 163, 184, 0.4)' : 'none',
-    ...(day.date === dayjs().format('YYYY-MM-DD') && props.todayCheckedIn ? {
+    // Border highlight for any day with a check-in (supports reconstructed history)
+    ...((day.count.checkins > 0 || (day.date === dayjs().format('YYYY-MM-DD') && props.todayCheckedIn)) ? {
       outline: '2.5px solid #f59e0b',
       outlineOffset: '2px',
       boxShadow: `0 0 15px #f59e0b90, ${currentCount > 3 ? `0 0 20px ${targetColor}60` : '0 0 0 transparent'}`,
