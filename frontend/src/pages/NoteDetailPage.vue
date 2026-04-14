@@ -17,7 +17,13 @@
                 {{ tag.name }}
               </span>
             </div>
-            <p class="text-gray-500">{{ formatDate(note.created_at) }}</p>
+            <div class="flex items-center gap-4 text-gray-500 text-sm">
+              <span>{{ formatDate(note.created_at) }}</span>
+              <span class="flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                预计阅读 {{ readingTime }} 分钟
+              </span>
+            </div>
           </div>
           <div v-if="authStore.user" class="flex gap-2">
             <router-link
@@ -40,12 +46,21 @@
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
         <div class="markdown-body" v-html="renderedContent"></div>
       </div>
+      <!-- Scroll to Top Button -->
+      <button 
+        v-if="showScrollTop"
+        @click="scrollToTop"
+        class="fixed bottom-8 right-8 p-3 bg-primary text-white rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all z-50 mr-4"
+        title="回到顶部"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import { renderMarkdown } from '@/utils/markdown'
@@ -65,11 +80,28 @@ const renderedContent = computed(() => {
   return renderMarkdown(note.value.content_md)
 })
 
+const readingTime = computed(() => {
+  if (!note.value?.content_md) return 0
+  const words = note.value.content_md.trim().split(/\s+/).length
+  const minutes = Math.ceil(words / 200)
+  return minutes > 0 ? minutes : 1
+})
+
+const showScrollTop = ref(false)
+const handleScroll = () => {
+  showScrollTop.value = window.scrollY > 400
+}
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm')
 
 const loadNote = async () => {
   try {
     note.value = await notesApi.get(Number(route.params.id))
+    document.title = `${note.value.title} | Kirakirastar's Blog`
   } catch (error) {
     console.error('加载笔记失败:', error)
     uiStore.addToast('加载失败', 'error', '无法获取笔记详情')
@@ -93,6 +125,11 @@ const handleDelete = async () => {
 
 onMounted(() => {
   loadNote()
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 

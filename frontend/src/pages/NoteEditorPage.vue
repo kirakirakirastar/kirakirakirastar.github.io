@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -111,6 +111,46 @@ const loadNote = async () => {
   editor.value?.commands.setContent(htmlContent)
 }
 
+const DRAFT_KEY = 'note_editor_draft'
+
+const saveDraft = () => {
+  if (isEdit.value || saving.value) return
+  const draft = {
+    title: form.value.title,
+    summary: form.value.summary,
+    content_md: form.value.content_md,
+    tags: tagsInput.value,
+    timestamp: Date.now()
+  }
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+}
+
+const clearDraft = () => {
+  localStorage.removeItem(DRAFT_KEY)
+}
+
+const checkDraft = () => {
+  if (isEdit.value) return
+  const saved = localStorage.getItem(DRAFT_KEY)
+  if (saved) {
+    const draft = JSON.parse(saved)
+    if (confirm(`发现于 ${new Date(draft.timestamp).toLocaleString()} 保存的草稿，是否还原？`)) {
+      form.value.title = draft.title
+      form.value.summary = draft.summary
+      form.value.content_md = draft.content_md
+      tagsInput.value = draft.tags
+      editor.value?.commands.setContent(renderMarkdown(draft.content_md))
+      uiStore.addToast('草稿已还原', 'success')
+    } else {
+      clearDraft()
+    }
+  }
+}
+
+watch([() => form.value.title, () => form.value.summary, () => form.value.content_md, tagsInput], () => {
+  saveDraft()
+}, { deep: true })
+
 const handleImageUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
@@ -138,6 +178,7 @@ const saveNote = async () => {
       router.push(`/notes/${route.params.id}`)
     } else {
       const created = await notesApi.create(payload)
+      clearDraft() // Clear draft after successful creation
       uiStore.addToast('保存成功', 'success')
       router.push(`/notes/${created.id}`)
     }
@@ -150,7 +191,11 @@ const saveNote = async () => {
 }
 
 onMounted(() => {
-  loadNote()
+  if (isEdit.value) {
+    loadNote()
+  } else {
+    checkDraft()
+  }
 })
 
 onBeforeUnmount(() => {

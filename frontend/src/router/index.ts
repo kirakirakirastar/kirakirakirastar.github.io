@@ -19,20 +19,20 @@ const routes = [
     path: '/',
     component: MainLayout,
     children: [
-      { path: '', component: DashboardPage },
-      { path: 'login', component: LoginPage },
-      { path: 'announcements', component: AnnouncementsPage, meta: { requiresAuth: true } },
-      { path: 'notes', component: NotesPage },
-      { path: 'notes/new', component: NoteEditorPage, meta: { requiresAuth: true } },
-      { path: 'notes/:id', component: NoteDetailPage },
-      { path: 'notes/:id/edit', component: NoteEditorPage, meta: { requiresAuth: true } },
-      { path: 'journals', component: JournalsPage },
-      { path: 'journals/new', component: JournalEditorPage, meta: { requiresAuth: true } },
-      { path: 'journals/:id', component: JournalDetailPage },
-      { path: 'journals/:id/edit', component: JournalEditorPage, meta: { requiresAuth: true } },
-      { path: 'hobbies', component: HobbiesPage },
-      { path: 'hobbies/new', component: HobbyEditorPage, meta: { requiresAuth: true } },
-      { path: 'hobbies/:id/edit', component: HobbyEditorPage, meta: { requiresAuth: true } },
+      { path: '', component: DashboardPage, meta: { title: '仪表盘' } },
+      { path: 'login', component: LoginPage, meta: { title: '登录' } },
+      { path: 'announcements', component: AnnouncementsPage, meta: { requiresAuth: true, title: '站点公告' } },
+      { path: 'notes', component: NotesPage, meta: { title: '学习笔记' } },
+      { path: 'notes/new', component: NoteEditorPage, meta: { requiresAuth: true, title: '新建笔记' } },
+      { path: 'notes/:id', component: NoteDetailPage, meta: { title: '笔记详情' } },
+      { path: 'notes/:id/edit', component: NoteEditorPage, meta: { requiresAuth: true, title: '编辑笔记' } },
+      { path: 'journals', component: JournalsPage, meta: { title: '个人日志' } },
+      { path: 'journals/new', component: JournalEditorPage, meta: { requiresAuth: true, title: '新建日志' } },
+      { path: 'journals/:id', component: JournalDetailPage, meta: { title: '日志详情' } },
+      { path: 'journals/:id/edit', component: JournalEditorPage, meta: { requiresAuth: true, title: '编辑日志' } },
+      { path: 'hobbies', component: HobbiesPage, meta: { title: '爱好追踪' } },
+      { path: 'hobbies/new', component: HobbyEditorPage, meta: { requiresAuth: true, title: '新建爱好' } },
+      { path: 'hobbies/:id/edit', component: HobbyEditorPage, meta: { requiresAuth: true, title: '编辑爱好' } },
     ]
   }
 ]
@@ -42,7 +42,10 @@ const router = createRouter({
   routes,
 })
 
+const DEFAULT_TITLE = "Kirakirastar's Blog"
+
 router.beforeEach(async (to, from, next) => {
+  // 1. Auth check
   if (to.meta.requiresAuth) {
     const authStore = useAuthStore()
     if (!authStore.initialized) {
@@ -53,6 +56,11 @@ router.beforeEach(async (to, from, next) => {
       return
     }
   }
+
+  // 2. Dynamic SEO Title
+  const pageTitle = to.meta.title ? `${to.meta.title} | ${DEFAULT_TITLE}` : DEFAULT_TITLE
+  document.title = pageTitle
+
   next()
 })
 
