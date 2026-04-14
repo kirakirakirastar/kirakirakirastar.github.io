@@ -354,50 +354,7 @@ const loadDashboard = async () => {
   }
 }
 
-const getStreakClass = (index: number, color: string) => {
-  const streak = gadgetStore.checkin.streak
-  const currentLapDay = streak % 7 || (streak > 0 ? 7 : 0)
-  const isLit = index <= currentLapDay
-  
-  if (!isLit) return 'bg-slate-200 dark:bg-slate-700 w-1 h-1'
-  
-  const lap = Math.floor((streak - 1) / 7)
-  if (lap === 0) return `bg-${color}-500 shadow-sm`
-  if (lap === 1) return `bg-${color}-500 shadow-[0_0_8px_rgba(var(--tw-color-${color}-500),0.6)] animate-pulse`
-  return `bg-gradient-to-tr from-${color}-400 to-${color}-600 shadow-[0_0_12px_rgba(var(--tw-color-${color}-400),0.8)]`
-}
 
-const getStreakStyle = (index: number, colorName: string) => {
-  const streak = gadgetStore.checkin.streak
-  const currentLapDay = streak % 7 || (streak > 0 ? 7 : 0)
-  const isLit = index <= currentLapDay
-  if (!isLit) return {}
-
-  const lap = Math.floor((streak - 1) / 7)
-  const colors: Record<string, string> = {
-    indigo: '#6366f1',
-    purple: '#a855f7',
-    blue: '#3b82f6',
-    amber: '#f59e0b',
-    emerald: '#10b981'
-  }
-  const hex = colors[colorName]
-
-  if (lap === 1) {
-    return { boxShadow: `0 0 8px ${hex}aa` }
-  }
-  if (lap >= 2) {
-    return { 
-      boxShadow: `0 0 12px ${hex}cc`,
-      background: `linear-gradient(135deg, ${hex}, #fff)`
-    }
-  }
-  return {}
-}
-    let current = startDate
-  let lastMonth = -1
-  let lastYear = startDate.year()
-  let weeksSinceLastLabel = 10 // Start with a safe buffer
 
 
 
