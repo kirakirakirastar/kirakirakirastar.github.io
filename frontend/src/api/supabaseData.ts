@@ -339,20 +339,22 @@ export const supabaseDashboardApi = {
       { data: hobbies },
       { data: todos },
       { data: checkin },
+      { data: pendingTodos },
     ] = await Promise.all([
       supabase.from('notes').select('created_at'),
       supabase.from('journals').select('created_at'),
       supabase.from('hobbies').select('updated_at'),
       supabase.from('todos').select('completed_at').eq('status', 'completed'),
       supabase.from('checkins').select('*').single(),
+      supabase.from('todos').select('due_date').eq('status', 'pending').not('due_date', 'is', null)
     ])
 
-    const activityMap: Record<string, { notes: number, journals: number, todos: number, hobbies: number, checkins: number, total: number }> = {}
+    const activityMap: Record<string, { notes: number, journals: number, todos: number, hobbies: number, checkins: number, schedules: number, total: number }> = {}
 
-    const addActivity = (dateStr: string, type: 'notes' | 'journals' | 'todos' | 'hobbies' | 'checkins') => {
+    const addActivity = (dateStr: string, type: 'notes' | 'journals' | 'todos' | 'hobbies' | 'checkins' | 'schedules') => {
       const date = dateStr.split('T')[0]
       if (!activityMap[date]) {
-        activityMap[date] = { notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, total: 0 }
+        activityMap[date] = { notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, schedules: 0, total: 0 }
       }
       activityMap[date][type]++
       activityMap[date].total++
@@ -362,6 +364,7 @@ export const supabaseDashboardApi = {
     (journals || []).forEach(j => addActivity(j.created_at, 'journals'));
     (hobbies || []).forEach(h => addActivity(h.updated_at, 'hobbies'));
     (todos || []).forEach(t => addActivity(t.completed_at!, 'todos'));
+    (pendingTodos || []).forEach(t => addActivity(t.due_date!, 'schedules'));
 
     // Reconstruct history from current check-in streak
     if (checkin && checkin.last_date && checkin.streak > 0) {

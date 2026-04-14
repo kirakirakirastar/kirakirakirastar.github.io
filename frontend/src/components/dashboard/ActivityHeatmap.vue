@@ -51,9 +51,14 @@
     class="grid-container transition-all duration-700 ease-in-out w-full max-h-[800px] opacity-100 overflow-visible"
     >
       <div class="flex w-full items-start px-2">
-        <!-- Y-Axis: Day Labels -->
-        <div class="flex flex-col day-labels-col shrink-0 text-right pr-5 select-none pt-12">
-          <span v-for="day in ['一', '二', '三', '四', '五', '六', '日']" :key="day" class="day-label font-black text-slate-400/50 dark:text-slate-500/40 uppercase tracking-tighter">
+        <div class="flex flex-col day-labels-col shrink-0 text-right pr-5 select-none pt-12" @mouseleave="hoveredRow = null">
+          <span 
+            v-for="(day, index) in ['一', '二', '三', '四', '五', '六', '日']" 
+            :key="day" 
+            class="day-label font-black text-slate-400/50 dark:text-slate-500/40 uppercase tracking-tighter transition-colors duration-300"
+            :class="{ 'text-primary dark:text-primary-light scale-110 !opacity-100': hoveredRow === index }"
+            @mouseenter="hoveredRow = index"
+          >
             {{ day }}
           </span>
         </div>
@@ -82,7 +87,8 @@
                 class="heatmap-cell rounded-[4px] sm:rounded-[5px] md:rounded-[6.5px] relative group/cell transition-all duration-500 hover:z-50 cursor-pointer"
                 :class="[
                   day.count[props.activeCategory === 'all' ? 'total' : props.activeCategory] === 0 ? 'bg-slate-100/80 dark:bg-slate-700/40 hover:bg-slate-200 dark:hover:bg-slate-600/60' : '',
-                  day.date === selectedDate ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-800 scale-110 z-20' : ''
+                  day.date === selectedDate ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-800 scale-110 z-20' : '',
+                  hoveredRow === dayIndex ? 'after:content-[\'\'] after:absolute after:inset-0 after:bg-primary/5 after:rounded-[inherit] after:ring-2 after:ring-primary/20 after:z-10 bg-primary/5' : ''
                 ]"
                 :style="getCellStyle(day)"
               >
@@ -101,9 +107,10 @@
                   
                   <div v-if="day.count.total > 0" class="space-y-3">
                     <div v-if="day.count.notes" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#6366f1]" style="background: #6366f1"></div>学习笔记</span> <span class="font-black">{{ day.count.notes }}</span></div>
-                    <div v-if="day.count.journals" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#a855f7]" style="background: #a855f7"></div>个志日志</span> <span class="font-black">{{ day.count.journals }}</span></div>
+                    <div v-if="day.count.journals" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#a855f7]" style="background: #a855f7"></div>个人日志</span> <span class="font-black">{{ day.count.journals }}</span></div>
                     <div v-if="day.count.checkins" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#06b6d4]" style="background: #06b6d4"></div>每日打卡</span> <span class="font-black">{{ day.count.checkins }}</span></div>
-                    <div v-if="day.count.todos" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#10b981]" style="background: #10b981"></div>任务巡航</span> <span class="font-black">{{ day.count.todos }}</span></div>
+                    <div v-if="day.count.schedules" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#0ea5e9]" style="background: #0ea5e9"></div>日程计划</span> <span class="font-black">{{ day.count.schedules }}</span></div>
+                    <div v-if="day.count.todos" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#10b981]" style="background: #10b981"></div>任务完成</span> <span class="font-black">{{ day.count.todos }}</span></div>
                     <div v-if="day.count.hobbies" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#3b82f6]" style="background: #3b82f6"></div>生活爱好</span> <span class="font-black">{{ day.count.hobbies }}</span></div>
                   </div>
                   <div v-else class="text-slate-500 italic py-1.5 text-center font-bold text-[12px] tracking-widest">CALM DAY</div>
@@ -145,7 +152,8 @@ interface DayCount {
   journals: number;
   todos: number;
   hobbies: number;
-  checkins: number; // Added
+  checkins: number; 
+  schedules: number; // Added
   total: number;
 }
 
@@ -167,8 +175,9 @@ const categories = [
   { id: 'all', name: '全域', color: '#f59e0b', icon: IconActivity },
   { id: 'notes', name: '学习笔记', color: '#6366f1', icon: IconNotes },
   { id: 'journals', name: '个人日志', color: '#a855f7', icon: IconJournals },
-  { id: 'checkins', name: '每日打卡', color: '#06b6d4', icon: IconActivity }, // Added
-  { id: 'todos', name: '任务巡航', color: '#10b981', icon: IconTodos },
+  { id: 'checkins', name: '每日打卡', color: '#06b6d4', icon: IconActivity },
+  { id: 'schedules', name: '日程计划', color: '#0ea5e9', icon: IconTodos }, // Added
+  { id: 'todos', name: '任务完成', color: '#10b981', icon: IconTodos },
   { id: 'hobbies', name: '爱好条目', color: '#3b82f6', icon: IconHobbies }
 ]
 
@@ -192,12 +201,12 @@ const heatmapData = computed(() => {
   let startDate, endDate
   
   if (selectedYear.value === 'rolling') {
-    endDate = dayjs()
+    endDate = dayjs().add(6, 'month') // Extend 6 months
     startDate = dayjs().subtract(52, 'week').startOf('week')
   } else {
     // Fixed calendar year: Jan 1 to Dec 31
     startDate = dayjs(`${selectedYear.value}-01-01`).startOf('week')
-    endDate = dayjs(`${selectedYear.value}-12-31`)
+    endDate = dayjs(`${selectedYear.value}-12-31`).add(6, 'month') // Also extend for fixed years to see next year's plans
   }
   
   let current = startDate
@@ -207,7 +216,7 @@ const heatmapData = computed(() => {
 
   while (current.isBefore(endDate) || current.isSame(endDate, 'day')) {
     const dateStr = current.format('YYYY-MM-DD')
-    const data = props.activities[dateStr] || { notes: 0, journals: 0, todos: 0, hobbies: 0, total: 0 }
+    const data = props.activities[dateStr] || { notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, schedules: 0, total: 0 }
     
     const isFirstRow = currentWeek.length === 0
     const currentMonth = current.month()
@@ -255,25 +264,38 @@ const heatmapData = computed(() => {
   return weeks
 })
 
-const getCellStyle = (day: any) => {
-  const currentCount = props.activeCategory === 'all' ? day.count.total : day.count[props.activeCategory]
-  if (currentCount === 0) return {}
+const hoveredRow = ref<number | null>(null)
 
-  let targetColor = ''
-  if (props.activeCategory !== 'all') {
-    targetColor = categories.find(c => c.id === props.activeCategory)?.color || '#6366f1'
-  } else {
-    // For ALL mode: Use Amber/Gold theme consistently
-    targetColor = '#f59e0b'
+const getCellStyle = (day: any) => {
+  const isFuture = dayjs(day.date).isAfter(dayjs(), 'day')
+  const currentCategory = props.activeCategory === 'all' ? 'total' : props.activeCategory
+  
+  // Logic: Only fill if there's content OTHER than check-ins (unless specifically viewing check-ins)
+  let intensityValue = day.count[currentCategory]
+  if (props.activeCategory === 'all') {
+    intensityValue = day.count.total - (day.count.checkins || 0)
   }
+
+  const currentCount = intensityValue
+  const categoryConfig = categories.find(c => c.id === props.activeCategory)
+  let targetColor = categoryConfig?.color || '#f59e0b'
   
-  const intensity = Math.min(0.3 + (currentCount * 0.1), 1)
+  // Future dates use a distinct schedule color if schedules exist
+  if (isFuture) {
+    targetColor = '#64748b' // Standard future color
+    if (day.count.schedules > 0) targetColor = '#0ea5e9' // Cyan for plans
+  }
+
+  const intensity = Math.min(0.2 + (currentCount * 0.15), 1)
   
+  const hasContentToFill = currentCount > 0 || (isFuture && day.count.schedules > 0)
+
   return {
-    backgroundColor: targetColor,
-    opacity: intensity,
+    backgroundColor: hasContentToFill ? targetColor : 'transparent',
+    opacity: hasContentToFill ? intensity : 1,
     boxShadow: currentCount > 3 ? `0 0 20px ${targetColor}60` : 'none',
     transform: 'scale(1)',
+    border: isFuture ? '1px dashed rgba(148, 163, 184, 0.4)' : 'none',
     ...(day.date === dayjs().format('YYYY-MM-DD') && props.todayCheckedIn ? {
       outline: '2.5px solid #f59e0b',
       outlineOffset: '2px',
