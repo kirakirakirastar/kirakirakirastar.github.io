@@ -35,16 +35,16 @@ DECLARE
   res json;
 BEGIN
   SELECT json_build_object(
-    'notes_count', (SELECT count(*) FROM notes WHERE is_owner OR is_private = false),
-    'journals_count', (SELECT count(*) FROM journals WHERE is_owner OR is_private = false),
-    'hobbies_count', (SELECT count(*) FROM hobbies WHERE is_owner OR is_private = false),
+    'notes_count', (SELECT count(*) FROM notes WHERE (is_owner OR is_private = false) AND deleted_at IS NULL),
+    'journals_count', (SELECT count(*) FROM journals WHERE (is_owner OR is_private = false) AND deleted_at IS NULL),
+    'hobbies_count', (SELECT count(*) FROM hobbies WHERE (is_owner OR is_private = false) AND deleted_at IS NULL),
     'completed_todos_today', (SELECT count(*) FROM todos WHERE status = 'completed' AND completed_at >= CURRENT_DATE AND (is_owner OR is_private = false)),
     'completed_todos_week', (SELECT count(*) FROM todos WHERE status = 'completed' AND completed_at >= date_trunc('week', now()) AND (is_owner OR is_private = false)),
     'completed_todos_month', (SELECT count(*) FROM todos WHERE status = 'completed' AND completed_at >= date_trunc('month', now()) AND (is_owner OR is_private = false)),
     'month_updates', (
-      (SELECT count(*) FROM notes WHERE updated_at >= start_date AND (is_owner OR is_private = false)) +
-      (SELECT count(*) FROM journals WHERE updated_at >= start_date AND (is_owner OR is_private = false)) +
-      (SELECT count(*) FROM hobbies WHERE updated_at >= start_date AND (is_owner OR is_private = false))
+      (SELECT count(*) FROM notes WHERE updated_at >= start_date AND (is_owner OR is_private = false) AND deleted_at IS NULL) +
+      (SELECT count(*) FROM journals WHERE updated_at >= start_date AND (is_owner OR is_private = false) AND deleted_at IS NULL) +
+      (SELECT count(*) FROM hobbies WHERE updated_at >= start_date AND (is_owner OR is_private = false) AND deleted_at IS NULL)
     )
   ) INTO res;
   RETURN res;
@@ -72,11 +72,11 @@ RETURNS TABLE (
 BEGIN
   RETURN QUERY
   WITH all_days AS (
-    SELECT (created_at AT TIME ZONE 'UTC')::date as d, 'note' as type, title as t FROM notes WHERE is_owner OR is_private = false
+    SELECT (created_at AT TIME ZONE 'UTC')::date as d, 'note' as type, title as t FROM notes WHERE (is_owner OR is_private = false) AND deleted_at IS NULL
     UNION ALL
-    SELECT (created_at AT TIME ZONE 'UTC')::date as d, 'journal' as type, title as t FROM journals WHERE is_owner OR is_private = false
+    SELECT (created_at AT TIME ZONE 'UTC')::date as d, 'journal' as type, title as t FROM journals WHERE (is_owner OR is_private = false) AND deleted_at IS NULL
     UNION ALL
-    SELECT (updated_at AT TIME ZONE 'UTC')::date as d, 'hobby' as type, title as t FROM hobbies WHERE is_owner OR is_private = false
+    SELECT (updated_at AT TIME ZONE 'UTC')::date as d, 'hobby' as type, title as t FROM hobbies WHERE (is_owner OR is_private = false) AND deleted_at IS NULL
     UNION ALL
     SELECT (completed_at AT TIME ZONE 'UTC')::date as d, 'todo' as type, text as t FROM todos WHERE status = 'completed' AND (is_owner OR is_private = false)
     UNION ALL

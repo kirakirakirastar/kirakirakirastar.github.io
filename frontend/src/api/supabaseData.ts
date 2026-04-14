@@ -646,9 +646,9 @@ export const supabaseDashboardApi = {
 
     // 2. 获取最新动态（依然保留实时性，但限制数量）
     const fetchPromises = [
-      supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(5),
-      supabase.from('journals').select('*').order('created_at', { ascending: false }).limit(5),
-      supabase.from('hobbies').select('*').order('updated_at', { ascending: false }).limit(5),
+      supabase.from('notes').select('*').is('deleted_at', null).order('created_at', { ascending: false }).limit(5),
+      supabase.from('journals').select('*').is('deleted_at', null).order('created_at', { ascending: false }).limit(5),
+      supabase.from('hobbies').select('*').is('deleted_at', null).order('updated_at', { ascending: false }).limit(5),
     ]
 
     if (!isOwner) {
