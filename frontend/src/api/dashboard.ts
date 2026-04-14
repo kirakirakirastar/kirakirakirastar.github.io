@@ -1,2 +1,3 @@
-import { supabaseDashboardApi } from './supabaseData'
-export const dashboardApi = supabaseDashboardApi
+export const dashboardApi = {
+  ...supabaseDashboardApi
+}

@@ -14,6 +14,11 @@
         </p>
       </div>
     </div>
+    
+    <!-- Heatmap Section -->
+    <div v-if="authStore.user" class="reveal mb-12" style="--delay: 150ms">
+      <ActivityHeatmap :activities="activities" />
+    </div>
 
 
     <!-- Stats -->
@@ -28,7 +33,13 @@
           <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
             <span>学习笔记</span>
             <div class="flex gap-1 ml-2">
-              <div v-for="i in 7" :key="i" class="w-1 h-1 rounded-full" :class="i <= (gadgetStore.checkin.streak % 7 || (gadgetStore.checkin.streak > 0 ? 7 : 0)) ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'"></div>
+              <div 
+                v-for="i in 7" 
+                :key="i" 
+                class="w-1.5 h-1.5 rounded-full transition-all duration-500" 
+                :class="getStreakClass(i, 'indigo')"
+                :style="getStreakStyle(i, 'indigo')"
+              ></div>
             </div>
           </div>
         </div>
@@ -44,7 +55,13 @@
           <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
             <span>个人日志</span>
             <div class="flex gap-1 ml-2">
-              <div v-for="i in 7" :key="i" class="w-1 h-1 rounded-full" :class="i <= (gadgetStore.checkin.streak % 7 || (gadgetStore.checkin.streak > 0 ? 7 : 0)) ? 'bg-purple-500' : 'bg-slate-200 dark:bg-slate-700'"></div>
+              <div 
+                v-for="i in 7" 
+                :key="i" 
+                class="w-1.5 h-1.5 rounded-full transition-all duration-500" 
+                :class="getStreakClass(i, 'purple')"
+                :style="getStreakStyle(i, 'purple')"
+              ></div>
             </div>
           </div>
         </div>
@@ -60,7 +77,13 @@
           <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
             <span>爱好条目</span>
             <div class="flex gap-1 ml-2">
-              <div v-for="i in 7" :key="i" class="w-1 h-1 rounded-full" :class="i <= (gadgetStore.checkin.streak % 7 || (gadgetStore.checkin.streak > 0 ? 7 : 0)) ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'"></div>
+              <div 
+                v-for="i in 7" 
+                :key="i" 
+                class="w-1.5 h-1.5 rounded-full transition-all duration-500" 
+                :class="getStreakClass(i, 'blue')"
+                :style="getStreakStyle(i, 'blue')"
+              ></div>
             </div>
           </div>
         </div>
@@ -101,7 +124,13 @@
           <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
             <span>本月更新</span>
             <div class="flex gap-1 ml-2">
-              <div v-for="i in 7" :key="i" class="w-1 h-1 rounded-full" :class="i <= (gadgetStore.checkin.streak % 7 || (gadgetStore.checkin.streak > 0 ? 7 : 0)) ? 'bg-amber-500' : 'bg-slate-200 dark:bg-slate-700'"></div>
+              <div 
+                v-for="i in 7" 
+                :key="i" 
+                class="w-1.5 h-1.5 rounded-full transition-all duration-500" 
+                :class="getStreakClass(i, 'amber')"
+                :style="getStreakStyle(i, 'amber')"
+              ></div>
             </div>
           </div>
         </div>
@@ -209,6 +238,7 @@ import TodoWidget from '@/components/widgets/TodoWidget.vue'
 import CheckinWidget from '@/components/widgets/CheckinWidget.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import ActivityHeatmap from '@/components/dashboard/ActivityHeatmap.vue'
 
 const authStore = useAuthStore()
 const gadgetStore = useGadgetStore()
@@ -225,19 +255,65 @@ const stats = ref({
 const latestNotes = ref<any[]>([])
 const latestJournals = ref<any[]>([])
 const latestHobbies = ref<any[]>([])
+const activities = ref<Record<string, any>>({})
 
 const loadDashboard = async () => {
   try {
-    const data = await dashboardApi.get()
+    const [data, activityData] = await Promise.all([
+      dashboardApi.get(),
+      dashboardApi.activities ? dashboardApi.activities() : Promise.resolve({})
+    ])
     stats.value = data.stats
     latestNotes.value = data.latest_notes
     latestJournals.value = data.latest_journals
     latestHobbies.value = data.latest_hobbies
+    activities.value = activityData
   } catch (error) {
     console.error('加载 Dashboard 失败:', error)
   } finally {
     loading.value = false
   }
+}
+
+const getStreakClass = (index: number, color: string) => {
+  const streak = gadgetStore.checkin.streak
+  const currentLapDay = streak % 7 || (streak > 0 ? 7 : 0)
+  const isLit = index <= currentLapDay
+  
+  if (!isLit) return 'bg-slate-200 dark:bg-slate-700 w-1 h-1'
+  
+  const lap = Math.floor((streak - 1) / 7)
+  if (lap === 0) return `bg-${color}-500 shadow-sm`
+  if (lap === 1) return `bg-${color}-500 shadow-[0_0_8px_rgba(var(--tw-color-${color}-500),0.6)] animate-pulse`
+  return `bg-gradient-to-tr from-${color}-400 to-${color}-600 shadow-[0_0_12px_rgba(var(--tw-color-${color}-400),0.8)]`
+}
+
+const getStreakStyle = (index: number, colorName: string) => {
+  const streak = gadgetStore.checkin.streak
+  const currentLapDay = streak % 7 || (streak > 0 ? 7 : 0)
+  const isLit = index <= currentLapDay
+  if (!isLit) return {}
+
+  const lap = Math.floor((streak - 1) / 7)
+  const colors: Record<string, string> = {
+    indigo: '#6366f1',
+    purple: '#a855f7',
+    blue: '#3b82f6',
+    amber: '#f59e0b',
+    emerald: '#10b981'
+  }
+  const hex = colors[colorName]
+
+  if (lap === 1) {
+    return { boxShadow: `0 0 8px ${hex}aa` }
+  }
+  if (lap >= 2) {
+    return { 
+      boxShadow: `0 0 12px ${hex}cc`,
+      background: `linear-gradient(135deg, ${hex}, #fff)`
+    }
+  }
+  return {}
 }
 
 onMounted(() => {

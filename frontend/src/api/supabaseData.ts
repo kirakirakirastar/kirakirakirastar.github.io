@@ -331,6 +331,43 @@ export const supabaseDashboardApi = {
       latest_hobbies: hobbies || [],
     }
   },
+  activities: async () => {
+    const now = new Date()
+    const sixMonthsAgo = new Date(now)
+    sixMonthsAgo.setDate(now.getDate() - 180)
+    sixMonthsAgo.setHours(0, 0, 0, 0)
+    const startDateStr = sixMonthsAgo.toISOString()
+
+    const [
+      { data: notes },
+      { data: journals },
+      { data: hobbies },
+      { data: todos },
+    ] = await Promise.all([
+      supabase.from('notes').select('created_at').gte('created_at', startDateStr),
+      supabase.from('journals').select('created_at').gte('created_at', startDateStr),
+      supabase.from('hobbies').select('updated_at').gte('updated_at', startDateStr),
+      supabase.from('todos').select('completed_at').eq('status', 'completed').gte('completed_at', startDateStr),
+    ])
+
+    const activityMap: Record<string, { notes: number, journals: number, todos: number, hobbies: number, total: number }> = {}
+
+    const addActivity = (dateStr: string, type: 'notes' | 'journals' | 'todos' | 'hobbies') => {
+      const date = dateStr.split('T')[0]
+      if (!activityMap[date]) {
+        activityMap[date] = { notes: 0, journals: 0, todos: 0, hobbies: 0, total: 0 }
+      }
+      activityMap[date][type]++
+      activityMap[date].total++
+    }
+
+    (notes || []).forEach(n => addActivity(n.created_at, 'notes'));
+    (journals || []).forEach(j => addActivity(j.created_at, 'journals'));
+    (hobbies || []).forEach(h => addActivity(h.updated_at, 'hobbies'));
+    (todos || []).forEach(t => addActivity(t.completed_at!, 'todos'));
+
+    return activityMap
+  }
 }
 
 export const supabaseTodosApi = {
