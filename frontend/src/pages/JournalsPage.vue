@@ -124,6 +124,7 @@
           <router-link 
             :to="`/journals/${journal.id}`" 
             class="block p-6"
+            :class="{ 'pointer-events-none': isBatchMode }"
             @click="isBatchMode ? $event.preventDefault() : null"
           >
             <div class="flex justify-between items-start mb-3" :class="{ 'pl-8': isBatchMode }">

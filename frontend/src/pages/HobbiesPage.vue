@@ -160,7 +160,10 @@
             <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 00-2 2z"></path></svg>
           </div>
 
-          <div class="p-5 flex flex-col flex-1">
+          <div 
+            class="p-5 flex flex-col flex-1"
+            :class="{ 'pointer-events-none': isBatchMode }"
+          >
             <div class="flex items-start justify-between mb-2" :class="{ 'pl-8': isBatchMode }">
               <h3 class="font-extrabold text-lg line-clamp-2 leading-tight text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors flex items-center gap-2">
                 <svg v-if="hobby.is_private" class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
