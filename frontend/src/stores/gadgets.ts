@@ -71,7 +71,14 @@ export const useGadgetStore = defineStore('gadgets', () => {
 
         // Async update failures in background
         if (failedIds.length > 0) {
-          Promise.all(failedIds.map(id => todosApi.updateStatus(id, 'failed'))).catch(err => {
+          Promise.all(failedIds.map(async id => {
+            await todosApi.updateStatus(id, 'failed')
+            // Also trigger recurrence for these auto-failures
+            const todo = todos.value.find(t => t.id === id)
+            if (todo && todo.recurrence && todo.recurrence !== 'none') {
+              handleRecurrence(todo)
+            }
+          })).catch(err => {
             console.error('Failed to sync expired todos to server:', err)
           })
         }
@@ -204,7 +211,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
     try {
       const updated = await todosApi.updateStatus(id, status)
       
-      if (status === 'completed' && todo.recurrence && todo.recurrence !== 'none') {
+      if ((status === 'completed' || status === 'failed') && todo.recurrence && todo.recurrence !== 'none') {
         handleRecurrence(todo)
       }
 
