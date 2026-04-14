@@ -116,20 +116,20 @@
         </div>
       </div>
       <div v-else-if="hobbies.length === 0">
-        <EmptyState title="暂无内容" message="点击上方按钮或筛选其他分类" />
-      </div>
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 pt-1">
-        <div
+        <EmptyState title="暂无内容" me        <div
           v-for="hobby in hobbies"
           :key="hobby.id"
           class="relative bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col"
-          :class="{ 'ring-2 ring-primary border-primary/50 shadow-lg': isSelected(hobby.id) }"
+          :class="[
+            isSelected(hobby.id) ? 'ring-2 ring-primary border-primary/50 shadow-lg' : '',
+            isBatchMode ? 'cursor-pointer' : ''
+          ]"
+          @click="isBatchMode ? toggleSelection(hobby.id) : null"
         >
           <!-- Selection Checkbox Area -->
           <div 
             v-if="isBatchMode" 
-            @click.stop="toggleSelection(hobby.id)"
-            class="absolute top-4 left-4 z-10 w-6 h-6 rounded-lg border-2 border-primary/30 flex items-center justify-center cursor-pointer transition-all hover:scale-110"
+            class="absolute top-4 left-4 z-10 w-6 h-6 rounded-lg border-2 border-primary/30 flex items-center justify-center transition-all hover:scale-110"
             :class="[isSelected(hobby.id) ? 'bg-primary border-primary text-white shadow-md' : 'bg-white/80 dark:bg-slate-800/80']"
           >
             <svg v-if="isSelected(hobby.id)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
@@ -192,13 +192,15 @@
             
             <div v-if="authStore.user" class="flex gap-2">
               <router-link
-                :to="`/hobbies/${hobby.id}/edit`"
+                :to="isBatchMode ? '' : `/hobbies/${hobby.id}/edit`"
                 class="flex-1 px-3 py-2 text-center bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white text-xs font-bold transition-all shadow-sm"
+                @click="isBatchMode ? $event.preventDefault() : null"
               >
                 详情/编辑
               </router-link>
               <button
-                @click="deleteHobby(hobby.id)"
+                v-if="!isBatchMode"
+                @click.stop="deleteHobby(hobby.id)"
                 class="px-3 py-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white text-xs font-bold transition-all"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>

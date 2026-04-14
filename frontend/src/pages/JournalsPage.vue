@@ -106,19 +106,26 @@
           v-for="journal in journals"
           :key="journal.id"
           class="relative bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
-          :class="{ 'ring-2 ring-secondary border-secondary/50 shadow-lg': isSelected(journal.id) }"
+          :class="[
+            isSelected(journal.id) ? 'ring-2 ring-secondary border-secondary/50 shadow-lg' : '',
+            isBatchMode ? 'cursor-pointer' : ''
+          ]"
+          @click="isBatchMode ? toggleSelection(journal.id) : null"
         >
           <!-- Selection Checkbox Area -->
           <div 
             v-if="isBatchMode" 
-            @click.stop="toggleSelection(journal.id)"
-            class="absolute top-4 left-4 z-10 w-6 h-6 rounded-lg border-2 border-secondary/30 flex items-center justify-center cursor-pointer transition-all hover:scale-110"
+            class="absolute top-4 left-4 z-10 w-6 h-6 rounded-lg border-2 border-secondary/30 flex items-center justify-center transition-all hover:scale-110"
             :class="[isSelected(journal.id) ? 'bg-secondary border-secondary text-white shadow-md' : 'bg-white/80 dark:bg-slate-800/80']"
           >
             <svg v-if="isSelected(journal.id)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
           </div>
 
-          <router-link :to="`/journals/${journal.id}`" class="block p-6">
+          <router-link 
+            :to="`/journals/${journal.id}`" 
+            class="block p-6"
+            @click="isBatchMode ? $event.preventDefault() : null"
+          >
             <div class="flex justify-between items-start mb-3" :class="{ 'pl-8': isBatchMode }">
               <h2 class="text-xl font-bold group-hover:text-secondary transition-colors text-slate-800 dark:text-slate-100 flex items-center gap-2">
                 <svg v-if="journal.is_private" class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
