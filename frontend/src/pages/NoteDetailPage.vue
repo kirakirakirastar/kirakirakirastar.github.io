@@ -59,7 +59,7 @@ const router = useRouter()
 const loading = ref(true)
 const note = ref<any>(null)
 
-const md = new MarkdownIt({
+const md: MarkdownIt = new MarkdownIt({
   html: true,
   highlight: function (str, lang) {
     if (lang && hljs.getLanguage(lang)) {
