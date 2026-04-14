@@ -6,16 +6,16 @@
       <div class="flex items-center gap-4">
         <div 
           class="p-3.5 rounded-2xl transition-all duration-500 shadow-inner ring-1 ring-white/20"
-          :style="{ backgroundColor: `${currentCategoryInfo.color}15`, color: currentCategoryInfo.color }"
+          :style="{ backgroundColor: currentCategoryInfo.id === 'all' ? 'var(--primary-light)' : `${currentCategoryInfo.color}20`, color: currentCategoryInfo.color || 'var(--primary)' }"
         >
           <component :is="currentCategoryInfo.icon" class="w-6 h-6" />
         </div>
         <div>
-          <h2 class="text-2xl font-black leading-tight tracking-tight transition-colors duration-500" :style="{ color: currentCategoryInfo.color }">
+          <h2 class="text-2xl font-black leading-tight tracking-tight transition-colors duration-500" :style="{ color: currentCategoryInfo.id === 'all' ? 'inherit' : currentCategoryInfo.color }">
             {{ currentCategoryInfo.name }}贡献图
           </h2>
           <p class="text-[11px] font-bold uppercase tracking-[0.2em] mt-1.5 opacity-60">
-            {{ currentCategoryInfo.id === 'all' ? 'MASTER PULSE' : `${currentCategoryInfo.id.toUpperCase()} PULSE` }}
+            {{ currentCategoryInfo.id === 'all' ? 'Activity Pulse' : `${currentCategoryInfo.id.toUpperCase()} PULSE` }}
           </p>
         </div>
       </div>
@@ -169,7 +169,7 @@ const isCollapsed = ref(false)
 const selectedYear = ref<'rolling' | number>('rolling')
 
 const categories = [
-  { id: 'all', name: '全域概览', color: '#f59e0b', icon: IconActivity },
+  { id: 'all', name: '全域', color: '#f59e0b', icon: IconActivity },
   { id: 'notes', name: '学习笔记', color: '#6366f1', icon: IconNotes },
   { id: 'journals', name: '个人日志', color: '#a855f7', icon: IconJournals },
   { id: 'todos', name: '任务巡航', color: '#10b981', icon: IconTodos },
@@ -258,16 +258,16 @@ const getCellStyle = (day: any) => {
   if (props.activeCategory !== 'all') {
     targetColor = categories.find(c => c.id === props.activeCategory)?.color || '#6366f1'
   } else {
-    // Master Amber ramp for Global Overview
+    // For ALL mode: Use Amber/Gold theme consistently
     targetColor = '#f59e0b'
   }
   
-  const intensity = Math.min(0.25 + (currentCount * 0.15), 1)
+  const intensity = Math.min(0.3 + (currentCount * 0.1), 1)
   
   return {
     backgroundColor: targetColor,
     opacity: intensity,
-    boxShadow: currentCount > 5 ? `0 0 15px ${targetColor}40` : 'none',
+    boxShadow: currentCount > 3 ? `0 0 20px ${targetColor}60` : 'none',
     transform: `scale(${isCollapsed.value ? 0.85 : 1})`
   }
 }

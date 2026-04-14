@@ -15,19 +15,22 @@
 import { computed } from 'vue'
 import dayjs from 'dayjs'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   activities: Record<string, any>
   category: string
   color: string
-}>()
+  weeks?: number
+}>(), {
+  weeks: 5
+})
 
 const miniData = computed(() => {
   const weeks = []
   let currentWeek = []
   
-  // Display only the last 5 weeks (35 days)
+  // Display based on requested weeks (default 35 days)
   const endDate = dayjs()
-  const startDate = dayjs().subtract(34, 'day').startOf('week')
+  const startDate = dayjs().subtract((props.weeks * 7) - 1, 'day').startOf('week')
   
   let current = startDate
   while (current.isBefore(endDate) || current.isSame(endDate, 'day')) {
