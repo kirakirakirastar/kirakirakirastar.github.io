@@ -129,7 +129,7 @@
           isHeatmapExpanded ? 'col-span-2 md:col-span-3 lg:col-span-5' : '',
           activeHeatmapCategory === 'all' ? 'border-amber-500 shadow-[0_20px_60px_rgba(245,158,11,0.25)] ring-2 ring-amber-500/30 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-2xl hover:-translate-y-2'
         ]"
-        style="--delay: 600ms"
+        style="--delay: 550ms"
       >
         <div class="flex flex-col h-full relative z-10">
           <div class="flex items-start justify-between mb-5">
@@ -170,11 +170,11 @@
               @day-click="selectedDate = $event"
             />
           </div>
+        </div>
 
-          <!-- Mini Preview (hidden when expanded) -->
-          <div v-if="!isHeatmapExpanded" class="absolute bottom-5 right-7 opacity-20 group-hover:opacity-60 transition-opacity">
-            <MiniHeatmap :activities="activities" category="total" color="#f59e0b" :weeks="5" />
-          </div>
+        <!-- Mini Preview (hidden when expanded) - Positioned as sibling for alignment sync -->
+        <div v-if="!isHeatmapExpanded" class="absolute bottom-5 right-7 opacity-20 group-hover:opacity-60 transition-opacity z-20">
+          <MiniHeatmap :activities="activities" category="total" color="#f59e0b" :weeks="5" />
         </div>
         
         <!-- Ornamental Background for master switch -->
