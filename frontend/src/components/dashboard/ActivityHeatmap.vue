@@ -94,7 +94,7 @@
                 :class="[
                   day.count[props.activeCategory === 'all' ? 'total' : props.activeCategory] === 0 ? 'bg-slate-100/80 dark:bg-slate-700/40 hover:bg-slate-200 dark:hover:bg-slate-600/60' : '',
                   day.date === selectedDate ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-800 scale-110 z-20' : '',
-                  hoveredRow === dayIndex || hoveredMonth === day.monthKey ? 'ring-2 ring-sky-400/60 z-10 scale-[1.05] !opacity-100 shadow-[0_0_15px_rgba(14,165,233,0.4)]' : ''
+                  (hoveredRow === dayIndex || hoveredMonth === day.monthKey) ? 'ring-4 ring-sky-400 z-10 scale-[1.08] !opacity-100 shadow-[0_0_25px_rgba(14,165,233,0.6)] !bg-sky-400/20' : ''
                 ]"
                 :style="getCellStyle(day)"
               >
@@ -252,11 +252,11 @@ const heatmapData = computed(() => {
 
     currentWeek.push({
       date: dateStr,
-      dateDisplay: current.format('YYYY年MM月DD日'),
-      monthKey: current.format('YYYY-MM'),
+      monthKey: current.format('YYYY-M'), // Match the label logic month format
       isMonthStart,
       isYearStart,
       monthLabel,
+      monthKey: isMonthStart ? current.format('YYYY-M') : current.format('YYYY-M'), // Ensure every day has a consistent key
       count: data
     })
     
@@ -321,9 +321,11 @@ const getCellStyle = (day: any) => {
   const hasContentToFill = currentCount > 0 || (isFuture && day.count.schedules > 0)
 
   return {
-    backgroundColor: hasContentToFill ? targetColor : 'transparent',
-    opacity: hasContentToFill ? intensity : 1,
-    boxShadow: currentCount > 3 ? `0 0 20px ${targetColor}60` : 'none',
+    ...(hasContentToFill ? {
+      backgroundColor: targetColor,
+      opacity: intensity,
+      boxShadow: currentCount > 3 ? `0 0 20px ${targetColor}60` : 'none',
+    } : {}),
     transform: 'scale(1)',
     border: isFuture ? '1px dashed rgba(148, 163, 184, 0.4)' : 'none',
     ...(day.date === dayjs().format('YYYY-MM-DD') && props.todayCheckedIn ? {
