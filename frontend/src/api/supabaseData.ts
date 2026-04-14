@@ -598,29 +598,71 @@ export const uploadImageLocally = (file: File) => new Promise<{ url: string; ori
 })
 export const supabaseFoldersApi = {
   list: async (type: 'note' | 'journal' | 'hobby'): Promise<Folder[]> => {
-    const { data, error } = await supabase.from('folders').select('*').eq('type', type).order('created_at', { ascending: true })
-    if (error) throw error
-    return data || []
+    try {
+      const { data, error } = await supabase
+        .from('folders')
+        .select('*')
+        .eq('type', type)
+        .order('created_at', { ascending: true })
+      
+      if (error) throw error
+      return data || []
+    } catch (err: any) {
+      console.error('List folders error:', err)
+      throw new Error(err.message || '获取文件夹列表失败')
+    }
   },
 
   create: async (name: string, type: 'note' | 'journal' | 'hobby'): Promise<Folder> => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
-    
-    const { data, error } = await supabase.from('folders').insert({ name, type, user_id: user.id }).select().single()
-    if (error) throw error
-    return data
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('请先登录后再创建文件夹')
+      
+      const { data, error } = await supabase
+        .from('folders')
+        .insert({ name, type, user_id: user.id })
+        .select()
+        .single()
+      
+      if (error) throw error
+      if (!data) throw new Error('创建失败：未返回数据')
+      return data
+    } catch (err: any) {
+      console.error('Create folder error:', err)
+      throw new Error(err.message || '创建文件夹失败')
+    }
   },
 
   update: async (id: number, name: string): Promise<Folder> => {
-    const { data, error } = await supabase.from('folders').update({ name }).eq('id', id).select().single()
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await supabase
+        .from('folders')
+        .update({ name })
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) throw error
+      if (!data) throw new Error('更新失败：找不到该文件夹')
+      return data
+    } catch (err: any) {
+      console.error('Update folder error:', err)
+      throw new Error(err.message || '更新文件夹失败')
+    }
   },
 
   delete: async (id: number) => {
-    const { error } = await supabase.from('folders').delete().eq('id', id)
-    if (error) throw error
-    return true
+    try {
+      const { error } = await supabase
+        .from('folders')
+        .delete()
+        .eq('id', id)
+      
+      if (error) throw error
+      return true
+    } catch (err: any) {
+      console.error('Delete folder error:', err)
+      throw new Error(err.message || '删除文件夹失败')
+    }
   }
 }

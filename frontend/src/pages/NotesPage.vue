@@ -202,8 +202,9 @@ const onFolderAdd = async () => {
     await supabaseFoldersApi.create(name, 'note')
     await loadFolders()
     uiStore.addToast('文件夹已创建', 'success')
-  } catch (error) {
+  } catch (error: any) {
     console.error('创建失败:', error)
+    uiStore.addToast(error.message || '创建文件夹失败', 'error')
   }
 }
 
@@ -214,8 +215,9 @@ const onFolderEdit = async (folder: any) => {
     await supabaseFoldersApi.update(folder.id, name)
     await loadFolders()
     uiStore.addToast('文件夹已更新', 'success')
-  } catch (error) {
+  } catch (error: any) {
     console.error('更新失败:', error)
+    uiStore.addToast(error.message || '更新文件夹失败', 'error')
   }
 }
 
@@ -227,8 +229,9 @@ const onFolderDelete = async (id: number) => {
     await loadFolders()
     await loadNotes()
     uiStore.addToast('文件夹已删除', 'success')
-  } catch (error) {
+  } catch (error: any) {
     console.error('删除失败:', error)
+    uiStore.addToast(error.message || '删除文件夹失败', 'error')
   }
 }
 
