@@ -428,7 +428,7 @@ export const supabaseDashboardApi = {
       const { data, error } = await supabase.rpc('get_combined_stats', { start_date: monthStartStr })
       if (!error && data) stats = data
     } catch (e) {
-      console.warn('RPC get_combined_stats failed, falling back to legacy fetching', e)
+      console.warn('RPC get_combined_stats failed or returned error:', error?.message || error, 'Falling back to legacy fetching...')
     }
 
     // 2. Fallback / Fetch Latest items anyway (RPC currently only handles stats)
@@ -510,7 +510,7 @@ export const supabaseDashboardApi = {
         })
 
         // Reconstruct check-ins from latest status (legacy logic)
-        const { data: checkin } = await supabase.from('checkins').select('*').single()
+        const { data: checkin } = await supabase.from('checkins').select('*').maybeSingle()
         if (checkin && checkin.last_date && checkin.streak > 0) {
           const last = dayjs(checkin.last_date)
           for (let i = 0; i < checkin.streak; i++) {
@@ -525,7 +525,7 @@ export const supabaseDashboardApi = {
         return activityMap
       }
     } catch (e) {
-      console.warn('RPC get_daily_activities failed, falling back to legacy processing', e)
+      console.warn('RPC get_daily_activities failed or returned error:', e?.message || e, 'Falling back to legacy processing...')
     }
 
     // Legacy Fallback
@@ -541,7 +541,7 @@ export const supabaseDashboardApi = {
       supabase.from('journals').select('created_at'),
       supabase.from('hobbies').select('updated_at'),
       supabase.from('todos').select('completed_at').eq('status', 'completed'),
-      supabase.from('checkins').select('*').single(),
+      supabase.from('checkins').select('*').maybeSingle(),
       supabase.from('todos').select('due_date').eq('status', 'pending').not('due_date', 'is', null)
     ])
 
@@ -621,7 +621,7 @@ export const supabaseTodosApi = {
 
 export const supabaseCheckinApi = {
   get: async () => {
-    const { data, error } = await supabase.from('checkins').select('*').single()
+    const { data, error } = await supabase.from('checkins').select('*').maybeSingle()
     if (error && error.code !== 'PGRST116') throw error // Ignore "not found"
     return data
   },
