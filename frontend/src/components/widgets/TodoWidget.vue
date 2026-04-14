@@ -5,28 +5,39 @@
         <span class="w-1.5 h-6 rounded bg-primary block"></span>
         <span>待办清单</span>
       </h2>
-      <span class="text-xs font-semibold px-2 py-1 rounded-lg bg-primary/10 text-primary dark:text-primary-light">
-        {{ activeTodos.length }} 项待办
-      </span>
+      <div class="flex items-center bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl">
+        <button 
+          v-for="tab in tabs" 
+          :key="tab.id"
+          @click="activeTab = tab.id"
+          class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+          :class="activeTab === tab.id 
+            ? 'bg-white dark:bg-slate-800 text-primary shadow-sm ring-1 ring-slate-200 dark:ring-white/10' 
+            : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'"
+        >
+          {{ tab.label }}
+          <span v-if="tab.count > 0" class="ml-1 opacity-60">{{ tab.count }}</span>
+        </button>
+      </div>
     </div>
 
     <!-- Add Input Form -->
-    <TodoForm @add="handleAdd" />
+    <TodoForm v-if="activeTab === 'active' || activeTab === 'planned'" @add="handleAdd" />
 
     <!-- List -->
-    <div class="flex-1 overflow-y-auto space-y-3 custom-scrollbar max-h-[300px] pr-1">
+    <div class="flex-1 overflow-y-auto space-y-3 custom-scrollbar max-h-[400px] pr-1">
       <div v-if="gadgetStore.loading" class="flex justify-center py-8">
         <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
-      <div v-else-if="activeTodos.length === 0" class="py-4">
+      <div v-else-if="displayTodos.length === 0" class="py-12">
         <EmptyState 
-          title="暂无待办" 
-          message="今天似乎还没安排任务？休息或是开始新的一页吧。"
+          :title="emptyStateText.title" 
+          :message="emptyStateText.message"
         />
       </div>
       <transition-group v-else name="list-complete" tag="div" class="space-y-3">
         <TodoItem 
-          v-for="todo in activeTodos" 
+          v-for="todo in displayTodos" 
           :key="todo.id"
           :todo="todo"
           :is-editing="editingTodoId === todo.id"
@@ -35,19 +46,13 @@
           @cycle-recurrence="cycleRecurrence(todo)"
           @postpone="(days) => gadgetStore.postponeTodo(todo.id, days)"
           @fail="gadgetStore.failTodo(todo.id)"
+          @retry="gadgetStore.updateTodoStatus(todo.id, 'pending')"
           @remove="gadgetStore.removeTodo(todo.id)"
           @start-edit="(id) => editingTodoId = id"
           @cancel-edit="editingTodoId = null"
           @save-edit="(updates) => handleSaveEdit(todo.id, updates)"
         />
       </transition-group>
-
-      <!-- Archive Section -->
-      <TodoArchive 
-        :todos="archivedTodos"
-        @toggle-status="toggleStatus"
-        @remove="(id) => gadgetStore.removeTodo(id)"
-      />
     </div>
   </div>
 </template>
@@ -60,7 +65,6 @@ import { useGadgetStore } from '@/stores/gadgets'
 import { useUiStore } from '@/stores/ui'
 import TodoForm from './todo/TodoForm.vue'
 import TodoItem from './todo/TodoItem.vue'
-import TodoArchive from './todo/TodoArchive.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 
 dayjs.extend(isSameOrAfter)
@@ -68,21 +72,48 @@ dayjs.extend(isSameOrAfter)
 const gadgetStore = useGadgetStore()
 const uiStore = useUiStore()
 const editingTodoId = ref<string | null>(null)
+const activeTab = ref('active')
 
-const activeTodos = computed(() => {
-  return gadgetStore.todos.filter(t => {
-    if (t.status === 'completed' || t.status === 'failed') return false
-    if (t.start_date) {
-      const today = dayjs().startOf('day')
-      const start = dayjs(t.start_date).startOf('day')
-      return today.isSameOrAfter(start)
-    }
-    return true
-  })
+const today = dayjs().startOf('day')
+
+const categorized = computed(() => {
+  const all = gadgetStore.todos
+  return {
+    active: all.filter(t => {
+      if (t.status !== 'pending') return false
+      if (!t.start_date) return true
+      return today.isSameOrAfter(dayjs(t.start_date).startOf('day'))
+    }),
+    planned: all.filter(t => {
+      if (t.status !== 'pending') return false
+      if (!t.start_date) return false
+      return dayjs(t.start_date).startOf('day').isAfter(today)
+    }),
+    failed: all.filter(t => t.status === 'failed'),
+    completed: all.filter(t => t.status === 'completed')
+  }
 })
 
-const archivedTodos = computed(() => {
-  return gadgetStore.todos.filter(t => t.status === 'completed' || t.status === 'failed')
+const tabs = computed(() => [
+  { id: 'active', label: '进行中', count: categorized.value.active.length },
+  { id: 'planned', label: '计划', count: categorized.value.planned.length },
+  { id: 'failed', label: '失败', count: categorized.value.failed.length },
+  { id: 'completed', label: '完成', count: categorized.value.completed.length }
+])
+
+const displayTodos = computed(() => {
+  const cat = categorized.value as any
+  return cat[activeTab.value] || []
+})
+
+const emptyStateText = computed(() => {
+  const texts: any = {
+    active: { title: '暂无待办', message: '今天似乎还没安排任务？休息或是开始新的一页吧。' },
+    planned: { title: '虚位以待', message: '暂时没有未来的计划，去发现点新目标？' },
+    failed: { title: '轻装上阵', message: '这里没有任何遗憾，继续保持！' },
+    completed: { title: '硕果累累', message: '每一个勾选都是一次成长。' }
+  }
+  return texts[activeTab.value]
 })
 
 const handleAdd = async (payload: any) => {

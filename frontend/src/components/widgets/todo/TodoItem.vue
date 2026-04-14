@@ -1,7 +1,12 @@
 <template>
   <div 
-    class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-2xl bg-white/50 dark:bg-slate-700/30 border-y border-r border-transparent hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50 transition-all duration-300 group/item relative overflow-hidden shadow-sm cursor-default"
-    :class="[getPriorityColor(todo.priority), { 'opacity-60': todo.status === 'completed', 'opacity-80 bg-red-50/50 dark:bg-red-900/10': todo.status === 'failed' }]"
+    class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-2xl border transition-all duration-300 group/item relative overflow-hidden shadow-sm cursor-default"
+    :class="[
+      getPriorityColor(todo.priority),
+      todo.status === 'completed' ? 'bg-emerald-500/5 border-emerald-500/10 opacity-75' : 
+      todo.status === 'failed' ? 'bg-red-500/5 border-red-500/10 opacity-75' : 
+      'bg-white dark:bg-slate-800/60 border-slate-100 dark:border-white/5 hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50'
+    ]"
   >
     <!-- Priority Color Bar (Interactive) -->
     <div 
@@ -128,6 +133,12 @@
               <button @click="emit('postpone', 7)" class="px-1.5 py-1 text-[9px] font-black text-slate-500 hover:text-primary hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all border-l border-slate-200 dark:border-white/5">1W</button>
             </div>
 
+            <!-- Retry for failed -->
+            <button v-if="todo.status === 'failed'" @click="emit('retry')" class="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all" title="重试任务">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </button>
+
+            <!-- Mark as failed for pending -->
             <button v-if="todo.status === 'pending'" @click="emit('fail')" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="标记为失败">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
@@ -152,7 +163,7 @@ const props = defineProps<{
   isEditing: boolean
 }>()
 
-const emit = defineEmits(['toggle-status', 'cycle-priority', 'cycle-recurrence', 'postpone', 'fail', 'remove', 'start-edit', 'cancel-edit', 'save-edit'])
+const emit = defineEmits(['toggle-status', 'cycle-priority', 'cycle-recurrence', 'postpone', 'fail', 'retry', 'remove', 'start-edit', 'cancel-edit', 'save-edit'])
 
 const tempText = ref(props.todo.text)
 const tempStartDate = ref(props.todo.start_date || '')
