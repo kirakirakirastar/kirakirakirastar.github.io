@@ -274,7 +274,8 @@ const onFileSelected = async (event: Event) => {
 
   try {
     isUploading.value = true
-    const { url } = await uploadImageLocally(file)
+    // 背景图片设为公开路径，存入 system-assets 桶
+    const { url } = await uploadApi.image(file, false, 'system-assets')
     bgUrlInput.value = url
     applyBgUrl()
   } catch (err) {

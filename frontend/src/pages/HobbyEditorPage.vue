@@ -162,7 +162,7 @@ const handleCoverUpload = async (event: Event) => {
 
 const uploadAndSetCover = async (file: File) => {
   try {
-    const result = await uploadApi.image(file)
+    const result = await uploadApi.image(file, form.value.is_private, 'hobbies-covers')
     form.value.cover_url = result.url
     uiStore.addToast('封面设置成功', 'success')
   } catch (error) {

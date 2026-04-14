@@ -110,7 +110,7 @@ const form = ref({
 const uploadAndInsertImage = async (file: File) => {
   if (!editor.value) return
   try {
-    const result = await uploadApi.image(file)
+    const result = await uploadApi.image(file, form.value.is_private, 'journals-images')
     editor.value.chain().focus().setImage({ src: resolveAssetUrl(result.url), alt: result.original_name }).run()
   } catch (error) {
     console.error('上传图片失败:', error)

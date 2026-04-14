@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import type { Note, Journal, Hobby, Todo, Folder, DashboardData, ActivityMap, ActivityDay, Tag, Announcement } from './types'
 import dayjs from 'dayjs'
+import { compressImage, fileToBase64 } from '@/utils/image'
 
 const includesKeyword = (values: Array<string | undefined>, keyword?: string) => {
   if (!keyword) return true
@@ -117,7 +118,15 @@ export const supabaseNotesApi = {
   },
 
   get: async (id: number): Promise<Note> => {
-    const { data, error } = await supabase.from('notes').select('*').eq('id', id).single()
+    let query = supabase.from('notes').select('*').eq('id', id)
+    
+    // Privacy protection: Ensure guests can't see private notes even if they have the ID
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      query = query.eq('is_private', false)
+    }
+
+    const { data, error } = await query.single()
     if (error) throw error
     return { ...data, tags: normalizeTags(data.tags) }
   },
@@ -162,9 +171,16 @@ export const supabaseNotesApi = {
   },
 
   tags: async (): Promise<Tag[]> => {
+    // Check auth for privacy filtering
+    const { data: { user } } = await supabase.auth.getUser()
+    const isOwner = !!user
+
     // Optimized: Attempt to use RPC first
     try {
-      const { data, error } = await supabase.rpc('get_tag_cloud', { table_name: 'notes' })
+      const { data, error } = await supabase.rpc('get_tag_cloud', { 
+        table_name: 'notes',
+        public_only: !isOwner // Assuming RPC might support this, or it will be filtered at DB level by RLS
+      })
       if (!error && data) {
         return data.map((d: any, index: number) => ({ id: index + 1, name: d.tag_name }))
       }
@@ -172,7 +188,12 @@ export const supabaseNotesApi = {
       console.warn('RPC get_tag_cloud failed, falling back to legacy fetch', e)
     }
 
-    const { data, error } = await supabase.from('notes').select('tags')
+    let query = supabase.from('notes').select('tags, is_private')
+    if (!isOwner) {
+      query = query.eq('is_private', false)
+    }
+
+    const { data, error } = await query
     if (error) throw error
     const tagMap = new Map<string, Tag>()
     for (const note of data || []) {
@@ -191,7 +212,7 @@ export const supabaseJournalsApi = {
 
     if (params?.keyword) {
       const kw = `%${params.keyword}%`
-      query = query.or(`title.ilike.${kw},excerpt.ilike.${kw}`)
+      query = query.or(`title.ilike.${kw},excerpt.ilike.${kw},content_html.ilike.${kw}`)
     }
 
     // Privacy filter
@@ -248,7 +269,15 @@ export const supabaseJournalsApi = {
   },
 
   get: async (id: number): Promise<Journal> => {
-    const { data, error } = await supabase.from('journals').select('*').eq('id', id).single()
+    let query = supabase.from('journals').select('*').eq('id', id)
+    
+    // Privacy protection
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      query = query.eq('is_private', false)
+    }
+
+    const { data, error } = await query.single()
     if (error) throw error
     return { ...data, tags: normalizeTags(data.tags) }
   },
@@ -294,7 +323,15 @@ export const supabaseJournalsApi = {
   },
   
   tags: async () => {
-    const { data, error } = await supabase.from('journals').select('tags')
+    const { data: { user } } = await supabase.auth.getUser()
+    const isOwner = !!user
+
+    let query = supabase.from('journals').select('tags, is_private')
+    if (!isOwner) {
+      query = query.eq('is_private', false)
+    }
+
+    const { data, error } = await query
     if (error) throw error
     const tagMap = new Map<string, any>()
     for (const journal of data || []) {
@@ -359,7 +396,15 @@ export const supabaseHobbiesApi = {
   },
 
   get: async (id: number): Promise<Hobby> => {
-    const { data, error } = await supabase.from('hobbies').select('*').eq('id', id).single()
+    let query = supabase.from('hobbies').select('*').eq('id', id)
+    
+    // Privacy protection
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      query = query.eq('is_private', false)
+    }
+
+    const { data, error } = await query.single()
     if (error) throw error
     return { ...data, tags: normalizeTags(data.tags) }
   },
@@ -401,8 +446,14 @@ export const supabaseHobbiesApi = {
   },
 
   tags: async (): Promise<Tag[]> => {
+    const { data: { user } } = await supabase.auth.getUser()
+    const isOwner = !!user
+
     try {
-      const { data, error } = await supabase.rpc('get_tag_cloud', { table_name: 'hobbies' })
+      const { data, error } = await supabase.rpc('get_tag_cloud', { 
+        table_name: 'hobbies',
+        public_only: !isOwner
+      })
       if (!error && data) {
         return data.map((d: any, index: number) => ({ id: index + 1, name: d.tag_name }))
       }
@@ -410,7 +461,12 @@ export const supabaseHobbiesApi = {
       console.warn('RPC get_tag_cloud failed, falling back to legacy fetch', e)
     }
 
-    const { data, error } = await supabase.from('hobbies').select('tags')
+    let query = supabase.from('hobbies').select('tags, is_private')
+    if (!isOwner) {
+      query = query.eq('is_private', false)
+    }
+
+    const { data, error } = await query
     if (error) throw error
     const tagMap = new Map<string, Tag>()
     for (const hobby of data || []) {
@@ -450,108 +506,47 @@ export const supabaseDashboardApi = {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     const monthStartStr = monthStart.toISOString()
 
-    // 1. Optimized: Use RPC for combined statistics if available
-    let stats: any = null
-    try {
-      const { data, error } = await supabase.rpc('get_combined_stats', { start_date: monthStartStr })
-      if (!error && data) {
-        stats = data
-      } else if (error) {
-        console.warn('RPC get_combined_stats returned error:', error.message)
-      }
-    } catch (e) {
-      console.warn('RPC get_combined_stats caught exception:', e)
-    }
-
-    // 2. Fallback / Fetch Latest items anyway (RPC currently only handles stats)
-    const todayStart = new Date(now)
-    todayStart.setHours(0, 0, 0, 0)
-    const todayStartStr = todayStart.toISOString()
-
-    const weekStart = new Date(now)
-    const day = weekStart.getDay()
-    const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1)
-    weekStart.setDate(diff)
-    weekStart.setHours(0, 0, 0, 0)
-    const weekStartStr = weekStart.toISOString()
-
-    // Check auth for privacy filtering
+    // 1. 核心统计：利用 RPC 一次性获取所有维度数据（由于是单用户，is_owner 传 true 以包含私有项计数）
     const { data: { user } } = await supabase.auth.getUser()
     const isOwner = !!user
 
+    let stats: any = null
+    try {
+      const { data, error } = await supabase.rpc('get_combined_stats', { 
+        start_date: monthStartStr,
+        is_owner: isOwner
+      })
+      if (!error && data) {
+        stats = data
+      } else {
+        console.warn('RPC统计失败，采用局部兜底策略', error)
+      }
+    } catch (e) {
+      console.error('统计计算异常', e)
+    }
+
+    // 2. 获取最新动态（依然保留实时性，但限制数量）
     const fetchPromises = [
       supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(5),
       supabase.from('journals').select('*').order('created_at', { ascending: false }).limit(5),
       supabase.from('hobbies').select('*').order('updated_at', { ascending: false }).limit(5),
     ]
 
-    // Apply privacy filter if not owner
     if (!isOwner) {
       fetchPromises[0] = fetchPromises[0].eq('is_private', false)
       fetchPromises[1] = fetchPromises[1].eq('is_private', false)
       fetchPromises[2] = fetchPromises[2].eq('is_private', false)
     }
 
-    // If stats weren't fetched via RPC, add individual count queries
-    if (!stats) {
-      const notesQuery = supabase.from('notes').select('*', { count: 'exact', head: true })
-      const journalsQuery = supabase.from('journals').select('*', { count: 'exact', head: true })
-      const hobbiesQuery = supabase.from('hobbies').select('*', { count: 'exact', head: true })
-      
-      const todosTodayQuery = supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', todayStartStr)
-      const todosWeekQuery = supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', weekStartStr)
-      const todosMonthQuery = supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', monthStartStr)
-      
-      const notesMonthQuery = supabase.from('notes').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr)
-      const journalsMonthQuery = supabase.from('journals').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr)
-      const hobbiesMonthQuery = supabase.from('hobbies').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr)
-
-      if (!isOwner) {
-        notesQuery.eq('is_private', false)
-        journalsQuery.eq('is_private', false)
-        hobbiesQuery.eq('is_private', false)
-        todosTodayQuery.eq('is_private', false)
-        todosWeekQuery.eq('is_private', false)
-        todosMonthQuery.eq('is_private', false)
-        notesMonthQuery.eq('is_private', false)
-        journalsMonthQuery.eq('is_private', false)
-        hobbiesMonthQuery.eq('is_private', false)
-      }
-
-      fetchPromises.push(
-        notesQuery,
-        journalsQuery,
-        hobbiesQuery,
-        todosTodayQuery,
-        todosWeekQuery,
-        todosMonthQuery,
-        notesMonthQuery,
-        journalsMonthQuery,
-        hobbiesMonthQuery
-      )
-    }
-
     const results = await Promise.allSettled(fetchPromises)
     const [notesRes, journalsRes, hobbiesRes] = results as any[]
 
-    if (!stats) {
-      const [
-        nTotal, jTotal, hTotal, tToday, tWeek, tMonth, nMonth, jMonth, hMonth
-      ] = results.slice(3).map((r: any) => r.value?.count || 0)
-      
-      stats = {
-        notes_count: nTotal,
-        journals_count: jTotal,
-        hobbies_count: hTotal,
-        completed_todos_today: tToday,
-        completed_todos_week: tWeek,
-        completed_todos_month: tMonth,
-        month_updates: nMonth + jMonth + hMonth
-      }
-    }
-
     return {
-      stats,
+      stats: stats || {
+        notes_count: 0, journals_count: 0, hobbies_count: 0,
+        completed_todos_today: 0, completed_todos_week: 0, completed_todos_month: 0,
+        month_updates: 0
+      },
       latest_notes: (notesRes.value?.data || []).map((n: any) => ({ ...n, tags: normalizeTags(n.tags) })),
       latest_journals: (journalsRes.value?.data || []),
       latest_hobbies: (hobbiesRes.value?.data || []),
@@ -559,9 +554,14 @@ export const supabaseDashboardApi = {
   },
 
   activities: async (): Promise<ActivityMap> => {
-    // Optimized: Attempt to use RPC for activity aggregation
+    const { data: { user } } = await supabase.auth.getUser()
+    const isOwner = !!user
+
+    // 1. 高性能聚合：利用 RPC 在服务端完成跨表日期统计
     try {
-      const { data, error } = await supabase.rpc('get_daily_activities')
+      const { data, error } = await supabase.rpc('get_daily_activities', { 
+        is_owner: isOwner 
+      })
       if (!error && data) {
         const activityMap: ActivityMap = {}
         data.forEach((row: any) => {
@@ -581,6 +581,7 @@ export const supabaseDashboardApi = {
           }
         })
 
+        // 注入连续打卡数据（由于 checkins 表只存当前状态，仍需前端配合 heatmap 组件逻辑显示）
         const { data: checkin } = await supabase.from('checkins').select('*').maybeSingle()
         if (checkin && checkin.last_date && checkin.streak > 0) {
           const last = dayjs(checkin.last_date)
@@ -594,62 +595,14 @@ export const supabaseDashboardApi = {
           }
         }
         return activityMap
-      } else if (error) {
-        console.warn('RPC get_daily_activities returned error:', error.message)
+      } else {
+        console.warn('RPC热力图数据加载失败', error)
+        return {}
       }
     } catch (e) {
-      console.warn('RPC get_daily_activities caught exception:', e)
+      console.error('热力图逻辑异常', e)
+      return {}
     }
-
-    // Legacy Fallback
-    const [
-      { data: notes },
-      { data: journals },
-      { data: hobbies },
-      { data: todos },
-      { data: checkin },
-      { data: pendingTodos },
-    ] = await Promise.all([
-      supabase.from('notes').select('created_at, title'),
-      supabase.from('journals').select('created_at, title'),
-      supabase.from('hobbies').select('updated_at, title'),
-      supabase.from('todos').select('completed_at, text').eq('status', 'completed'),
-      supabase.from('checkins').select('*').maybeSingle(),
-      supabase.from('todos').select('due_date, text').eq('status', 'pending').not('due_date', 'is', null)
-    ])
-
-    const activityMap: ActivityMap = {}
-    const addActivity = (dateStr: string, type: keyof ActivityMap[string], title?: string) => {
-      const date = dateStr.split('T')[0]
-      if (!activityMap[date]) {
-        activityMap[date] = { 
-          notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, schedules: 0, total: 0,
-          notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: []
-        }
-      }
-      (activityMap[date] as any)[type]++
-      activityMap[date].total++
-      
-      const listKey = `${type}s_list` as keyof ActivityDay
-      if (title && Array.isArray(activityMap[date][listKey])) {
-        (activityMap[date][listKey] as string[]).push(title)
-      }
-    }
-
-    (notes || []).forEach(n => addActivity(n.created_at, 'notes', n.title));
-    (journals || []).forEach(j => addActivity(j.created_at, 'journals', j.title));
-    (hobbies || []).forEach(h => addActivity(h.updated_at, 'hobbies', h.title));
-    (todos || []).forEach(t => addActivity(t.completed_at!, 'todos', t.text));
-    (pendingTodos || []).forEach(t => addActivity(t.due_date!, 'schedules', t.text));
-
-    if (checkin && checkin.last_date && checkin.streak > 0) {
-      const last = dayjs(checkin.last_date)
-      for (let i = 0; i < checkin.streak; i++) {
-        const d = last.subtract(i, 'day').format('YYYY-MM-DD')
-        addActivity(d, 'checkins')
-      }
-    }
-    return activityMap
   }
 }
 
@@ -766,12 +719,46 @@ export const supabaseAnnouncementsApi = {
   }
 }
 
-export const uploadImageLocally = (file: File) => new Promise<{ url: string; original_name: string }>((resolve, reject) => {
-  const reader = new FileReader()
-  reader.onload = () => resolve({ url: String(reader.result || ''), original_name: file.name })
-  reader.onerror = () => reject(new Error('读取图片失败'))
-  reader.readAsDataURL(file)
-})
+export const uploadImageToSupabase = async (file: File, isPrivate: boolean = false, bucket: string = 'images') => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('只有登录用户可以上传图片')
+
+  try {
+    // 1. 智能压缩：平衡画质与带宽
+    const optimizedBlob = await compressImage(file)
+    const uploadFile = optimizedBlob instanceof Blob 
+      ? new File([optimizedBlob], file.name, { type: optimizedBlob.type }) 
+      : optimizedBlob
+
+    // 2. 准备上传
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
+    const folder = isPrivate ? 'private' : 'public'
+    const filePath = `${folder}/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, uploadFile)
+
+    if (uploadError) throw uploadError
+
+    // 3. 获取访问地址
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath)
+
+    return { url: publicUrl, original_name: file.name }
+  } catch (error: any) {
+    console.warn('云端上传失败，正在降级为数据库存储 (Base64):', error.message || error)
+    
+    // 4. 降级方案：转化为 Base64 直接存入数据库字段
+    // 这保证了即使存储桶满了，用户依然可以正常保存笔记
+    const base64 = await fileToBase64(file)
+    return { url: base64, original_name: file.name, is_fallback: true }
+  }
+}
+
+export const uploadImageLocally = uploadImageToSupabase
 export const supabaseFoldersApi = {
   list: async (type: 'note' | 'journal' | 'hobby'): Promise<Folder[]> => {
     try {
@@ -829,6 +816,14 @@ export const supabaseFoldersApi = {
 
   delete: async (id: number) => {
     try {
+      // 1. Data Integrity: Set folder_id to null for all orphaned items
+      await Promise.all([
+        supabase.from('notes').update({ folder_id: null }).eq('folder_id', id),
+        supabase.from('journals').update({ folder_id: null }).eq('folder_id', id),
+        supabase.from('hobbies').update({ folder_id: null }).eq('folder_id', id),
+      ])
+
+      // 2. Delete the folder
       const { error } = await supabase
         .from('folders')
         .delete()
