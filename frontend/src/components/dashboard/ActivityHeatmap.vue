@@ -1,8 +1,8 @@
 <template>
   <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 sm:p-9 border border-white/60 dark:border-slate-700/60 shadow-lg transition-all duration-500 overflow-visible relative">
     
-    <!-- Optimized Header: Centered & Balanced -->
-    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-center sm:justify-between gap-6 mb-10">
+    <!-- Optimized Header: Full Width -->
+    <div class="flex flex-wrap items-center justify-between gap-6 mb-10 w-full px-2">
       <div class="flex items-center gap-4">
         <div class="p-3 rounded-2xl bg-primary/15 text-primary shadow-inner">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,32 +41,32 @@
       </div>
     </div>
 
-    <!-- Main Content Area -->
+    <!-- Main Content Area: Expanded Width -->
     <div 
-      class="grid-container transition-all duration-700 ease-in-out px-2"
-      :class="isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[600px] opacity-100 overflow-visible'"
+      class="grid-container transition-all duration-700 ease-in-out px-2 w-full"
+      :class="isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[700px] opacity-100 overflow-visible'"
     >
-      <div class="flex max-w-6xl mx-auto">
-        <!-- Y-Axis: Day Labels -->
-        <div class="flex flex-col justify-between py-1.5 pr-5 text-[11px] font-black text-slate-400/40 select-none uppercase tracking-tighter h-[115px] sm:h-[138px] shrink-0 text-right w-10">
-          <span></span>
+      <div class="flex w-full">
+        <!-- Y-Axis: All 7 Day Labels -->
+        <div class="flex flex-col justify-between py-1.5 pr-4 text-[10px] sm:text-[11px] font-black text-slate-400/50 select-none uppercase tracking-tighter h-[135px] sm:h-[155px] md:h-[185px] shrink-0 text-right w-8 sm:w-10">
           <span>一</span>
-          <span></span>
+          <span>二</span>
           <span>三</span>
-          <span></span>
+          <span>四</span>
           <span>五</span>
-          <span></span>
+          <span>六</span>
+          <span>日</span>
         </div>
 
-        <!-- Heatmap Grid -->
+        <!-- Heatmap Grid: Larger Cells on Desktop -->
         <div class="flex-1 overflow-x-auto custom-scrollbar pb-16 pt-16 px-1">
-          <div class="flex gap-1.5 sm:gap-2 w-max relative">
-            <div v-for="(week, weekIndex) in heatmapData" :key="weekIndex" class="flex flex-col gap-1.5 sm:gap-2 relative week-col">
+          <div class="flex gap-1.5 sm:gap-2 md:gap-2.5 w-max relative">
+            <div v-for="(week, weekIndex) in heatmapData" :key="weekIndex" class="flex flex-col gap-1.5 sm:gap-2 md:gap-2.5 relative week-col">
               
               <!-- X-Axis: Month Labels (Precise Alignment) -->
               <div 
                 v-if="week[0].isMonthStart" 
-                class="absolute -top-10 left-0 text-[10px] sm:text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap bg-slate-100/50 dark:bg-slate-700/20 px-2 py-0.5 rounded-md"
+                class="absolute -top-10 left-0 text-[10px] sm:text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap bg-slate-100/50 dark:bg-slate-700/20 px-2.5 py-1 rounded-lg border border-slate-200/50 dark:border-slate-700/50 shadow-sm"
               >
                 {{ week[0].monthLabel }}
               </div>
@@ -75,31 +75,31 @@
               <div
                 v-for="(day, dayIndex) in week"
                 :key="day.date"
-                class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-[4px] sm:rounded-[4.5px] relative group/cell transition-all duration-500 hover:z-50"
-                :class="day.count[activeCategory === 'all' ? 'total' : activeCategory] === 0 ? 'bg-slate-100 dark:bg-slate-700/30' : ''"
+                class="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 rounded-[4px] sm:rounded-[5px] md:rounded-[6px] relative group/cell transition-all duration-500 hover:z-50"
+                :class="day.count[activeCategory === 'all' ? 'total' : activeCategory] === 0 ? 'bg-slate-100 dark:bg-slate-700/30 font-medium' : ''"
                 :style="getCellStyle(day)"
               >
-                <!-- Smart Tooltip: Positions based on row to prevent clipping -->
+                <!-- Smart Tooltip -->
                 <div 
-                  class="absolute left-1/2 -translate-x-1/2 w-44 px-4 py-3.5 bg-slate-900/98 backdrop-blur-2xl text-white text-[11px] rounded-[1.25rem] opacity-0 scale-90 invisible group-hover/cell:opacity-100 group-hover/cell:scale-100 group-hover/cell:visible transition-all duration-300 pointer-events-none z-[100] shadow-[0_20px_50px_rgba(0,0,0,0.3)] ring-1 ring-white/10"
-                  :class="dayIndex <= 3 ? 'top-full mt-3' : 'bottom-full mb-3'"
+                  class="absolute left-1/2 -translate-x-1/2 w-48 px-4.5 py-4 bg-slate-900/98 backdrop-blur-3xl text-white text-[11px] rounded-[1.5rem] opacity-0 scale-90 invisible group-hover/cell:opacity-100 group-hover/cell:scale-100 group-hover/cell:visible transition-all duration-300 pointer-events-none z-[100] shadow-[0_25px_60px_rgba(0,0,0,0.4)] ring-1 ring-white/10"
+                  :class="dayIndex <= 3 ? 'top-full mt-4' : 'bottom-full mb-4'"
                 >
-                  <div class="font-black border-b border-white/10 pb-2.5 mb-2.5 flex justify-between items-center text-white/90 tracking-wide">
+                  <div class="font-black border-b border-white/10 pb-3 mb-3 flex justify-between items-center text-white/90 tracking-wide text-[12px]">
                     <span>{{ day.dateDisplay }}</span>
-                    <span v-if="day.count.total > 0" class="px-2.5 py-1 rounded-lg bg-white/10 text-[10px]">{{ day.count.total }}</span>
+                    <span v-if="day.count.total > 0" class="px-3 py-1.5 rounded-xl bg-white/10 text-[11px]">{{ day.count.total }}</span>
                   </div>
                   
-                  <div v-if="day.count.total > 0" class="space-y-2">
-                    <div v-if="day.count.notes" class="flex justify-between items-center"><span class="flex items-center gap-2.5"><div class="w-2 h-2 rounded-full shadow-[0_0_8px_#6366f1]" style="background: #6366f1"></div>学习笔记</span> <span class="font-black">{{ day.count.notes }}</span></div>
-                    <div v-if="day.count.journals" class="flex justify-between items-center"><span class="flex items-center gap-2.5"><div class="w-2 h-2 rounded-full shadow-[0_0_8px_#a855f7]" style="background: #a855f7"></div>个人日志</span> <span class="font-black">{{ day.count.journals }}</span></div>
-                    <div v-if="day.count.todos" class="flex justify-between items-center"><span class="flex items-center gap-2.5"><div class="w-2 h-2 rounded-full shadow-[0_0_8px_#10b981]" style="background: #10b981"></div>任务待办</span> <span class="font-black">{{ day.count.todos }}</span></div>
-                    <div v-if="day.count.hobbies" class="flex justify-between items-center"><span class="flex items-center gap-2.5"><div class="w-2 h-2 rounded-full shadow-[0_0_8px_#f59e0b]" style="background: #f59e0b"></div>生活爱好</span> <span class="font-black">{{ day.count.hobbies }}</span></div>
+                  <div v-if="day.count.total > 0" class="space-y-2.5">
+                    <div v-if="day.count.notes" class="flex justify-between items-center"><span class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_10px_#6366f1]" style="background: #6366f1"></div>学习笔记</span> <span class="font-black">{{ day.count.notes }}</span></div>
+                    <div v-if="day.count.journals" class="flex justify-between items-center"><span class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_10px_#a855f7]" style="background: #a855f7"></div>个人日志</span> <span class="font-black">{{ day.count.journals }}</span></div>
+                    <div v-if="day.count.todos" class="flex justify-between items-center"><span class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_10px_#10b981]" style="background: #10b981"></div>任务巡航</span> <span class="font-black">{{ day.count.todos }}</span></div>
+                    <div v-if="day.count.hobbies" class="flex justify-between items-center"><span class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_10px_#f59e0b]" style="background: #f59e0b"></div>生活爱好</span> <span class="font-black">{{ day.count.hobbies }}</span></div>
                   </div>
-                  <div v-else class="text-slate-400 italic py-1 text-center font-medium">这一天风平浪静</div>
+                  <div v-else class="text-slate-400 italic py-1 text-center font-bold text-[12px]">这一天风平浪静</div>
 
                   <!-- Dynamic Arrow -->
                   <div 
-                    class="absolute left-1/2 -translate-x-1/2 border-[7px] border-transparent"
+                    class="absolute left-1/2 -translate-x-1/2 border-[8px] border-transparent"
                     :class="dayIndex <= 3 ? 'bottom-full border-b-slate-900/98' : 'top-full border-t-slate-900/98'"
                   ></div>
                 </div>
@@ -127,7 +127,7 @@ const isCollapsed = ref(false)
 const activeCategory = ref('all')
 
 const categories = [
-  { id: 'all', name: '全能巡航', color: '' },
+  { id: 'all', name: '全向巡航', color: '' },
   { id: 'notes', name: '笔记', color: '#6366f1' },
   { id: 'journals', name: '日志', color: '#a855f7' },
   { id: 'todos', name: '任务', color: '#10b981' },
@@ -205,11 +205,12 @@ const getCellStyle = (day: any) => {
   return {
     backgroundColor: targetColor,
     opacity: intensity,
-    boxShadow: currentCount > 3 ? `0 0 12px ${targetColor}40` : 'none',
+    boxShadow: currentCount > 3 ? `0 0 15px ${targetColor}50` : 'none',
     transform: `scale(${isCollapsed.value ? 0.85 : 1})`
   }
 }
 </script>
+
 
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar {
