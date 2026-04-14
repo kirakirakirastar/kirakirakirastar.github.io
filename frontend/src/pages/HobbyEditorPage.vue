@@ -45,11 +45,19 @@
         </div>
         <div>
           <label class="block text-sm font-medium mb-2">封面上传</label>
-          <input type="file" accept="image/*" @change="handleCoverUpload" />
+          <div class="space-y-2">
+            <input type="file" accept="image/*" @change="handleCoverUpload" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+            <p class="text-xs text-gray-500 dark:text-gray-400">支持点击上传或从剪贴板粘贴图片</p>
+          </div>
         </div>
       </div>
-      <div v-if="form.cover_url" class="w-40">
-        <img :src="imageUrl" class="w-full rounded-lg border" alt="cover" />
+      <div v-if="form.cover_url" class="relative group w-40">
+        <img :src="imageUrl" class="w-full rounded-2xl border-2 border-primary/20 shadow-lg transition-transform group-hover:scale-105" alt="cover" />
+        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
+          <button @click.prevent="form.cover_url = ''" class="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </div>
       </div>
       <div>
         <label class="block text-sm font-medium mb-2">标签 (英文逗号分隔)</label>
@@ -75,12 +83,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { hobbiesApi } from '@/api/hobbies'
 import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
+import { useUiStore } from '@/stores/ui'
+
+const uiStore = useUiStore()
 
 const route = useRoute()
 const router = useRouter()
@@ -129,12 +140,32 @@ const handleCoverUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (!file) return
+  uploadAndSetCover(file)
+}
+
+const uploadAndSetCover = async (file: File) => {
   try {
     const result = await uploadApi.image(file)
     form.value.cover_url = result.url
+    uiStore.addToast('封面设置成功', 'success')
   } catch (error) {
     console.error('上传封面失败:', error)
-    alert('封面上传失败')
+    uiStore.addToast('封面上传失败', 'error')
+  }
+}
+
+const handlePaste = (event: ClipboardEvent) => {
+  const items = event.clipboardData?.items
+  if (!items) return
+
+  for (const item of items) {
+    if (item.type.indexOf('image') !== -1) {
+      const file = item.getAsFile()
+      if (file) {
+        uploadAndSetCover(file)
+        break // Only take the first image if multiple
+      }
+    }
   }
 }
 
@@ -151,13 +182,15 @@ const saveHobby = async () => {
 
     if (isEdit.value) {
       await hobbiesApi.update(Number(route.params.id), payload)
+      uiStore.addToast('更新成功', 'success')
     } else {
       await hobbiesApi.create(payload)
+      uiStore.addToast('创建成功', 'success')
     }
     router.push('/hobbies')
   } catch (error) {
     console.error('保存条目失败:', error)
-    alert('保存失败，请稍后重试')
+    uiStore.addToast('保存失败', 'error')
   } finally {
     saving.value = false
   }
@@ -166,5 +199,10 @@ const saveHobby = async () => {
 onMounted(() => {
   loadHobby()
   loadFolders()
+  window.addEventListener('paste', handlePaste)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('paste', handlePaste)
 })
 </script>
