@@ -199,7 +199,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
 
   const updateTodoStatus = async (id: string, status: Todo['status']) => {
     const todo = todos.value.find(t => t.id === id)
-    if (!todo) return
+    if (!todo || todo.status === status) return
 
     const oldStatus = todo.status
     const oldCompleted = todo.completed
@@ -242,12 +242,21 @@ export const useGadgetStore = defineStore('gadgets', () => {
     }
 
     if (nextDueDate) {
-      addTodo(todo.text, {
-        priority: todo.priority,
-        start_date: nextDueDate,
-        due_date: nextDueDate,
-        recurrence: todo.recurrence
-      })
+      // Deduplication: Check if we already have a pending task with the same text and next date
+      const exists = todos.value.some(t => 
+        t.status === 'pending' && 
+        t.text === todo.text && 
+        t.due_date === nextDueDate
+      )
+      
+      if (!exists) {
+        addTodo(todo.text, {
+          priority: todo.priority,
+          start_date: nextDueDate,
+          due_date: nextDueDate,
+          recurrence: todo.recurrence
+        })
+      }
     }
   }
 
