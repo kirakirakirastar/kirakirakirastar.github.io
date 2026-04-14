@@ -23,6 +23,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
     streak: 0,
     total_count: 0
   })
+  const checkinHistory = ref<any[]>([])
   const announcements = ref<Announcement[]>([])
   const loading = ref(false)
 
@@ -47,6 +48,8 @@ export const useGadgetStore = defineStore('gadgets', () => {
         let fetchedTodos = todosRes.status === 'fulfilled' ? todosRes.value : []
         checkin.value = checkinRes.status === 'fulfilled' ? (checkinRes.value || { last_date: null, streak: 0, total_count: 0 }) : { last_date: null, streak: 0, total_count: 0 }
         announcements.value = announcementsRes.status === 'fulfilled' ? announcementsRes.value : []
+        
+        await fetchCheckinHistory()
 
         // --- Domain Logic: Evaluate Todo Statuses/Failures ---
         const now = dayjs().startOf('day')
@@ -97,6 +100,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
         if (requestId !== currentRequestId) return
         todos.value = []
         checkin.value = { last_date: null, streak: 0, total_count: 0 }
+        checkinHistory.value = []
         cleanupRealtime()
       }
     } catch (e) {
@@ -351,6 +355,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
         last_record: record
       })
       checkin.value = updated
+      await fetchCheckinHistory()
       return true
     } catch (e) {
       checkin.value = backup
@@ -374,11 +379,21 @@ export const useGadgetStore = defineStore('gadgets', () => {
         last_record: record
       })
       checkin.value = updated
+      await fetchCheckinHistory()
       return true
     } catch (e) {
       checkin.value = backup
       console.error(getErrorMessage(e))
       return false
+    }
+  }
+
+  const fetchCheckinHistory = async () => {
+    try {
+      const data = await checkinApi.getHistory()
+      checkinHistory.value = data
+    } catch (e) {
+      console.error('Failed to fetch checkin history:', e)
     }
   }
 
@@ -408,11 +423,10 @@ export const useGadgetStore = defineStore('gadgets', () => {
   })
 
   return {
-    todos, checkin, announcements, loading,
+    todos, checkin, checkinHistory, announcements, loading,
     initGadgets, addTodo, updateTodoStatus, postponeTodo, updateTodo, failTodo, removeTodo,
-    canCheckin, doCheckin, updateCheckinRecord, addAnnouncement, removeAnnouncement
+    canCheckin, doCheckin, updateCheckinRecord, fetchCheckinHistory, addAnnouncement, removeAnnouncement
   }
 }, {
   persist: true
 })
-

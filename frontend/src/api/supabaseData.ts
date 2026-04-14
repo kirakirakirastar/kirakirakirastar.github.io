@@ -713,16 +713,36 @@ export const supabaseCheckinApi = {
     return data
   },
   upsert: async (update: any) => {
-    // Specify user_id as the conflict target for upsert to work correctly with unique constraint
+    // 1. Update main checkin state
     const { data, error } = await supabase.from('checkins').upsert({
       user_id: update.user_id,
       last_date: update.last_date,
       streak: update.streak,
       total_count: update.total_count,
-      last_record: update.last_record // New field
+      last_record: update.last_record
     }, { onConflict: 'user_id' }).select().single()
     if (error) throw error
+
+    // 2. Log history (Upsert by date to allow updates same-day)
+    if (update.last_date) {
+      const { error: logError } = await supabase.from('checkin_logs').upsert({
+        user_id: update.user_id,
+        checkin_date: update.last_date,
+        message: update.last_record
+      }, { onConflict: 'user_id,checkin_date' })
+      if (logError) console.error('Failed to log checkin history:', logError)
+    }
+
     return data
+  },
+  getHistory: async () => {
+    const { data, error } = await supabase
+      .from('checkin_logs')
+      .select('*')
+      .order('checkin_date', { ascending: false })
+      .limit(100)
+    if (error) throw error
+    return data || []
   }
 }
 
