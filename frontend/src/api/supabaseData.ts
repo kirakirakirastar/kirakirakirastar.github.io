@@ -510,11 +510,11 @@ export const supabaseDashboardApi = {
             checkins: 0, 
             schedules: Number(row.schedule_count),
             total: Number(row.note_count) + Number(row.journal_count) + Number(row.hobby_count) + Number(row.todo_count) + Number(row.schedule_count),
-            note_list: row.note_titles || [],
-            journal_list: row.journal_titles || [],
-            hobby_list: row.hobby_titles || [],
-            todo_list: row.todo_titles || [],
-            schedule_list: row.schedule_titles || []
+            notes_list: row.note_titles || [],
+            journals_list: row.journal_titles || [],
+            hobbies_list: row.hobby_titles || [],
+            todos_list: row.todo_titles || [],
+            schedules_list: row.schedule_titles || []
           }
         })
 
@@ -561,13 +561,13 @@ export const supabaseDashboardApi = {
       if (!activityMap[date]) {
         activityMap[date] = { 
           notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, schedules: 0, total: 0,
-          note_list: [], journal_list: [], hobby_list: [], todo_list: [], schedule_list: []
+          notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: []
         }
       }
       (activityMap[date] as any)[type]++
       activityMap[date].total++
       
-      const listKey = `${type}_list` as keyof ActivityDay
+      const listKey = `${type}s_list` as keyof ActivityDay
       if (title && Array.isArray(activityMap[date][listKey])) {
         (activityMap[date][listKey] as string[]).push(title)
       }
