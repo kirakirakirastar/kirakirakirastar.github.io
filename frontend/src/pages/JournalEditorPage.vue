@@ -80,6 +80,17 @@ const form = ref({
   content_json: '{}',
 })
 
+const uploadAndInsertImage = async (file: File) => {
+  if (!editor.value) return
+  try {
+    const result = await uploadApi.image(file)
+    editor.value.chain().focus().setImage({ src: resolveAssetUrl(result.url), alt: result.original_name }).run()
+  } catch (error) {
+    console.error('上传图片失败:', error)
+    uiStore.addToast('上传图片失败', 'error')
+  }
+}
+
 const editor = useEditor({
   extensions: [
     StarterKit,
@@ -92,6 +103,35 @@ const editor = useEditor({
     }),
   ],
   content: '',
+  editorProps: {
+    handlePaste(view, event) {
+      const items = Array.from(event.clipboardData?.items || [])
+      const imageItems = items.filter(item => item.type.startsWith('image'))
+
+      if (imageItems.length > 0) {
+        event.preventDefault()
+        imageItems.forEach(item => {
+          const file = item.getAsFile()
+          if (file) uploadAndInsertImage(file)
+        })
+        return true
+      }
+      return false
+    },
+    handleDrop(view, event, slice, moved) {
+      if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
+        const files = Array.from(event.dataTransfer.files)
+        const imageFiles = files.filter(file => file.type.startsWith('image'))
+
+        if (imageFiles.length > 0) {
+          event.preventDefault()
+          imageFiles.forEach(file => uploadAndInsertImage(file))
+          return true
+        }
+      }
+      return false
+    },
+  },
   onUpdate: ({ editor }) => {
     form.value.content_html = editor.getHTML()
     form.value.content_json = JSON.stringify(editor.getJSON())
@@ -115,14 +155,7 @@ const handleImageUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (!file) return
-
-  try {
-    const result = await uploadApi.image(file)
-    editor.value?.chain().focus().setImage({ src: resolveAssetUrl(result.url), alt: result.original_name }).run()
-  } catch (error) {
-    console.error('上传图片失败:', error)
-    alert('图片上传失败')
-  }
+  uploadAndInsertImage(file)
 }
 
 const saveJournal = async () => {
