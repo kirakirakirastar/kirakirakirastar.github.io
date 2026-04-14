@@ -281,6 +281,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
+import dayjs from 'dayjs'
 import { dashboardApi } from '@/api/dashboard'
 import { useAuthStore } from '@/stores/auth'
 import { useGadgetStore } from '@/stores/gadgets'
