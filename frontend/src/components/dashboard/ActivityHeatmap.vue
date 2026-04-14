@@ -59,14 +59,14 @@
         </div>
 
         <!-- Heatmap Grid -->
-        <div class="flex-1 overflow-x-auto custom-scrollbar pb-8 pt-8 px-1">
+        <div class="flex-1 overflow-x-auto custom-scrollbar pb-16 pt-16 px-1">
           <div class="flex gap-1.5 sm:gap-2 w-max relative">
             <div v-for="(week, weekIndex) in heatmapData" :key="weekIndex" class="flex flex-col gap-1.5 sm:gap-2 relative week-col">
               
               <!-- X-Axis: Month Labels (Precise Alignment) -->
               <div 
                 v-if="week[0].isMonthStart" 
-                class="absolute -top-8 left-0 text-[11px] font-black text-slate-400/80 dark:text-slate-500/80 uppercase tracking-widest whitespace-nowrap bg-primary/5 px-2 py-0.5 rounded-md"
+                class="absolute -top-10 left-0 text-[10px] sm:text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap bg-slate-100/50 dark:bg-slate-700/20 px-2 py-0.5 rounded-md"
               >
                 {{ week[0].monthLabel }}
               </div>
@@ -74,8 +74,8 @@
               <!-- Cells -->
               <div
                 v-for="(day, dayIndex) in week"
-                :key="day[activeCategory === 'all' ? 'total' : activeCategory]"
-                class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-[4px] sm:rounded-[5px] relative group/cell transition-all duration-500 hover:z-50"
+                :key="day.date"
+                class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-[4px] sm:rounded-[4.5px] relative group/cell transition-all duration-500 hover:z-50"
                 :class="day.count[activeCategory === 'all' ? 'total' : activeCategory] === 0 ? 'bg-slate-100 dark:bg-slate-700/30' : ''"
                 :style="getCellStyle(day)"
               >
@@ -86,7 +86,7 @@
                 >
                   <div class="font-black border-b border-white/10 pb-2.5 mb-2.5 flex justify-between items-center text-white/90 tracking-wide">
                     <span>{{ day.dateDisplay }}</span>
-                    <span v-if="day.count.total > 0" class="px-2.5 py-1 rounded-lg bg-white/10 text-[10px]">{{ day.count.total }} 次活动</span>
+                    <span v-if="day.count.total > 0" class="px-2.5 py-1 rounded-lg bg-white/10 text-[10px]">{{ day.count.total }}</span>
                   </div>
                   
                   <div v-if="day.count.total > 0" class="space-y-2">
@@ -95,7 +95,7 @@
                     <div v-if="day.count.todos" class="flex justify-between items-center"><span class="flex items-center gap-2.5"><div class="w-2 h-2 rounded-full shadow-[0_0_8px_#10b981]" style="background: #10b981"></div>任务待办</span> <span class="font-black">{{ day.count.todos }}</span></div>
                     <div v-if="day.count.hobbies" class="flex justify-between items-center"><span class="flex items-center gap-2.5"><div class="w-2 h-2 rounded-full shadow-[0_0_8px_#f59e0b]" style="background: #f59e0b"></div>生活爱好</span> <span class="font-black">{{ day.count.hobbies }}</span></div>
                   </div>
-                  <div v-else class="text-slate-400 italic py-1 text-center">这一天风平浪静</div>
+                  <div v-else class="text-slate-400 italic py-1 text-center font-medium">这一天风平浪静</div>
 
                   <!-- Dynamic Arrow -->
                   <div 
@@ -127,10 +127,10 @@ const isCollapsed = ref(false)
 const activeCategory = ref('all')
 
 const categories = [
-  { id: 'all', name: '全能视图', color: '' },
+  { id: 'all', name: '全能巡航', color: '' },
   { id: 'notes', name: '笔记', color: '#6366f1' },
   { id: 'journals', name: '日志', color: '#a855f7' },
-  { id: 'todos', name: '待办', color: '#10b981' },
+  { id: 'todos', name: '任务', color: '#10b981' },
   { id: 'hobbies', name: '爱好', color: '#f59e0b' }
 ]
 
@@ -138,9 +138,9 @@ const heatmapData = computed(() => {
   const weeks = []
   let currentWeek = []
   
-  // Exactly 26 weeks for stable grid
+  // Exactly 53 weeks (~1 year)
   const endDate = dayjs()
-  const startDate = dayjs().subtract(25, 'week').startOf('week')
+  const startDate = dayjs().subtract(52, 'week').startOf('week')
   
   let current = startDate
   let lastMonth = -1
@@ -157,7 +157,7 @@ const heatmapData = computed(() => {
 
     if (isFirstRow && currentMonth !== lastMonth) {
       isMonthStart = true
-      monthLabel = current.format('MMM')
+      monthLabel = current.format('YYYY年M月')
       lastMonth = currentMonth
     }
 
@@ -200,12 +200,12 @@ const getCellStyle = (day: any) => {
   }
   
   // Power-scale intensity (0.3 to 1.0)
-  const intensity = Math.min(0.3 + (currentCount * 0.12), 1)
+  const intensity = Math.min(0.3 + (currentCount * 0.1), 1)
   
   return {
     backgroundColor: targetColor,
     opacity: intensity,
-    boxShadow: currentCount > 3 ? `0 0 15px ${targetColor}50` : 'none',
+    boxShadow: currentCount > 3 ? `0 0 12px ${targetColor}40` : 'none',
     transform: `scale(${isCollapsed.value ? 0.85 : 1})`
   }
 }

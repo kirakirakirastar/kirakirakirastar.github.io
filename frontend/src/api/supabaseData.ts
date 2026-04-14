@@ -333,10 +333,10 @@ export const supabaseDashboardApi = {
   },
   activities: async () => {
     const now = new Date()
-    const sixMonthsAgo = new Date(now)
-    sixMonthsAgo.setDate(now.getDate() - 180)
-    sixMonthsAgo.setHours(0, 0, 0, 0)
-    const startDateStr = sixMonthsAgo.toISOString()
+    const oneYearAgo = new Date(now)
+    oneYearAgo.setDate(now.getDate() - 365)
+    oneYearAgo.setHours(0, 0, 0, 0)
+    const startDateStr = oneYearAgo.toISOString()
 
     const [
       { data: notes },
