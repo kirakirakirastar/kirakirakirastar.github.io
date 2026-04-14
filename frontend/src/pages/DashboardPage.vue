@@ -131,7 +131,7 @@
         ]"
         style="--delay: 550ms"
       >
-        <div class="flex flex-col h-full relative z-10">
+        <div class="flex flex-col h-full">
           <div class="flex items-start justify-between mb-5">
             <div class="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
@@ -155,14 +155,13 @@
             </div>
           </div>
 
-          <!-- Heatmap Content -->
+          <!-- Heatmap Content: Only mounts when expanded for better initial stability -->
           <div 
-            class="transition-all duration-500 ease-in-out"
+            v-if="isHeatmapExpanded"
+            class="mt-10 transition-all duration-500 ease-in-out opacity-100 scale-100"
             @click.stop
-            :class="isHeatmapExpanded ? 'mt-10 opacity-100 scale-100' : 'max-h-0 opacity-0 scale-95 pointer-events-none'"
           >
             <ActivityHeatmap 
-              v-if="isHeatmapExpanded || !loading"
               :activities="activities" 
               :active-category="activeHeatmapCategory" 
               :selected-date="selectedDate"
@@ -172,13 +171,13 @@
           </div>
         </div>
 
-        <!-- Mini Preview (hidden when expanded) - Positioned as sibling for alignment sync -->
-        <div v-if="!isHeatmapExpanded" class="absolute bottom-5 right-7 opacity-20 group-hover:opacity-60 transition-opacity z-20">
+        <!-- Mini Preview (hidden when expanded) -->
+        <div v-if="!isHeatmapExpanded" class="absolute bottom-5 right-7 opacity-20 group-hover:opacity-60 transition-opacity pointer-events-none">
           <MiniHeatmap :activities="activities" category="total" color="#f59e0b" :weeks="5" />
         </div>
         
-        <!-- Ornamental Background for master switch -->
-        <div class="absolute -right-4 -bottom-4 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-colors"></div>
+        <!-- Ornamental Background -->
+        <div class="absolute -right-4 -bottom-4 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-colors pointer-events-none"></div>
       </div>
     </div>
 
