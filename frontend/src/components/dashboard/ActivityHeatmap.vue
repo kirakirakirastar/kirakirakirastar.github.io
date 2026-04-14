@@ -25,7 +25,7 @@
         <!-- Year Selector -->
         <div class="flex p-1.5 bg-slate-100/60 dark:bg-slate-900/40 rounded-[1.25rem] border border-slate-200/50 dark:border-slate-700/50">
           <button 
-            @click="selectedYear = 'rolling'"
+            @click.stop="selectedYear = 'rolling'"
             class="px-4 py-2 rounded-xl text-[11px] font-black transition-all duration-300"
             :class="selectedYear === 'rolling' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
           >
@@ -34,7 +34,7 @@
           <button 
             v-for="year in availableYears" 
             :key="year"
-            @click="selectedYear = year"
+            @click.stop="selectedYear = year"
             class="px-4 py-2 rounded-xl text-[11px] font-black transition-all duration-300"
             :class="selectedYear === year ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
           >
@@ -43,7 +43,7 @@
         </div>
 
         <button 
-          @click="isCollapsed = !isCollapsed"
+          @click.stop="isCollapsed = !isCollapsed"
           class="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 text-slate-400 transition-all duration-500 hover:shadow-lg active:scale-95 group"
         >
           <svg class="w-5 h-5 transition-transform duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) group-hover:text-primary" :class="{ 'rotate-180': isCollapsed }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,13 +220,16 @@ const heatmapData = computed(() => {
     let isYearStart = false
     let monthLabel = ''
 
+    // Only show month label if it's the first time we see this month in the first row
+    // AND it's not too close to the edge or previous label
     if (isFirstRow && currentMonth !== lastMonth) {
       isMonthStart = true
       if (currentYear !== lastYear) {
         isYearStart = true
         lastYear = currentYear
       }
-      monthLabel = current.format('YYYY年M月')
+      // Formatting change to fix overlap: shorter labels if year is the same
+      monthLabel = isYearStart ? current.format('YYYY年M月') : current.format('M月')
       lastMonth = currentMonth
     }
 

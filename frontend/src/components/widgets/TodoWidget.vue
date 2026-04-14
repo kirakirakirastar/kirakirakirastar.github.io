@@ -6,7 +6,7 @@
         <span>待办清单</span>
       </h2>
       <span class="text-xs font-semibold px-2 py-1 rounded-lg bg-primary/10 text-primary dark:text-primary-light">
-        {{ gadgetStore.todos.filter(t => t.status === 'pending').length }} 待办
+        {{ activeTodos.length }} 项待办
       </span>
     </div>
 
