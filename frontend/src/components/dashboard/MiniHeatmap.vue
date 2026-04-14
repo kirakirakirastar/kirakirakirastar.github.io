@@ -48,7 +48,7 @@ const miniData = computed(() => {
 })
 
 const getCellStyle = (count: number) => {
-  if (count === 0) return { backgroundColor: 'currentColor', opacity: 0.1 }
+  if (count === 0) return { backgroundColor: 'currentColor', opacity: 0.05 }
   
   const intensity = Math.min(0.2 + (count * 0.2), 1)
   return {

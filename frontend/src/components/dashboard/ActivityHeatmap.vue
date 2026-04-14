@@ -2,16 +2,21 @@
   <div class="activity-heatmap bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-6 sm:p-10 border border-white/60 dark:border-slate-700/60 shadow-xl transition-all duration-500 overflow-visible relative">
     
     <!-- Header: Full Width -->
-    <div class="flex flex-wrap items-center justify-between gap-6 mb-8 w-full px-2">
+    <div class="flex flex-wrap items-center justify-between gap-6 mb-8 w-full px-2" :style="{ color: currentCategoryInfo.color }">
       <div class="flex items-center gap-4">
-        <div class="p-3.5 rounded-2xl bg-primary/15 text-primary shadow-inner ring-1 ring-white/20">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-          </svg>
+        <div 
+          class="p-3.5 rounded-2xl transition-all duration-500 shadow-inner ring-1 ring-white/20"
+          :style="{ backgroundColor: currentCategoryInfo.id === 'all' ? 'var(--primary-light)' : `${currentCategoryInfo.color}20`, color: currentCategoryInfo.color || 'var(--primary)' }"
+        >
+          <component :is="currentCategoryInfo.icon" class="w-6 h-6" />
         </div>
         <div>
-          <h2 class="text-2xl font-black text-slate-800 dark:text-white leading-tight tracking-tight">活跃贡献图</h2>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-[0.2em] mt-1.5 opacity-60">Activity Pulse</p>
+          <h2 class="text-2xl font-black leading-tight tracking-tight transition-colors duration-500" :style="{ color: currentCategoryInfo.id === 'all' ? 'inherit' : currentCategoryInfo.color }">
+            {{ currentCategoryInfo.name }}贡献图
+          </h2>
+          <p class="text-[11px] font-bold uppercase tracking-[0.2em] mt-1.5 opacity-60">
+            {{ currentCategoryInfo.id === 'all' ? 'Activity Pulse' : `${currentCategoryInfo.id.toUpperCase()} PULSE` }}
+          </p>
         </div>
       </div>
 
@@ -81,8 +86,12 @@
               <div
                 v-for="(day, dayIndex) in week"
                 :key="day.date"
-                class="heatmap-cell rounded-[4px] sm:rounded-[5px] md:rounded-[6.5px] relative group/cell transition-all duration-500 hover:z-50"
-                :class="day.count[activeCategory === 'all' ? 'total' : activeCategory] === 0 ? 'bg-slate-100/80 dark:bg-slate-700/40 hover:bg-slate-200 dark:hover:bg-slate-600/60' : ''"
+                @click="$emit('day-click', day.date === selectedDate ? null : day.date)"
+                class="heatmap-cell rounded-[4px] sm:rounded-[5px] md:rounded-[6.5px] relative group/cell transition-all duration-500 hover:z-50 cursor-pointer"
+                :class="[
+                  day.count[props.activeCategory === 'all' ? 'total' : props.activeCategory] === 0 ? 'bg-slate-100/80 dark:bg-slate-700/40 hover:bg-slate-200 dark:hover:bg-slate-600/60' : '',
+                  day.date === selectedDate ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-800 scale-110 z-20' : ''
+                ]"
                 :style="getCellStyle(day)"
               >
                 <!-- Smart Tooltip -->
@@ -125,11 +134,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, defineComponent, h } from 'vue'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 
 dayjs.locale('zh-cn')
+
+const IconNotes = defineComponent({ render: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', strokeWidth: '2' }, [h('path', { d: 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4', strokeLinecap: 'round', strokeLinejoin: 'round' })]) })
+const IconJournals = defineComponent({ render: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', strokeWidth: '2' }, [h('path', { d: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253', strokeLinecap: 'round', strokeLinejoin: 'round' })]) })
+const IconTodos = defineComponent({ render: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', strokeWidth: '2' }, [h('path', { d: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', strokeLinecap: 'round', strokeLinejoin: 'round' })]) })
+const IconHobbies = defineComponent({ render: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', strokeWidth: '2' }, [h('path', { d: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', strokeLinecap: 'round', strokeLinejoin: 'round' })]) })
+const IconActivity = defineComponent({ render: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', strokeWidth: '2' }, [h('path', { d: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', strokeLinecap: 'round', strokeLinejoin: 'round' })]) })
 
 interface DayCount {
   [key: string]: number;
@@ -143,18 +158,27 @@ interface DayCount {
 const props = defineProps<{
   activities: Record<string, DayCount>
   activeCategory: keyof DayCount | 'all'
+  selectedDate?: string | null
+}>()
+
+const emit = defineEmits<{
+  (e: 'day-click', date: string | null): void
 }>()
 
 const isCollapsed = ref(false)
 const selectedYear = ref<'rolling' | number>('rolling')
 
 const categories = [
-  { id: 'all', name: '全向巡航', color: '' },
-  { id: 'notes', name: '笔记', color: '#6366f1' },
-  { id: 'journals', name: '日志', color: '#a855f7' },
-  { id: 'todos', name: '任务', color: '#10b981' },
-  { id: 'hobbies', name: '爱好', color: '#f59e0b' }
+  { id: 'all', name: '全域', color: '', icon: IconActivity },
+  { id: 'notes', name: '学习笔记', color: '#6366f1', icon: IconNotes },
+  { id: 'journals', name: '个人日志', color: '#a855f7', icon: IconJournals },
+  { id: 'todos', name: '任务巡航', color: '#10b981', icon: IconTodos },
+  { id: 'hobbies', name: '爱好条目', color: '#f59e0b', icon: IconHobbies }
 ]
+
+const currentCategoryInfo = computed(() => {
+  return categories.find(c => c.id === props.activeCategory) || categories[0]
+})
 
 // Extract historical years from activity data
 const availableYears = computed(() => {

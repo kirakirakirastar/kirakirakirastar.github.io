@@ -17,7 +17,12 @@
     
     <!-- Heatmap Section -->
     <div v-if="authStore.user" class="reveal mb-12" style="--delay: 150ms">
-      <ActivityHeatmap :activities="activities" :active-category="activeHeatmapCategory" />
+      <ActivityHeatmap 
+        :activities="activities" 
+        :active-category="activeHeatmapCategory" 
+        :selected-date="selectedDate"
+        @day-click="selectedDate = $event"
+      />
     </div>
 
 
@@ -33,11 +38,11 @@
           <router-link to="/notes" title="查看所有笔记" class="w-12 h-12 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-5 hover:scale-110 active:scale-95 transition-transform duration-300 cursor-pointer">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
           </router-link>
-          <Skeleton v-if="loading" width="60px" height="40px" custom-class="mb-2" />
-          <div v-else class="text-4xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{{ stats.notes_count }}</div>
-          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
-            <span>学习笔记</span>
-            <div class="flex gap-1 ml-2">
+          <div class="flex items-center justify-between mb-2">
+            <Skeleton v-if="loading" width="60px" height="40px" />
+            <div v-else class="text-4xl font-black text-slate-800 dark:text-white tracking-tight">{{ stats.notes_count }}</div>
+            
+            <div class="flex gap-1">
               <div 
                 v-for="i in 7" 
                 :key="i" 
@@ -46,6 +51,9 @@
                 :style="getStreakStyle(i, 'indigo')"
               ></div>
             </div>
+          </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+            <span>学习笔记</span>
           </div>
           <div class="absolute bottom-5 right-7 opacity-40 group-hover:opacity-100 transition-opacity">
              <MiniHeatmap v-if="!loading" :activities="activities" category="notes" color="#6366f1" />
@@ -63,11 +71,11 @@
           <router-link to="/journals" title="查看所有日志" class="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-5 hover:scale-110 active:scale-95 transition-transform duration-300 cursor-pointer">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
           </router-link>
-          <Skeleton v-if="loading" width="60px" height="40px" custom-class="mb-2" />
-          <div v-else class="text-4xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{{ stats.journals_count }}</div>
-          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
-            <span>个人日志</span>
-            <div class="flex gap-1 ml-2">
+          <div class="flex items-center justify-between mb-2">
+            <Skeleton v-if="loading" width="60px" height="40px" />
+            <div v-else class="text-4xl font-black text-slate-800 dark:text-white tracking-tight">{{ stats.journals_count }}</div>
+            
+            <div class="flex gap-1">
               <div 
                 v-for="i in 7" 
                 :key="i" 
@@ -76,6 +84,9 @@
                 :style="getStreakStyle(i, 'purple')"
               ></div>
             </div>
+          </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+            <span>个人日志</span>
           </div>
           <div class="absolute bottom-5 right-7 opacity-40 group-hover:opacity-100 transition-opacity">
              <MiniHeatmap v-if="!loading" :activities="activities" category="journals" color="#a855f7" />
@@ -93,11 +104,11 @@
           <router-link to="/hobbies" title="查看所有条目" class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-5 hover:scale-110 active:scale-95 transition-transform duration-300 cursor-pointer">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
           </router-link>
-          <Skeleton v-if="loading" width="60px" height="40px" custom-class="mb-2" />
-          <div v-else class="text-4xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{{ stats.hobbies_count }}</div>
-          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
-            <span>爱好条目</span>
-            <div class="flex gap-1 ml-2">
+          <div class="flex items-center justify-between mb-2">
+            <Skeleton v-if="loading" width="60px" height="40px" />
+            <div v-else class="text-4xl font-black text-slate-800 dark:text-white tracking-tight">{{ stats.hobbies_count }}</div>
+            
+            <div class="flex gap-1">
               <div 
                 v-for="i in 7" 
                 :key="i" 
@@ -106,6 +117,9 @@
                 :style="getStreakStyle(i, 'blue')"
               ></div>
             </div>
+          </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+            <span>爱好条目</span>
           </div>
           <div class="absolute bottom-5 right-7 opacity-40 group-hover:opacity-100 transition-opacity">
              <MiniHeatmap v-if="!loading" :activities="activities" category="hobbies" color="#3b82f6" />
@@ -145,22 +159,22 @@
         </div>
       </div>
 
-      <!-- Updates Stat (Toggle Total Heatmap) -->
+      <!-- Master Perspective Stat (All Categories) -->
       <div 
-        @click="activeHeatmapCategory = 'all'"
-        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-300 cursor-pointer relative overflow-hidden" 
-        :class="activeHeatmapCategory === 'all' ? 'border-amber-500/50 shadow-[0_20px_50px_rgba(245,158,11,0.2)] ring-2 ring-amber-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-2xl hover:-translate-y-1 col-span-2 lg:col-span-1'"
+        @click="activeHeatmapCategory = 'all'; selectedDate = null"
+        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-500 cursor-pointer relative overflow-hidden" 
+        :class="activeHeatmapCategory === 'all' ? 'border-amber-500 shadow-[0_20px_60px_rgba(245,158,11,0.25)] ring-2 ring-amber-500/30 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-2xl hover:-translate-y-1'"
         style="--delay: 600ms"
       >
-        <div class="flex flex-col h-full">
+        <div class="flex flex-col h-full relative z-10">
           <div class="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
           </div>
-          <Skeleton v-if="loading" width="60px" height="40px" custom-class="mb-2" />
-          <div v-else class="text-4xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{{ stats.month_updates }}</div>
-          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest flex items-center justify-between">
-            <span>本月更新</span>
-            <div class="flex gap-1 ml-2">
+          <div class="flex items-center justify-between mb-2">
+            <Skeleton v-if="loading" width="60px" height="40px" />
+            <div v-else class="text-4xl font-black text-slate-800 dark:text-white tracking-tight">{{ stats.month_updates }}</div>
+            
+            <div class="flex gap-1">
               <div 
                 v-for="i in 7" 
                 :key="i" 
@@ -170,7 +184,12 @@
               ></div>
             </div>
           </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+            <span>全域概览</span>
+          </div>
         </div>
+        <!-- Ornamental Background for master switch -->
+        <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-colors"></div>
       </div>
     </div>
 
@@ -184,9 +203,12 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Latest Notes -->
       <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-sm rounded-3xl shadow-md dark:shadow-none border border-white/60 dark:border-slate-700/60 p-6 flex flex-col">
-        <h2 class="text-xl font-bold mb-5 text-slate-800 dark:text-white flex items-center space-x-2">
-          <span class="w-1.5 h-6 rounded bg-primary block"></span>
-          <span>近期笔记</span>
+        <h2 class="text-xl font-bold mb-5 text-slate-800 dark:text-white flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-1.5 h-6 rounded bg-primary block"></span>
+            <span>近期笔记</span>
+          </div>
+          <div v-if="selectedDate" class="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded-lg">仅看 {{ formatShortDate(selectedDate) }}</div>
         </h2>
         
         <div v-if="loading" class="space-y-3">
@@ -197,7 +219,7 @@
         </div>
         <div v-else class="space-y-3">
           <router-link
-            v-for="note in latestNotes"
+            v-for="note in filteredNotes"
             :key="note.id"
             :to="`/notes/${note.id}`"
             class="block p-4 rounded-xl border border-transparent hover:border-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-300 group"
@@ -205,14 +227,18 @@
             <div class="font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-primary transition-colors">{{ note.title }}</div>
             <div class="text-xs text-slate-400 dark:text-slate-400 mt-2">{{ formatShortDate(note.created_at) }}</div>
           </router-link>
+          <div v-if="filteredNotes.length === 0" class="text-center py-8 text-slate-400 text-xs italic">该日期暂无笔记</div>
         </div>
       </div>
 
       <!-- Latest Journals -->
       <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-sm rounded-3xl shadow-md dark:shadow-none border border-white/60 dark:border-slate-700/60 p-6 flex flex-col">
-        <h2 class="text-xl font-bold mb-5 text-slate-800 dark:text-white flex items-center space-x-2">
-          <span class="w-1.5 h-6 rounded bg-secondary block"></span>
-          <span>最新日志</span>
+        <h2 class="text-xl font-bold mb-5 text-slate-800 dark:text-white flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-1.5 h-6 rounded bg-secondary block"></span>
+            <span>最新日志</span>
+          </div>
+          <div v-if="selectedDate" class="text-[10px] bg-secondary/10 text-secondary px-2 py-1 rounded-lg">仅看 {{ formatShortDate(selectedDate) }}</div>
         </h2>
         <div v-if="loading" class="space-y-3">
           <Skeleton v-for="i in 3" :key="i" height="64px" />
@@ -222,7 +248,7 @@
         </div>
         <div v-else class="space-y-3">
           <router-link
-            v-for="journal in latestJournals"
+            v-for="journal in filteredJournals"
             :key="journal.id"
             :to="`/journals/${journal.id}`"
             class="block p-4 rounded-xl border border-transparent hover:border-secondary/20 hover:bg-secondary/5 dark:hover:bg-secondary/10 transition-all duration-300 group"
@@ -230,6 +256,7 @@
             <div class="font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-secondary transition-colors">{{ journal.title }}</div>
             <div class="text-xs text-slate-400 dark:text-slate-400 mt-2">{{ formatShortDate(journal.created_at) }}</div>
           </router-link>
+          <div v-if="filteredJournals.length === 0" class="text-center py-8 text-slate-400 text-xs italic">该日期暂无日志</div>
         </div>
       </div>
 
@@ -247,7 +274,7 @@
         </div>
         <div v-else class="space-y-3">
           <router-link
-            v-for="hobby in latestHobbies"
+            v-for="hobby in filteredHobbies"
             :key="hobby.id"
             to="/hobbies"
             class="block p-4 rounded-xl border border-transparent hover:border-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-300 group"
@@ -258,6 +285,7 @@
               <span>· {{ hobby.status }}</span>
             </div>
           </router-link>
+          <div v-if="filteredHobbies.length === 0" class="text-center py-8 text-slate-400 text-xs italic">该日期暂无条目</div>
         </div>
       </div>
     </div>
@@ -282,6 +310,7 @@ const authStore = useAuthStore()
 const gadgetStore = useGadgetStore()
 const loading = ref(true)
 const activeHeatmapCategory = ref('all')
+const selectedDate = ref<string | null>(null)
 
 const toggleCategory = (cat: string) => {
   if (activeHeatmapCategory.value === cat) {
@@ -303,6 +332,21 @@ const latestNotes = ref<any[]>([])
 const latestJournals = ref<any[]>([])
 const latestHobbies = ref<any[]>([])
 const activities = ref<Record<string, any>>({})
+
+const filteredNotes = computed(() => {
+  if (!selectedDate.value) return latestNotes.value
+  return latestNotes.value.filter(item => dayjs(item.created_at).format('YYYY-MM-DD') === selectedDate.value)
+})
+
+const filteredJournals = computed(() => {
+  if (!selectedDate.value) return latestJournals.value
+  return latestJournals.value.filter(item => dayjs(item.created_at).format('YYYY-MM-DD') === selectedDate.value)
+})
+
+const filteredHobbies = computed(() => {
+  if (!selectedDate.value) return latestHobbies.value
+  return latestHobbies.value.filter(item => dayjs(item.created_at).format('YYYY-MM-DD') === selectedDate.value)
+})
 
 const loadDashboard = async () => {
   try {
