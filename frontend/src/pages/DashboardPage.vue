@@ -293,7 +293,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { dashboardApi } from '@/api/dashboard'
 import { useAuthStore } from '@/stores/auth'
 import { useGadgetStore } from '@/stores/gadgets'
