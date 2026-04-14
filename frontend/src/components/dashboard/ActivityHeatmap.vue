@@ -55,8 +55,8 @@
           <span 
             v-for="(day, index) in ['一', '二', '三', '四', '五', '六', '日']" 
             :key="day" 
-            class="day-label font-black text-slate-400/50 dark:text-slate-500/40 uppercase tracking-tighter transition-colors duration-300"
-            :class="{ 'text-primary dark:text-primary-light scale-110 !opacity-100': hoveredRow === index }"
+            class="day-label font-black text-slate-400/50 dark:text-slate-500/40 uppercase tracking-tighter transition-all duration-300"
+            :class="{ 'text-primary dark:text-sky-400 scale-125 !opacity-100 drop-shadow-[0_0_8px_rgba(14,165,233,0.3)]': hoveredRow === index }"
             @mouseenter="hoveredRow = index"
           >
             {{ day }}
@@ -71,10 +71,15 @@
               <!-- X-Axis: Month Labels -->
               <div 
                 v-if="week[0].isMonthStart" 
-                class="absolute -top-9 left-0 text-[11px] font-black uppercase tracking-widest whitespace-nowrap px-3 py-1.5 rounded-xl border transition-all duration-500 shadow-sm"
-                :class="week[0].isYearStart 
-                  ? 'bg-primary/20 text-primary border-primary/40 scale-105 z-10 shadow-primary/20 ring-2 ring-primary/10' 
-                  : 'bg-slate-50/50 dark:bg-slate-700/20 text-slate-500 dark:text-slate-400 border-slate-200/30 dark:border-slate-600/20'"
+                class="absolute -top-9 left-0 text-[11px] font-black uppercase tracking-widest whitespace-nowrap px-3 py-1.5 rounded-xl border transition-all duration-500 shadow-sm cursor-help select-none"
+                :class="[
+                  week[0].isYearStart 
+                    ? 'bg-primary/20 text-primary border-primary/40 scale-105 z-10 shadow-primary/20 ring-2 ring-primary/10' 
+                    : 'bg-slate-50/50 dark:bg-slate-700/20 text-slate-500 dark:text-slate-400 border-slate-200/30 dark:border-slate-600/20',
+                  hoveredMonth === week[0].monthKey ? 'scale-110 ring-4 ring-sky-400/30 !bg-sky-400/10 !text-sky-500 !border-sky-400/50 z-20' : ''
+                ]"
+                @mouseenter="hoveredMonth = week[0].monthKey"
+                @mouseleave="hoveredMonth = null"
               >
                 {{ week[0].monthLabel }}
               </div>
@@ -89,7 +94,7 @@
                 :class="[
                   day.count[props.activeCategory === 'all' ? 'total' : props.activeCategory] === 0 ? 'bg-slate-100/80 dark:bg-slate-700/40 hover:bg-slate-200 dark:hover:bg-slate-600/60' : '',
                   day.date === selectedDate ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-800 scale-110 z-20' : '',
-                  hoveredRow === dayIndex ? 'after:content-[\'\'] after:absolute after:inset-0 after:bg-primary/5 after:rounded-[inherit] after:ring-2 after:ring-primary/20 after:z-10 bg-primary/5' : ''
+                  hoveredRow === dayIndex || hoveredMonth === day.monthKey ? 'ring-2 ring-sky-400/60 z-10 scale-[1.05] !opacity-100 shadow-[0_0_15px_rgba(14,165,233,0.4)]' : ''
                 ]"
                 :style="getCellStyle(day)"
               >
@@ -202,8 +207,8 @@ const heatmapData = computed(() => {
   let startDate, endDate
   
   if (selectedYear.value === 'rolling') {
-    endDate = dayjs().add(6, 'month') // Extend 6 months
-    startDate = dayjs().subtract(1, 'year').startOf('week') // Use 1 full year for past
+    endDate = dayjs().add(6, 'month') 
+    startDate = dayjs().subtract(1, 'year').startOf('month').startOf('week') // Ensure start of month 12 months ago
   } else {
     // Fixed calendar year: Jan 1 to Dec 31
     startDate = dayjs(`${selectedYear.value}-01-01`).startOf('week')
@@ -248,6 +253,7 @@ const heatmapData = computed(() => {
     currentWeek.push({
       date: dateStr,
       dateDisplay: current.format('YYYY年MM月DD日'),
+      monthKey: current.format('YYYY-MM'),
       isMonthStart,
       isYearStart,
       monthLabel,
@@ -266,22 +272,24 @@ const heatmapData = computed(() => {
 })
 
 const hoveredRow = ref<number | null>(null)
+const hoveredMonth = ref<string | null>(null)
 const scrollContainer = ref<HTMLElement | null>(null)
 
 const scrollToToday = () => {
   nextTick(() => {
     const todayEl = document.getElementById('today-cell')
     if (todayEl && scrollContainer.value) {
-      const container = scrollContainer.value
-      // Center the element
-      const targetScroll = todayEl.offsetLeft - (container.clientWidth / 2) + (todayEl.clientWidth / 2)
-      container.scrollLeft = targetScroll
+      todayEl.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest'
+      })
     }
   })
 }
 
 onMounted(() => {
-  scrollToToday()
+  setTimeout(scrollToToday, 500) // Buffer for initial render
 })
 
 watch([heatmapData, selectedYear], () => {
