@@ -17,13 +17,18 @@
     
     <!-- Heatmap Section -->
     <div v-if="authStore.user" class="reveal mb-12" style="--delay: 150ms">
-      <ActivityHeatmap :activities="activities" />
+      <ActivityHeatmap :activities="activities" :active-category="activeHeatmapCategory" />
     </div>
 
 
     <!-- Stats -->
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
-      <div class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300" style="--delay: 200ms">
+      <div 
+        @click="toggleCategory('notes')"
+        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-300 cursor-pointer relative overflow-hidden" 
+        :class="activeHeatmapCategory === 'notes' ? 'border-indigo-500/50 shadow-[0_20px_50px_rgba(99,102,241,0.2)] ring-2 ring-indigo-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-1'"
+        style="--delay: 200ms"
+      >
         <div class="flex flex-col h-full">
           <router-link to="/notes" title="查看所有笔记" class="w-12 h-12 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-5 hover:scale-110 active:scale-95 transition-transform duration-300 cursor-pointer">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
@@ -42,10 +47,19 @@
               ></div>
             </div>
           </div>
+          </div>
+          <div class="absolute bottom-5 right-7 opacity-40 group-hover:opacity-100 transition-opacity">
+             <MiniHeatmap v-if="!loading" :activities="activities" category="notes" color="#6366f1" />
+          </div>
         </div>
       </div>
 
-      <div class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300" style="--delay: 300ms">
+      <div 
+        @click="toggleCategory('journals')"
+        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-300 cursor-pointer relative overflow-hidden" 
+        :class="activeHeatmapCategory === 'journals' ? 'border-purple-500/50 shadow-[0_20px_50px_rgba(168,85,247,0.2)] ring-2 ring-purple-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-1'"
+        style="--delay: 300ms"
+      >
         <div class="flex flex-col h-full">
           <router-link to="/journals" title="查看所有日志" class="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-5 hover:scale-110 active:scale-95 transition-transform duration-300 cursor-pointer">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
@@ -64,10 +78,19 @@
               ></div>
             </div>
           </div>
+          </div>
+          <div class="absolute bottom-5 right-7 opacity-40 group-hover:opacity-100 transition-opacity">
+             <MiniHeatmap v-if="!loading" :activities="activities" category="journals" color="#a855f7" />
+          </div>
         </div>
       </div>
 
-      <div class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300" style="--delay: 400ms">
+      <div 
+        @click="toggleCategory('hobbies')"
+        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-300 cursor-pointer relative overflow-hidden" 
+        :class="activeHeatmapCategory === 'hobbies' ? 'border-blue-500/50 shadow-[0_20px_50px_rgba(59,130,246,0.2)] ring-2 ring-blue-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-1'"
+        style="--delay: 400ms"
+      >
         <div class="flex flex-col h-full">
           <router-link to="/hobbies" title="查看所有条目" class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-5 hover:scale-110 active:scale-95 transition-transform duration-300 cursor-pointer">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
@@ -86,11 +109,20 @@
               ></div>
             </div>
           </div>
+          </div>
+          <div class="absolute bottom-5 right-7 opacity-40 group-hover:opacity-100 transition-opacity">
+             <MiniHeatmap v-if="!loading" :activities="activities" category="hobbies" color="#3b82f6" />
+          </div>
         </div>
       </div>
 
       <!-- Todos Stat -->
-      <div class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300" style="--delay: 500ms">
+      <div 
+        @click="toggleCategory('todos')"
+        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-300 cursor-pointer relative overflow-hidden" 
+        :class="activeHeatmapCategory === 'todos' ? 'border-emerald-500/50 shadow-[0_20px_50px_rgba(16,185,129,0.2)] ring-2 ring-emerald-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:-translate-y-1'"
+        style="--delay: 500ms"
+      >
         <div class="flex flex-col h-full">
           <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
@@ -110,11 +142,20 @@
               <span class="text-[9px] text-slate-400 uppercase font-black">M: {{ loading ? '...' : stats.completed_todos_month }}</span>
             </div>
           </div>
+          </div>
+          <div class="absolute bottom-5 right-7 opacity-40 group-hover:opacity-100 transition-opacity">
+             <MiniHeatmap v-if="!loading" :activities="activities" category="todos" color="#10b981" />
+          </div>
         </div>
       </div>
 
-      <!-- Updates Stat -->
-      <div class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border border-white/60 dark:border-slate-700/60 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 col-span-2 lg:col-span-1" style="--delay: 600ms">
+      <!-- Updates Stat (Toggle Total Heatmap) -->
+      <div 
+        @click="activeHeatmapCategory = 'all'"
+        class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-300 cursor-pointer relative overflow-hidden" 
+        :class="activeHeatmapCategory === 'all' ? 'border-amber-500/50 shadow-[0_20px_50px_rgba(245,158,11,0.2)] ring-2 ring-amber-500/20 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-2xl hover:-translate-y-1 col-span-2 lg:col-span-1'"
+        style="--delay: 600ms"
+      >
         <div class="flex flex-col h-full">
           <div class="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
@@ -239,10 +280,20 @@ import CheckinWidget from '@/components/widgets/CheckinWidget.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import ActivityHeatmap from '@/components/dashboard/ActivityHeatmap.vue'
+import MiniHeatmap from '@/components/dashboard/MiniHeatmap.vue'
 
 const authStore = useAuthStore()
 const gadgetStore = useGadgetStore()
 const loading = ref(true)
+const activeHeatmapCategory = ref('all')
+
+const toggleCategory = (cat: string) => {
+  if (activeHeatmapCategory.value === cat) {
+    activeHeatmapCategory.value = 'all'
+  } else {
+    activeHeatmapCategory.value = cat
+  }
+}
 const stats = ref({
   notes_count: 0,
   journals_count: 0,

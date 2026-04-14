@@ -37,20 +37,6 @@
           </button>
         </div>
 
-        <!-- Mode Switcher -->
-        <div class="flex p-1.5 bg-slate-100/60 dark:bg-slate-900/40 rounded-[1.25rem] border border-slate-200/50 dark:border-slate-700/50 shadow-inner">
-          <button 
-            v-for="cat in categories" 
-            :key="cat.id"
-            @click="activeCategory = cat.id as any"
-            class="px-5 py-2.5 rounded-xl text-[12px] font-black transition-all duration-500 flex items-center gap-2.5 whitespace-nowrap"
-            :class="activeCategory === cat.id ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xl ring-1 ring-black/5 scale-105' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
-          >
-            <div v-if="cat.color" class="w-2.5 h-2.5 rounded-full shadow-sm" :style="{ backgroundColor: cat.color }"></div>
-            {{ cat.name }}
-          </button>
-        </div>
-
         <button 
           @click="isCollapsed = !isCollapsed"
           class="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 text-slate-400 transition-all duration-500 hover:shadow-lg active:scale-95 group"
@@ -156,10 +142,10 @@ interface DayCount {
 
 const props = defineProps<{
   activities: Record<string, DayCount>
+  activeCategory: keyof DayCount | 'all'
 }>()
 
 const isCollapsed = ref(false)
-const activeCategory = ref<keyof DayCount | 'all'>('all')
 const selectedYear = ref<'rolling' | number>('rolling')
 
 const categories = [
