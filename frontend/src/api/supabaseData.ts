@@ -426,9 +426,13 @@ export const supabaseDashboardApi = {
     let stats: any = null
     try {
       const { data, error } = await supabase.rpc('get_combined_stats', { start_date: monthStartStr })
-      if (!error && data) stats = data
+      if (!error && data) {
+        stats = data
+      } else if (error) {
+        console.warn('RPC get_combined_stats returned error:', error.message)
+      }
     } catch (e) {
-      console.warn('RPC get_combined_stats failed or returned error:', error?.message || error, 'Falling back to legacy fetching...')
+      console.warn('RPC get_combined_stats caught exception:', e)
     }
 
     // 2. Fallback / Fetch Latest items anyway (RPC currently only handles stats)
@@ -503,13 +507,12 @@ export const supabaseDashboardApi = {
             journals: Number(row.journal_count),
             hobbies: Number(row.hobby_count),
             todos: Number(row.todo_count),
-            checkins: 0, // Checkins still need separate handling if based on streak
+            checkins: 0, 
             schedules: Number(row.schedule_count),
             total: Number(row.note_count) + Number(row.journal_count) + Number(row.hobby_count) + Number(row.todo_count) + Number(row.schedule_count)
           }
         })
 
-        // Reconstruct check-ins from latest status (legacy logic)
         const { data: checkin } = await supabase.from('checkins').select('*').maybeSingle()
         if (checkin && checkin.last_date && checkin.streak > 0) {
           const last = dayjs(checkin.last_date)
@@ -523,9 +526,11 @@ export const supabaseDashboardApi = {
           }
         }
         return activityMap
+      } else if (error) {
+        console.warn('RPC get_daily_activities returned error:', error.message)
       }
     } catch (e) {
-      console.warn('RPC get_daily_activities failed or returned error:', e?.message || e, 'Falling back to legacy processing...')
+      console.warn('RPC get_daily_activities caught exception:', e)
     }
 
     // Legacy Fallback
