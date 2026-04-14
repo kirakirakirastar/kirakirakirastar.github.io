@@ -58,10 +58,13 @@
           <div class="flex heatmap-grid w-max relative">
             <div v-for="(week, weekIndex) in heatmapData" :key="weekIndex" class="flex flex-col heatmap-week relative">
               
-              <!-- X-Axis: Month Labels -->
+              <!-- X-Axis: Month Labels (with Year Transition Indicator) -->
               <div 
                 v-if="week[0].isMonthStart" 
-                class="absolute -top-9 left-0 text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap px-3 py-1 rounded-xl bg-slate-50/50 dark:bg-slate-700/20 border border-slate-200/30 dark:border-slate-600/20"
+                class="absolute -top-10 left-0 text-[10px] sm:text-[11px] font-black uppercase tracking-widest whitespace-nowrap px-3 py-1.5 rounded-xl border transition-all duration-500 shadow-sm"
+                :class="week[0].isYearStart 
+                  ? 'bg-primary/20 text-primary border-primary/40 scale-105 z-10 shadow-primary/20 ring-2 ring-primary/10' 
+                  : 'bg-slate-50/50 dark:bg-slate-700/20 text-slate-500 dark:text-slate-400 border-slate-200/30 dark:border-slate-600/20'"
               >
                 {{ week[0].monthLabel }}
               </div>
@@ -74,10 +77,13 @@
                 :class="day.count[activeCategory === 'all' ? 'total' : activeCategory] === 0 ? 'bg-slate-100/80 dark:bg-slate-700/40 hover:bg-slate-200 dark:hover:bg-slate-600/60' : ''"
                 :style="getCellStyle(day)"
               >
-                <!-- Smart Tooltip -->
+                <!-- Smart Tooltip: Positions based on row AND column to prevent ALL clipping -->
                 <div 
-                  class="absolute left-1/2 -translate-x-1/2 w-52 px-5 py-4.5 bg-slate-900/98 backdrop-blur-3xl text-white text-[11px] rounded-[1.5rem] opacity-0 scale-90 invisible group-hover/cell:opacity-100 group-hover/cell:scale-100 group-hover/cell:visible transition-all duration-300 pointer-events-none z-[100] shadow-[0_25px_60px_rgba(0,0,0,0.5)] ring-1 ring-white/10"
-                  :class="dayIndex <= 3 ? 'top-full mt-4' : 'bottom-full mb-4'"
+                  class="absolute w-52 px-5 py-4.5 bg-slate-900/98 backdrop-blur-3xl text-white text-[11px] rounded-[1.5rem] opacity-0 scale-90 invisible group-hover/cell:opacity-100 group-hover/cell:scale-100 group-hover/cell:visible transition-all duration-300 pointer-events-none z-[100] shadow-[0_25px_60px_rgba(0,0,0,0.5)] ring-1 ring-white/10"
+                  :class="[
+                    dayIndex <= 3 ? 'top-full mt-4' : 'bottom-full mb-4',
+                    weekIndex < 4 ? 'left-0 translate-x-0' : (weekIndex > heatmapData.length - 4 ? 'right-0 translate-x-0' : 'left-1/2 -translate-x-1/2')
+                  ]"
                 >
                   <div class="font-black border-b border-white/10 pb-3 mb-3.5 flex justify-between items-center text-white/90 tracking-wide text-[13px]">
                     <span>{{ day.dateDisplay }}</span>
@@ -94,8 +100,11 @@
 
                   <!-- Dynamic Arrow -->
                   <div 
-                    class="absolute left-1/2 -translate-x-1/2 border-[9px] border-transparent"
-                    :class="dayIndex <= 3 ? 'bottom-full border-b-slate-900/98' : 'top-full border-t-slate-900/98'"
+                    class="absolute border-[9px] border-transparent"
+                    :class="[
+                       dayIndex <= 3 ? 'bottom-full border-b-slate-900/98' : 'top-full border-t-slate-900/98',
+                       weekIndex < 4 ? 'left-2 translate-x-0' : (weekIndex > heatmapData.length - 4 ? 'right-2 translate-x-0' : 'left-1/2 -translate-x-1/2')
+                    ]"
                   ></div>
                 </div>
               </div>
@@ -138,6 +147,7 @@ const heatmapData = computed(() => {
   
   let current = startDate
   let lastMonth = -1
+  let lastYear = startDate.year()
 
   while (current.isBefore(endDate) || current.isSame(endDate, 'day')) {
     const dateStr = current.format('YYYY-MM-DD')
@@ -145,11 +155,18 @@ const heatmapData = computed(() => {
     
     const isFirstRow = currentWeek.length === 0
     const currentMonth = current.month()
+    const currentYear = current.year()
+    
     let isMonthStart = false
+    let isYearStart = false
     let monthLabel = ''
 
     if (isFirstRow && currentMonth !== lastMonth) {
       isMonthStart = true
+      if (currentYear !== lastYear) {
+        isYearStart = true
+        lastYear = currentYear
+      }
       monthLabel = current.format('YYYY年M月')
       lastMonth = currentMonth
     }
@@ -158,6 +175,7 @@ const heatmapData = computed(() => {
       date: dateStr,
       dateDisplay: current.format('YYYY年MM月DD日'),
       isMonthStart,
+      isYearStart,
       monthLabel,
       count: data
     })
