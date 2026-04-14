@@ -21,6 +21,7 @@ export interface Note {
   created_at: string
   updated_at: string
   is_private: boolean
+  deleted_at?: string
 }
 
 export interface Journal {
@@ -34,6 +35,7 @@ export interface Journal {
   created_at: string
   updated_at: string
   is_private: boolean
+  deleted_at?: string
 }
 
 export interface Hobby {

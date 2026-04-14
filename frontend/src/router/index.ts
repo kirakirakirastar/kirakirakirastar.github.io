@@ -12,6 +12,7 @@ const HobbiesPage = () => import('@/pages/HobbiesPage.vue')
 const HobbyEditorPage = () => import('@/pages/HobbyEditorPage.vue')
 const LoginPage = () => import('@/pages/LoginPage.vue')
 const AnnouncementsPage = () => import('@/pages/AnnouncementsPage.vue')
+const TrashPage = () => import('@/pages/TrashPage.vue')
 import { useAuthStore } from '@/stores/auth'
 
 const routes = [
@@ -33,6 +34,7 @@ const routes = [
       { path: 'hobbies', component: HobbiesPage, meta: { title: '爱好追踪' } },
       { path: 'hobbies/new', component: HobbyEditorPage, meta: { requiresAuth: true, title: '新建爱好' } },
       { path: 'hobbies/:id/edit', component: HobbyEditorPage, meta: { requiresAuth: true, title: '编辑爱好' } },
+      { path: 'trash', component: TrashPage, meta: { requiresAuth: true, title: '回收站' } },
     ]
   }
 ]

@@ -103,6 +103,7 @@ import { hobbiesApi } from '@/api/hobbies'
 import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
+import { deleteFileByUrl } from '@/api/cleanup'
 import { useUiStore } from '@/stores/ui'
 import type { Hobby } from '@/api/types'
 
@@ -162,9 +163,15 @@ const handleCoverUpload = async (event: Event) => {
 
 const uploadAndSetCover = async (file: File) => {
   try {
+    const oldUrl = form.value.cover_url
     const result = await uploadApi.image(file, form.value.is_private, 'hobbies-covers')
     form.value.cover_url = result.url
     uiStore.addToast('封面设置成功', 'success')
+    
+    // 如果之前已经是云端图片，则清理旧文件
+    if (oldUrl && oldUrl !== result.url) {
+      deleteFileByUrl(oldUrl)
+    }
   } catch (error) {
     console.error('上传封面失败:', error)
     uiStore.addToast('封面上传失败', 'error')

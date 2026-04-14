@@ -249,6 +249,8 @@ const emit = defineEmits<{
 
 const settings = useSettingsStore()
 import { uploadImageLocally } from '@/api/supabaseData'
+import { uploadApi } from '@/api/upload';
+import { deleteFileByUrl } from '@/api/cleanup'
 
 const activeTab = ref<'theme' | 'background'>('theme')
 const bgUrlInput = ref(settings.bgUrl)
@@ -273,11 +275,17 @@ const onFileSelected = async (event: Event) => {
   if (!file) return
 
   try {
+    const oldUrl = bgUrlInput.value
     isUploading.value = true
     // 背景图片设为公开路径，存入 system-assets 桶
     const { url } = await uploadApi.image(file, false, 'system-assets')
     bgUrlInput.value = url
     applyBgUrl()
+
+    // 清理旧背景图
+    if (oldUrl && oldUrl !== url) {
+      deleteFileByUrl(oldUrl)
+    }
   } catch (err) {
     console.error('Failed to upload image', err)
     alert('图片选择失败，请重试')

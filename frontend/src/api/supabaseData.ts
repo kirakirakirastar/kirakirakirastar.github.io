@@ -2,6 +2,7 @@ import { supabase } from './supabase'
 import type { Note, Journal, Hobby, Todo, Folder, DashboardData, ActivityMap, ActivityDay, Tag, Announcement } from './types'
 import dayjs from 'dayjs'
 import { compressImage, fileToBase64 } from '@/utils/image'
+import { extractStoragePaths, deleteStorageFiles, deleteFileByUrl } from './cleanup'
 
 const includesKeyword = (values: Array<string | undefined>, keyword?: string) => {
   if (!keyword) return true
@@ -55,10 +56,13 @@ export const supabaseNotesApi = {
   list: async (params?: any): Promise<Note[]> => {
     let query = supabase.from('notes').select('*')
     
-    if (params?.keyword) {
+     if (params?.keyword) {
       const kw = `%${params.keyword}%`
       query = query.or(`title.ilike.${kw},summary.ilike.${kw},content_md.ilike.${kw}`)
     }
+
+    // 回收站过滤：默认只显示未删除项
+    query = query.is('deleted_at', null)
 
     // Privacy filter
     const { data: { user } } = await supabase.auth.getUser()
@@ -118,7 +122,7 @@ export const supabaseNotesApi = {
   },
 
   get: async (id: number): Promise<Note> => {
-    let query = supabase.from('notes').select('*').eq('id', id)
+    let query = supabase.from('notes').select('*').eq('id', id).is('deleted_at', null)
     
     // Privacy protection: Ensure guests can't see private notes even if they have the ID
     const { data: { user } } = await supabase.auth.getUser()
@@ -147,14 +151,56 @@ export const supabaseNotesApi = {
   },
 
   delete: async (id: number) => {
-    const { error } = await supabase.from('notes').delete().eq('id', id)
+    // 逻辑删除
+    const { error } = await supabase.from('notes').update({ deleted_at: new Date().toISOString() }).eq('id', id)
     if (error) throw error
     return true
   },
 
   batchDelete: async (ids: number[]) => {
+    // 逻辑批量删除
+    const { error } = await supabase.from('notes').update({ deleted_at: new Date().toISOString() }).in('id', ids)
+    if (error) throw error
+    return true
+  },
+
+  // --- 回收站专有接口 ---
+  listTrash: async (): Promise<Note[]> => {
+    const { data, error } = await supabase.from('notes').select('*').not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
+    if (error) throw error
+    return (data || []).map((n: any) => ({ ...n, tags: normalizeTags(n.tags) }))
+  },
+
+  restore: async (id: number) => {
+    const { error } = await supabase.from('notes').update({ deleted_at: null }).eq('id', id)
+    if (error) throw error
+    return true
+  },
+
+  permanentlyDelete: async (id: number) => {
+    // 1. 获取内容以便提取图片
+    const { data: note } = await supabase.from('notes').select('content_md').eq('id', id).single()
+    
+    // 2. 执行数据库物理删除
+    const { error } = await supabase.from('notes').delete().eq('id', id)
+    if (error) throw error
+    
+    // 3. 异步清理云端图片
+    if (note?.content_md) {
+      const paths = extractStoragePaths(note.content_md)
+      deleteStorageFiles(paths)
+    }
+    return true
+  },
+
+  batchPermanentlyDelete: async (ids: number[]) => {
+    const { data: notes } = await supabase.from('notes').select('content_md').in('id', ids)
     const { error } = await supabase.from('notes').delete().in('id', ids)
     if (error) throw error
+    if (notes) {
+      const allPaths = notes.flatMap(n => extractStoragePaths(n.content_md || ''))
+      deleteStorageFiles(allPaths)
+    }
     return true
   },
 
@@ -215,6 +261,8 @@ export const supabaseJournalsApi = {
       query = query.or(`title.ilike.${kw},excerpt.ilike.${kw},content_html.ilike.${kw}`)
     }
 
+    query = query.is('deleted_at', null)
+
     // Privacy filter
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -269,7 +317,7 @@ export const supabaseJournalsApi = {
   },
 
   get: async (id: number): Promise<Journal> => {
-    let query = supabase.from('journals').select('*').eq('id', id)
+    let query = supabase.from('journals').select('*').eq('id', id).is('deleted_at', null)
     
     // Privacy protection
     const { data: { user } } = await supabase.auth.getUser()
@@ -299,14 +347,48 @@ export const supabaseJournalsApi = {
   },
 
   delete: async (id: number) => {
-    const { error } = await supabase.from('journals').delete().eq('id', id)
+    const { error } = await supabase.from('journals').update({ deleted_at: new Date().toISOString() }).eq('id', id)
     if (error) throw error
     return true
   },
 
   batchDelete: async (ids: number[]) => {
+    const { error } = await supabase.from('journals').update({ deleted_at: new Date().toISOString() }).in('id', ids)
+    if (error) throw error
+    return true
+  },
+
+  listTrash: async (): Promise<Journal[]> => {
+    const { data, error } = await supabase.from('journals').select('*').not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
+    if (error) throw error
+    return (data || []).map((j: any) => ({ ...j, tags: normalizeTags(j.tags) }))
+  },
+
+  restore: async (id: number) => {
+    const { error } = await supabase.from('journals').update({ deleted_at: null }).eq('id', id)
+    if (error) throw error
+    return true
+  },
+
+  permanentlyDelete: async (id: number) => {
+    const { data: journal } = await supabase.from('journals').select('content_html').eq('id', id).single()
+    const { error } = await supabase.from('journals').delete().eq('id', id)
+    if (error) throw error
+    if (journal?.content_html) {
+      const paths = extractStoragePaths(journal.content_html)
+      deleteStorageFiles(paths)
+    }
+    return true
+  },
+
+  batchPermanentlyDelete: async (ids: number[]) => {
+    const { data: journals } = await supabase.from('journals').select('content_html').in('id', ids)
     const { error } = await supabase.from('journals').delete().in('id', ids)
     if (error) throw error
+    if (journals) {
+      const allPaths = journals.flatMap(j => extractStoragePaths(j.content_html || ''))
+      deleteStorageFiles(allPaths)
+    }
     return true
   },
 
@@ -428,14 +510,27 @@ export const supabaseHobbiesApi = {
   },
 
   delete: async (id: number) => {
+    const { data: hobby } = await supabase.from('hobbies').select('cover_url').eq('id', id).single()
+    
     const { error } = await supabase.from('hobbies').delete().eq('id', id)
     if (error) throw error
+    
+    if (hobby?.cover_url) {
+      deleteFileByUrl(hobby.cover_url)
+    }
     return true
   },
 
   batchDelete: async (ids: number[]) => {
+    const { data: hobbies } = await supabase.from('hobbies').select('cover_url').in('id', ids)
+    
     const { error } = await supabase.from('hobbies').delete().in('id', ids)
     if (error) throw error
+    
+    if (hobbies) {
+      const urls = hobbies.map(h => h.cover_url).filter(Boolean)
+      urls.forEach(url => deleteFileByUrl(url))
+    }
     return true
   },
 
