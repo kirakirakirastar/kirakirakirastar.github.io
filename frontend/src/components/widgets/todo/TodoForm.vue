@@ -41,6 +41,21 @@
           </svg>
           <span>{{ recurrenceLabel(recurrence) }}</span>
         </button>
+
+        <!-- Privacy Toggle -->
+        <button 
+          @click="isPrivate = !isPrivate"
+          type="button"
+          class="px-2.5 py-1.5 border rounded-xl text-[10px] font-bold flex items-center gap-1.5 transition-all outline-none"
+          :class="isPrivate 
+            ? 'bg-amber-500/10 border-amber-500/20 text-amber-600' 
+            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'"
+          title="私密任务：仅登录后可见"
+        >
+          <svg v-if="isPrivate" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+          <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+          <span>{{ isPrivate ? '私密' : '公开' }}</span>
+        </button>
       </div>
       
       <button 
@@ -65,6 +80,7 @@ const todayStr = dayjs().format('YYYY-MM-DD')
 const startDate = ref(todayStr)
 const dueDate = ref(todayStr)
 const recurrence = ref('none')
+const isPrivate = ref(false)
 
 const recurrenceOptions = ['none', 'daily', 'weekly', 'monthly']
 const toggleRecurrence = () => {
@@ -87,7 +103,8 @@ const handleSubmit = () => {
     priority: priority.value,
     start_date: startDate.value || null,
     due_date: dueDate.value || null,
-    recurrence: recurrence.value
+    recurrence: recurrence.value,
+    is_private: isPrivate.value
   })
   
   // Reset
@@ -96,5 +113,6 @@ const handleSubmit = () => {
   startDate.value = todayStr
   dueDate.value = todayStr
   recurrence.value = 'none'
+  isPrivate.value = false
 }
 </script>

@@ -122,7 +122,8 @@
 
           <router-link :to="`/notes/${note.id}`" class="block p-6">
             <div class="flex justify-between items-start mb-3" :class="{ 'pl-8': isBatchMode }">
-              <h2 class="text-xl font-bold group-hover:text-primary transition-colors">
+              <h2 class="text-xl font-bold group-hover:text-primary transition-colors flex items-center gap-2">
+                <svg v-if="note.is_private" class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
                 {{ note.title }}
               </h2>
               <span class="text-sm text-gray-400 whitespace-nowrap ml-4">{{ formatDate(note.created_at) }}</span>

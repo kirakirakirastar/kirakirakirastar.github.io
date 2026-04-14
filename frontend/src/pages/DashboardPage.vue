@@ -212,7 +212,10 @@
             :to="`/notes/${note.id}`"
             class="block p-4 rounded-xl border border-transparent hover:border-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-300 group"
           >
-            <div class="font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-primary transition-colors">{{ note.title }}</div>
+            <div class="font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-primary transition-colors flex items-center gap-2">
+              <svg v-if="note.is_private" class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+              {{ note.title }}
+            </div>
             <div class="text-xs text-slate-400 dark:text-slate-400 mt-2">{{ formatShortDate(note.created_at) }}</div>
           </router-link>
           <div v-if="filteredNotes.length === 0" class="text-center py-8 text-slate-400 text-xs italic">该日期暂无笔记</div>
@@ -241,7 +244,10 @@
             :to="`/journals/${journal.id}`"
             class="block p-4 rounded-xl border border-transparent hover:border-secondary/20 hover:bg-secondary/5 dark:hover:bg-secondary/10 transition-all duration-300 group"
           >
-            <div class="font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-secondary transition-colors">{{ journal.title }}</div>
+            <div class="font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-secondary transition-colors flex items-center gap-2">
+              <svg v-if="journal.is_private" class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+              {{ journal.title }}
+            </div>
             <div class="text-xs text-slate-400 dark:text-slate-400 mt-2">{{ formatShortDate(journal.created_at) }}</div>
           </router-link>
           <div v-if="filteredJournals.length === 0" class="text-center py-8 text-slate-400 text-xs italic">该日期暂无日志</div>
@@ -267,7 +273,10 @@
             to="/hobbies"
             class="block p-4 rounded-xl border border-transparent hover:border-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-300 group"
           >
-            <div class="font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-primary transition-colors">{{ hobby.title }}</div>
+            <div class="font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-primary transition-colors flex items-center gap-2">
+              <svg v-if="hobby.is_private" class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+              {{ hobby.title }}
+            </div>
             <div class="text-xs text-gray-400 mt-2 flex items-center gap-2">
               <span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary dark:text-primary-light">{{ hobby.type }}</span>
               <span>· {{ hobby.status }}</span>

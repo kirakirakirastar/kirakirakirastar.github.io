@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import dayjs from 'dayjs'
-import type { Todo } from '@/stores/gadgets'
+import type { Todo } from '@/api/types'
 
 const props = defineProps<{
   todos: Todo[]

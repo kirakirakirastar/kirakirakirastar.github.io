@@ -152,7 +152,10 @@
 
           <div class="p-5 flex flex-col flex-1">
             <div class="flex items-start justify-between mb-2" :class="{ 'pl-8': isBatchMode }">
-              <h3 class="font-extrabold text-lg line-clamp-2 leading-tight text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors">{{ hobby.title }}</h3>
+              <h3 class="font-extrabold text-lg line-clamp-2 leading-tight text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors flex items-center gap-2">
+                <svg v-if="hobby.is_private" class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+                {{ hobby.title }}
+              </h3>
               <span
                 class="px-2 py-0.5 text-[10px] font-bold rounded-full whitespace-nowrap ml-2 shadow-sm"
                 :class="statusClass(hobby.status)"

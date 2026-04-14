@@ -20,6 +20,7 @@ export interface Note {
   folder_id: number | null
   created_at: string
   updated_at: string
+  is_private: boolean
 }
 
 export interface Journal {
@@ -32,6 +33,7 @@ export interface Journal {
   folder_id: number | null
   created_at: string
   updated_at: string
+  is_private: boolean
 }
 
 export interface Hobby {
@@ -46,6 +48,7 @@ export interface Hobby {
   folder_id: number | null
   created_at: string
   updated_at: string
+  is_private: boolean
 }
 
 export interface Todo {
@@ -60,6 +63,7 @@ export interface Todo {
   completed_at: string | null
   user_id: string
   created_at: string
+  is_private: boolean
 }
 
 export interface DashboardStats {

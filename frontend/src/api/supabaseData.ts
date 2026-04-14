@@ -59,6 +59,16 @@ export const supabaseNotesApi = {
       query = query.or(`title.ilike.${kw},summary.ilike.${kw},content_md.ilike.${kw}`)
     }
 
+    // Privacy filter
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      query = query.eq('is_private', false)
+    } else {
+      // In a multi-user scenario, we'd also want to ensure they only see their own private notes.
+      // But for this single-user blog style, owner sees everything.
+      // If we want a strict mode: query = query.or(`is_private.eq.false,user_id.eq.${user.id}`)
+    }
+
     if (params?.tag) {
       query = query.contains('tags', [params.tag])
     }
@@ -99,6 +109,7 @@ export const supabaseNotesApi = {
       content_md: data.content_md || '',
       tags: data.tags || [],
       folder_id: data.folder_id || null,
+      is_private: data.is_private || false,
     }
     const { data: created, error } = await supabase.from('notes').insert(payload).select().single()
     if (error) throw error
@@ -118,6 +129,7 @@ export const supabaseNotesApi = {
       content_md: data.content_md || '',
       tags: data.tags || [],
       folder_id: data.folder_id !== undefined ? data.folder_id : undefined,
+      is_private: data.is_private !== undefined ? data.is_private : undefined,
       updated_at: new Date().toISOString(),
     }
     const { data: updated, error } = await supabase.from('notes').update(payload).eq('id', id).select().single()
@@ -182,6 +194,12 @@ export const supabaseJournalsApi = {
       query = query.or(`title.ilike.${kw},excerpt.ilike.${kw}`)
     }
 
+    // Privacy filter
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      query = query.eq('is_private', false)
+    }
+
     if (params?.tag) {
       query = query.contains('tags', [params.tag])
     }
@@ -222,6 +240,7 @@ export const supabaseJournalsApi = {
       content_json: data.content_json || '{}',
       tags: data.tags || [],
       folder_id: data.folder_id || null,
+      is_private: data.is_private || false,
     }
     const { data: created, error } = await supabase.from('journals').insert(payload).select().single()
     if (error) throw error
@@ -242,6 +261,7 @@ export const supabaseJournalsApi = {
       content_json: data.content_json || '{}',
       tags: data.tags || [],
       folder_id: data.folder_id !== undefined ? data.folder_id : undefined,
+      is_private: data.is_private !== undefined ? data.is_private : undefined,
       updated_at: new Date().toISOString(),
     }
     const { data: updated, error } = await supabase.from('journals').update(payload).eq('id', id).select().single()
@@ -292,6 +312,12 @@ export const supabaseHobbiesApi = {
     let query = supabase.from('hobbies').select('*').order('updated_at', { ascending: false })
     if (params?.type) query = query.eq('type', params.type)
     if (params?.status) query = query.eq('status', params.status)
+
+    // Privacy filter
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      query = query.eq('is_private', false)
+    }
     if (params?.tag) {
       query = query.contains('tags', [params.tag])
     }
@@ -325,6 +351,7 @@ export const supabaseHobbiesApi = {
       cover_url: data.cover_url || '',
       tags: data.tags || [],
       folder_id: data.folder_id || null,
+      is_private: data.is_private || false,
     }
     const { data: created, error } = await supabase.from('hobbies').insert(payload).select().single()
     if (error) throw error
@@ -347,6 +374,7 @@ export const supabaseHobbiesApi = {
       cover_url: data.cover_url || '',
       tags: data.tags || [],
       folder_id: data.folder_id !== undefined ? data.folder_id : undefined,
+      is_private: data.is_private !== undefined ? data.is_private : undefined,
       updated_at: new Date().toISOString(),
     }
     const { data: updated, error } = await supabase.from('hobbies').update(payload).eq('id', id).select().single()
@@ -607,7 +635,8 @@ export const supabaseTodosApi = {
       start_date: payloadUpdates?.start_date || null,
       due_date: payloadUpdates?.due_date || null,
       recurrence: payloadUpdates?.recurrence || 'none',
-      status: 'pending'
+      status: 'pending',
+      is_private: payloadUpdates?.is_private || false
     }
     
     const { data, error } = await supabase.from('todos').insert(payload).select().single()

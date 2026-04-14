@@ -72,6 +72,20 @@
         <label class="block text-sm font-medium mb-2">短评</label>
         <textarea v-model="form.review" rows="5" class="w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600"></textarea>
       </div>
+
+      <div class="flex items-center gap-3 py-2">
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" v-model="form.is_private" class="sr-only peer">
+          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/30 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+        </label>
+        <div class="flex flex-col">
+          <span class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <svg v-if="form.is_private" class="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+            私密条目
+          </span>
+          <span class="text-[10px] text-slate-500">此爱好记录仅在您登录后显示在列表中及统计中。</span>
+        </div>
+      </div>
       <div class="flex gap-3">
         <button type="submit" :disabled="saving" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light disabled:opacity-50 transition-colors">
           {{ saving ? '保存中...' : '保存' }}
@@ -90,6 +104,7 @@ import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 import { useUiStore } from '@/stores/ui'
+import type { Hobby } from '@/api/types'
 
 const uiStore = useUiStore()
 
@@ -101,13 +116,14 @@ const folders = ref<any[]>([])
 const tagsInput = ref('')
 const form = ref({
   title: '',
-  type: 'anime',
-  status: 'want',
+  type: 'anime' as Hobby['type'],
+  status: 'want' as Hobby['status'],
   rating: null as number | null,
   review: '',
   cover_url: '',
   folder_id: null as number | null,
   tags: [] as any[],
+  is_private: false,
 })
 
 const imageUrl = computed(() => resolveAssetUrl(form.value.cover_url))
@@ -124,6 +140,7 @@ const loadHobby = async () => {
     cover_url: data.cover_url,
     folder_id: data.folder_id,
     tags: data.tags,
+    is_private: data.is_private || false,
   }
   tagsInput.value = data.tags.map(t => t.name).join(', ')
 }

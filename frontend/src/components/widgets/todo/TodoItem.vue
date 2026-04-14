@@ -42,7 +42,10 @@
               'text-red-700 dark:text-red-400 line-through decoration-red-400/50': todo.status === 'failed'
             }"
           >
-            {{ todo.text }}
+            <span class="flex items-center gap-1.5">
+              <svg v-if="todo.is_private" class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+              {{ todo.text }}
+            </span>
           </span>
         </template>
         <div v-else class="py-1">
@@ -134,7 +137,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import dayjs from 'dayjs'
-import type { Todo } from '@/stores/gadgets'
+import type { Todo } from '@/api/types'
 
 const props = defineProps<{
   todo: Todo
