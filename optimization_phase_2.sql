@@ -107,3 +107,20 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX IF NOT EXISTS idx_notes_search ON notes USING gin (title gin_trgm_ops, summary gin_trgm_ops, content_md gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_journals_search ON journals USING gin (title gin_trgm_ops, excerpt gin_trgm_ops, content_html gin_trgm_ops);
+
+-- ==========================================
+-- 5. 性能优化：添加缺失的索引
+-- ==========================================
+
+-- 针对列表视图中频繁使用的 deleted_at 和 is_private 进行索引优化
+CREATE INDEX IF NOT EXISTS idx_notes_visibility_status ON notes(is_private, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_journals_visibility_status ON journals(is_private, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_hobbies_visibility_status ON hobbies(is_private, deleted_at);
+
+-- 针对爱好的搜索优化（匹配笔记和日志的全文检索能力）
+CREATE INDEX IF NOT EXISTS idx_hobbies_search ON hobbies USING gin (title gin_trgm_ops, review gin_trgm_ops);
+
+-- 为文件夹过滤增加索引
+CREATE INDEX IF NOT EXISTS idx_notes_folder ON notes(folder_id) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_journals_folder ON journals(folder_id) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_hobbies_folder ON hobbies(folder_id) WHERE deleted_at IS NULL;
