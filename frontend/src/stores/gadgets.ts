@@ -227,18 +227,26 @@ export const useGadgetStore = defineStore('gadgets', () => {
   }
 
   const handleRecurrence = (todo: Todo) => {
+    let nextStartDate: string | null = null
     let nextDueDate: string | null = null
     const now = dayjs().startOf('day')
 
-    if (todo.recurrence === 'daily') {
-      const baseDate = todo.due_date ? dayjs(todo.due_date) : now
-      nextDueDate = baseDate.add(1, 'day').format('YYYY-MM-DD')
-    } else if (todo.recurrence === 'weekly') {
-      const baseDate = todo.due_date ? dayjs(todo.due_date) : now
-      nextDueDate = baseDate.add(1, 'week').format('YYYY-MM-DD')
-    } else if (todo.recurrence === 'monthly') {
-      const baseDate = todo.due_date ? dayjs(todo.due_date) : now
-      nextDueDate = baseDate.add(1, 'month').format('YYYY-MM-DD')
+    // Determine the interval unit
+    let unit: dayjs.ManipulateType = 'day'
+    if (todo.recurrence === 'weekly') unit = 'week'
+    else if (todo.recurrence === 'monthly') unit = 'month'
+
+    // Calculate next dates by sliding the current range
+    if (todo.start_date) {
+      nextStartDate = dayjs(todo.start_date).add(1, unit).format('YYYY-MM-DD')
+    } else {
+      nextStartDate = now.add(1, unit).format('YYYY-MM-DD')
+    }
+
+    if (todo.due_date) {
+      nextDueDate = dayjs(todo.due_date).add(1, unit).format('YYYY-MM-DD')
+    } else {
+      nextDueDate = now.add(1, unit).format('YYYY-MM-DD')
     }
 
     if (nextDueDate) {
@@ -252,7 +260,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
       if (!exists) {
         addTodo(todo.text, {
           priority: todo.priority,
-          start_date: nextDueDate,
+          start_date: nextStartDate,
           due_date: nextDueDate,
           recurrence: todo.recurrence
         })
