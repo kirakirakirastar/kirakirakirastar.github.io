@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Note, Journal, Hobby, Todo, Folder } from './types'
+import type { Note, Journal, Hobby, Todo, Folder, DashboardData, ActivityMap, Tag, Announcement } from './types'
 import dayjs from 'dayjs'
 
 const includesKeyword = (values: Array<string | undefined>, keyword?: string) => {
@@ -413,7 +413,6 @@ export const supabaseHobbiesApi = {
   },
 }
 
-import type { Note, Journal, Hobby, Todo, Folder, DashboardData, ActivityMap, Tag } from './types'
 
 // ... (other helper functions)
 
@@ -444,7 +443,7 @@ export const supabaseDashboardApi = {
     weekStart.setHours(0, 0, 0, 0)
     const weekStartStr = weekStart.toISOString()
 
-    const fetchPromises: Promise<any>[] = [
+    const fetchPromises = [
       supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(5),
       supabase.from('journals').select('*').order('created_at', { ascending: false }).limit(5),
       supabase.from('hobbies').select('*').order('updated_at', { ascending: false }).limit(5),
