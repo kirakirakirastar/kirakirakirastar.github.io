@@ -1,48 +1,49 @@
 <template>
-  <div class="w-full flex h-[calc(100vh-120px)] animate-fade-in-up">
-    <!-- Sidebar -->
-    <FolderSidebar 
-      title="爱好分类" 
-      :folders="folders" 
-      :selectedId="selectedFolderId"
-      @select="onFolderSelect"
-      @add="onFolderAdd"
-      @edit="onFolderEdit"
-      @delete="onFolderDelete"
-    />
-
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden px-4 sm:px-6 lg:px-8 py-8">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 gap-4">
-        <div>
-          <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">爱好追踪</h1>
-          <p class="text-gray-500 dark:text-gray-400">ACG、影视游戏记录与评分</p>
-        </div>
-        <div class="flex gap-3">
-          <button 
-            v-if="authStore.user"
-            @click="isBatchMode = !isBatchMode"
-            class="px-5 py-2.5 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 rounded-xl font-bold transition-all hover:bg-gray-200 dark:hover:bg-white/20"
-            :class="{ 'bg-primary/20 text-primary border border-primary/30': isBatchMode }"
-          >
-            {{ isBatchMode ? '取消选择' : '批量管理' }}
-          </button>
-          <router-link
-            v-if="authStore.user"
-            to="/hobbies/new"
-            class="px-5 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
-          >
-            追加爱好
-          </router-link>
-        </div>
+  <div class="w-full min-h-[calc(100vh-120px)] animate-fade-in-up px-4 sm:px-6 lg:px-8 py-8 pb-32 mx-auto max-w-[1600px]">
+    <!-- Header -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 gap-6">
+      <div class="shrink-0">
+        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">爱好追踪</h1>
+        <p class="text-gray-500 dark:text-gray-400">ACG、影视游戏记录与评分</p>
       </div>
+      
+      <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-start lg:justify-end">
+        <FolderDropdown 
+          :folders="folders"
+          :selectedId="selectedFolderId"
+          @select="onFolderSelect"
+          @add="onFolderAdd"
+          @edit="onFolderEdit"
+          @delete="onFolderDelete"
+        />
+        
+        <div class="h-8 w-px bg-gray-200 dark:bg-white/10 hidden sm:block mx-1"></div>
+
+        <button 
+          v-if="authStore.user"
+          @click="isBatchMode = !isBatchMode"
+          class="px-5 py-2.5 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 rounded-xl font-bold transition-all hover:bg-gray-200 dark:hover:bg-white/20 whitespace-nowrap"
+          :class="{ 'bg-primary/10 text-primary border border-primary/30': isBatchMode }"
+        >
+          {{ isBatchMode ? '取消选择' : '批量管理' }}
+        </button>
+        
+        <router-link
+          v-if="authStore.user"
+          to="/hobbies/new"
+          class="px-5 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all whitespace-nowrap"
+        >
+          追加爱好
+        </router-link>
+      </div>
+    </div>
 
     <!-- Filters -->
     <div class="bg-theme-bg/60 dark:bg-theme-card-dark/60 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 mb-8 flex flex-col md:flex-row gap-4">
       <div class="flex flex-wrap gap-4 w-full">
         <select
           v-model="selectedType"
-          class="w-full sm:w-auto px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
+          class="flex-1 min-w-[120px] px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
           @change="loadHobbies"
         >
           <option value="">所有类型</option>
@@ -52,7 +53,7 @@
         </select>
         <select
           v-model="selectedStatus"
-          class="w-full sm:w-auto px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
+          class="flex-1 min-w-[120px] px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
           @change="loadHobbies"
         >
           <option value="">所有状态</option>
@@ -63,7 +64,7 @@
         </select>
         <select
           v-model="selectedTag"
-          class="w-full sm:w-auto px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
+          class="flex-1 min-w-[120px] px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
           @change="loadHobbies"
         >
           <option value="">所有标签</option>
@@ -73,31 +74,37 @@
     </div>
 
     <!-- Stats -->
-    <div v-if="stats" class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-primary dark:text-primary-light">{{ stats.total }}</div>
-        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">总条目</div>
+    <div v-if="stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10">
+      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-4 md:p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <div class="text-2xl md:text-3xl font-extrabold text-primary dark:text-primary-light">{{ stats.total }}</div>
+        <div class="text-[10px] md:text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">总条目</div>
       </div>
-      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-secondary">{{ stats.completed }}</div>
-        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">已完成</div>
+      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-4 md:p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <div class="text-2xl md:text-3xl font-extrabold text-secondary">{{ stats.completed }}</div>
+        <div class="text-[10px] md:text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">已完成</div>
       </div>
-      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-primary-light">{{ stats.in_progress }}</div>
-        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">在看</div>
+      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-4 md:p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <div class="text-2xl md:text-3xl font-extrabold text-primary-light">{{ stats.in_progress }}</div>
+        <div class="text-[10px] md:text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">在看/玩</div>
       </div>
-      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-        <div class="text-3xl font-extrabold text-secondary-light">{{ stats.avg_rating?.toFixed(1) || '-' }}</div>
-        <div class="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">平均评分</div>
+      <div class="bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-4 md:p-6 text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <div class="text-2xl md:text-3xl font-extrabold text-secondary-light">{{ stats.avg_rating?.toFixed(1) || '-' }}</div>
+        <div class="text-[10px] md:text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">平均评分</div>
       </div>
     </div>
 
     <!-- List Content -->
-    <div class="flex-1 overflow-y-auto min-h-0 scrollbar-hide pb-20">
-      <!-- Hobbies List -->
-      <div v-if="loading" class="text-center py-12 text-gray-500">加载中...</div>
-      <div v-else-if="hobbies.length === 0" class="text-center py-12 text-gray-500">暂无条目，点击上方新建按钮或筛选其他分类</div>
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 pt-1">
+    <div>
+      <div v-if="loading" class="text-center py-12 text-gray-500">
+        <div class="animate-pulse flex flex-col items-center">
+          <div class="w-12 h-12 bg-primary/20 rounded-full mb-4"></div>
+          <p>加载中...</p>
+        </div>
+      </div>
+      <div v-else-if="hobbies.length === 0">
+        <EmptyState title="暂无内容" message="点击上方按钮或筛选其他分类" />
+      </div>
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 pt-1">
         <div
           v-for="hobby in hobbies"
           :key="hobby.id"
@@ -114,63 +121,67 @@
             <svg v-if="isSelected(hobby.id)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
           </div>
 
-          <div v-if="hobby.cover_url" class="aspect-[3/4] bg-gray-200 dark:bg-theme-bg-dark/50">
+          <div v-if="hobby.cover_url" class="aspect-[3/4] bg-gray-200 dark:bg-theme-bg-dark/50 overflow-hidden relative">
             <img
               :src="getImageUrl(hobby.cover_url)"
               :alt="hobby.title"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+              <span class="text-white text-xs font-medium">最后更新: {{ formatDate(hobby.updated_at || hobby.created_at) }}</span>
+            </div>
           </div>
           <div v-else class="aspect-[3/4] bg-gray-50 dark:bg-theme-bg-dark/30 flex items-center justify-center">
-            <span class="text-gray-400 text-sm">无海报</span>
+            <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 00-2 2z"></path></svg>
           </div>
-          <div class="p-6 flex flex-col flex-1">
-            <div class="flex items-start justify-between mb-3" :class="{ 'pl-8': isBatchMode }">
-              <h3 class="font-extrabold text-lg line-clamp-2 leading-tight">{{ hobby.title }}</h3>
+
+          <div class="p-5 flex flex-col flex-1">
+            <div class="flex items-start justify-between mb-2" :class="{ 'pl-8': isBatchMode }">
+              <h3 class="font-extrabold text-lg line-clamp-2 leading-tight text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors">{{ hobby.title }}</h3>
               <span
-                class="px-2 py-1 text-xs rounded-full whitespace-nowrap ml-2"
+                class="px-2 py-0.5 text-[10px] font-bold rounded-full whitespace-nowrap ml-2 shadow-sm"
                 :class="statusClass(hobby.status)"
               >
                 {{ statusLabel(hobby.status) }}
               </span>
             </div>
-            <div class="flex items-center gap-2 mb-3 text-sm text-gray-500">
-              <span>{{ typeLabel(hobby.type) }}</span>
-              <span v-if="hobby.rating">· {{ hobby.rating }}/10</span>
+            <div class="flex items-center gap-2 mb-3 text-xs text-gray-500 dark:text-gray-400">
+              <span class="bg-gray-100 dark:bg-white/5 px-1.5 py-0.5 rounded">{{ typeLabel(hobby.type) }}</span>
+              <span v-if="hobby.rating" class="text-secondary font-bold">★ {{ hobby.rating }}/10</span>
             </div>
             
             <!-- Tags display -->
-            <div v-if="hobby.tags?.length" class="flex flex-wrap gap-1.5 mb-4">
+            <div v-if="hobby.tags?.length" class="flex flex-wrap gap-1 mb-4">
               <span 
                 v-for="tag in hobby.tags" 
                 :key="tag.id"
-                class="px-2 py-0.5 text-[10px] font-bold bg-primary/5 text-primary/70 dark:text-primary-light border border-primary/10 rounded"
+                class="px-1.5 py-0.5 text-[10px] font-bold bg-primary/5 text-primary/70 dark:text-primary-light border border-primary/10 rounded"
               >
                 #{{ tag.name }}
               </span>
             </div>
 
-            <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4 flex-1">
-              {{ hobby.review || '暂无短评' }}
+            <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-4 flex-1 italic leading-relaxed">
+              {{ hobby.review || '暂无点评' }}
             </p>
+            
             <div v-if="authStore.user" class="flex gap-2">
               <router-link
                 :to="`/hobbies/${hobby.id}/edit`"
-                class="flex-1 px-3 py-2 text-center bg-primary text-white rounded-lg hover:bg-primary-dark text-sm transition-colors"
+                class="flex-1 px-3 py-2 text-center bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white text-xs font-bold transition-all shadow-sm"
               >
-                编辑
+                详情/编辑
               </router-link>
               <button
                 @click="deleteHobby(hobby.id)"
-                class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm transition-colors"
+                class="px-3 py-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white text-xs font-bold transition-all"
               >
-                删除
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
               </button>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </div>
 
     <!-- Batch Actions -->
@@ -186,13 +197,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import dayjs from 'dayjs'
 import { hobbiesApi } from '@/api/hobbies'
 import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
-import FolderSidebar from '@/components/ui/FolderSidebar.vue'
+import FolderDropdown from '@/components/ui/FolderDropdown.vue'
 import BatchActionBar from '@/components/ui/BatchActionBar.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 
 const authStore = useAuthStore()
 const uiStore = useUiStore()
@@ -330,13 +343,14 @@ const statusClass = (status: string) => {
   const classes: Record<string, string> = {
     want: 'bg-primary/10 text-primary dark:text-primary-light',
     in_progress: 'bg-secondary/10 text-secondary dark:text-secondary-light',
-    completed: 'bg-primary/20 text-primary dark:text-primary-light font-bold',
+    completed: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
     paused: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
   }
   return classes[status] || 'bg-gray-100 text-gray-700'
 }
 
 const getImageUrl = (url: string) => resolveAssetUrl(url)
+const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD')
 
 const loadHobbies = async () => {
   loading.value = true
@@ -376,10 +390,12 @@ const deleteHobby = async (id: number) => {
 
   try {
     await hobbiesApi.delete(id)
+    uiStore.addToast('已删除', 'success')
     await loadHobbies()
     await loadStats()
   } catch (error) {
     console.error('删除条目失败:', error)
+    uiStore.addToast('删除失败', 'error')
   }
 }
 
@@ -404,13 +420,5 @@ onMounted(() => {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }
 </style>

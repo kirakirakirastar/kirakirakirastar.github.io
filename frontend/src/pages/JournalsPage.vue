@@ -1,41 +1,42 @@
 <template>
-  <div class="w-full flex h-[calc(100vh-120px)] animate-fade-in-up">
-    <!-- Sidebar -->
-    <FolderSidebar 
-      title="日志分类" 
-      :folders="folders" 
-      :selectedId="selectedFolderId"
-      @select="onFolderSelect"
-      @add="onFolderAdd"
-      @edit="onFolderEdit"
-      @delete="onFolderDelete"
-    />
-
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden px-4 sm:px-6 lg:px-8 py-8">
-      <div class="flex justify-between items-end mb-10">
-        <div>
-          <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">个人日志</h1>
-          <p class="text-gray-500 dark:text-gray-400">生活点滴与富文本记录</p>
-        </div>
-        <div class="flex gap-3">
-          <button 
-            v-if="authStore.user"
-            @click="isBatchMode = !isBatchMode"
-            class="px-5 py-2.5 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 rounded-xl font-bold transition-all hover:bg-gray-200 dark:hover:bg-white/20"
-            :class="{ 'bg-secondary/20 text-secondary border border-secondary/30': isBatchMode }"
-          >
-            {{ isBatchMode ? '取消选择' : '批量管理' }}
-          </button>
-          <router-link
-            v-if="authStore.user"
-            to="/journals/new"
-            class="px-5 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
-          >
-            写新日志
-          </router-link>
-        </div>
+  <div class="w-full min-h-[calc(100vh-120px)] animate-fade-in-up px-4 sm:px-6 lg:px-8 py-8 pb-32 mx-auto max-w-[1600px]">
+    <!-- Header -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 gap-6">
+      <div class="shrink-0">
+        <h1 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">个人日志</h1>
+        <p class="text-gray-500 dark:text-gray-400">生活点滴与富文本记录</p>
       </div>
+      
+      <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-start lg:justify-end">
+        <FolderDropdown 
+          :folders="folders"
+          :selectedId="selectedFolderId"
+          @select="onFolderSelect"
+          @add="onFolderAdd"
+          @edit="onFolderEdit"
+          @delete="onFolderDelete"
+        />
+        
+        <div class="h-8 w-px bg-gray-200 dark:bg-white/10 hidden sm:block mx-1"></div>
+
+        <button 
+          v-if="authStore.user"
+          @click="isBatchMode = !isBatchMode"
+          class="px-5 py-2.5 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 rounded-xl font-bold transition-all hover:bg-gray-200 dark:hover:bg-white/20 whitespace-nowrap"
+          :class="{ 'bg-secondary/10 text-secondary border border-secondary/30': isBatchMode }"
+        >
+          {{ isBatchMode ? '取消选择' : '批量管理' }}
+        </button>
+        
+        <router-link
+          v-if="authStore.user"
+          to="/journals/new"
+          class="px-5 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all whitespace-nowrap"
+        >
+          写新日志
+        </router-link>
+      </div>
+    </div>
 
     <!-- Search -->
     <div class="bg-theme-bg/60 dark:bg-theme-card-dark/60 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 p-6 mb-8 flex flex-col md:flex-row gap-4">
@@ -68,63 +69,62 @@
       </div>
     </div>
 
-      <!-- List Content -->
-      <div class="flex-1 overflow-y-auto min-h-0 scrollbar-hide pb-20">
-        <!-- Skeleton Loader -->
-        <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-          <div v-for="i in 10" :key="i" class="bg-white/50 dark:bg-slate-800/40 rounded-2xl p-6 border border-gray-100 dark:border-white/5 space-y-4">
-            <div class="flex justify-between items-center">
-              <Skeleton width="60%" height="24px" />
-              <Skeleton width="20%" height="16px" />
-            </div>
-            <Skeleton height="16px" />
-            <Skeleton height="16px" />
-            <Skeleton height="16px" width="80%" />
-            <div class="flex justify-end pt-2">
-              <Skeleton width="60px" height="20px" shape="rect" />
-            </div>
+    <!-- List Content -->
+    <div class="mt-8">
+      <!-- Skeleton Loader -->
+      <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+        <div v-for="i in 10" :key="i" class="bg-white/50 dark:bg-slate-800/40 rounded-2xl p-6 border border-gray-100 dark:border-white/5 space-y-4">
+          <div class="flex justify-between items-center">
+            <Skeleton width="60%" height="24px" />
+            <Skeleton width="20%" height="16px" />
+          </div>
+          <Skeleton height="16px" />
+          <Skeleton height="16px" />
+          <Skeleton height="16px" width="80%" />
+          <div class="flex justify-end pt-2">
+            <Skeleton width="60px" height="20px" shape="rect" />
           </div>
         </div>
-        <div v-else-if="journals.length === 0" class="text-center py-12 text-gray-500">暂无日志，点击上方新建按钮或筛选其他分类</div>
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 pt-1">
-          <div
-            v-for="journal in journals"
-            :key="journal.id"
-            class="relative bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
-            :class="{ 'ring-2 ring-secondary border-secondary/50 shadow-lg': isSelected(journal.id) }"
+      </div>
+      <div v-else-if="journals.length === 0" class="text-center py-12 text-gray-500">暂无日志，点击上方新建按钮或筛选其他分类</div>
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 pt-1">
+        <div
+          v-for="journal in journals"
+          :key="journal.id"
+          class="relative bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+          :class="{ 'ring-2 ring-secondary border-secondary/50 shadow-lg': isSelected(journal.id) }"
+        >
+          <!-- Selection Checkbox Area -->
+          <div 
+            v-if="isBatchMode" 
+            @click.stop="toggleSelection(journal.id)"
+            class="absolute top-4 left-4 z-10 w-6 h-6 rounded-lg border-2 border-secondary/30 flex items-center justify-center cursor-pointer transition-all hover:scale-110"
+            :class="[isSelected(journal.id) ? 'bg-secondary border-secondary text-white shadow-md' : 'bg-white/80 dark:bg-slate-800/80']"
           >
-            <!-- Selection Checkbox Area -->
-            <div 
-              v-if="isBatchMode" 
-              @click.stop="toggleSelection(journal.id)"
-              class="absolute top-4 left-4 z-10 w-6 h-6 rounded-lg border-2 border-secondary/30 flex items-center justify-center cursor-pointer transition-all hover:scale-110"
-              :class="[isSelected(journal.id) ? 'bg-secondary border-secondary text-white shadow-md' : 'bg-white/80 dark:bg-slate-800/80']"
-            >
-              <svg v-if="isSelected(journal.id)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-            </div>
-
-            <router-link :to="`/journals/${journal.id}`" class="block p-6">
-              <div class="flex justify-between items-start mb-3" :class="{ 'pl-8': isBatchMode }">
-                <h2 class="text-xl font-bold group-hover:text-secondary transition-colors">
-                  {{ journal.title }}
-                </h2>
-                <span class="text-sm text-gray-400 whitespace-nowrap ml-4">{{ formatDate(journal.created_at) }}</span>
-              </div>
-              <p class="text-gray-600 dark:text-gray-300 mb-3 line-clamp-3 leading-relaxed">{{ journal.excerpt || '暂无摘要' }}</p>
-              <div class="flex flex-wrap gap-2 mb-4">
-                <span
-                  v-for="tag in journal.tags"
-                  :key="tag.id"
-                  class="px-2.5 py-1 text-xs font-medium bg-secondary/10 text-secondary dark:text-secondary-light border border-secondary/20 rounded-full"
-                >
-                  {{ tag.name }}
-                </span>
-              </div>
-              <div class="flex items-center justify-end mt-2">
-                <span class="text-sm text-secondary dark:text-secondary-light font-medium group-hover:translate-x-1 transition-transform">查看详情 &rarr;</span>
-              </div>
-            </router-link>
+            <svg v-if="isSelected(journal.id)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
           </div>
+
+          <router-link :to="`/journals/${journal.id}`" class="block p-6">
+            <div class="flex justify-between items-start mb-3" :class="{ 'pl-8': isBatchMode }">
+              <h2 class="text-xl font-bold group-hover:text-secondary transition-colors text-slate-800 dark:text-slate-100">
+                {{ journal.title }}
+              </h2>
+              <span class="text-sm text-gray-400 whitespace-nowrap ml-4">{{ formatDate(journal.created_at) }}</span>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300 mb-3 line-clamp-3 leading-relaxed">{{ journal.excerpt || '暂无摘要' }}</p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span
+                v-for="tag in journal.tags"
+                :key="tag.id"
+                class="px-2.5 py-1 text-xs font-medium bg-secondary/10 text-secondary dark:text-secondary-light border border-secondary/20 rounded-full"
+              >
+                {{ tag.name }}
+              </span>
+            </div>
+            <div class="flex items-center justify-end mt-2">
+              <span class="text-sm text-secondary dark:text-secondary-light font-medium group-hover:translate-x-1 transition-transform">查看详情 &rarr;</span>
+            </div>
+          </router-link>
         </div>
       </div>
     </div>
@@ -148,7 +148,7 @@ import { supabaseFoldersApi } from '@/api/supabaseData'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import FolderSidebar from '@/components/ui/FolderSidebar.vue'
+import FolderDropdown from '@/components/ui/FolderDropdown.vue'
 import BatchActionBar from '@/components/ui/BatchActionBar.vue'
 
 const authStore = useAuthStore()
