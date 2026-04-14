@@ -429,6 +429,9 @@ export const supabaseJournalsApi = {
 export const supabaseHobbiesApi = {
   list: async (params?: any): Promise<Hobby[]> => {
     let query = supabase.from('hobbies').select('*').order('updated_at', { ascending: false })
+    
+    // 逻辑删除过滤
+    query = query.is('deleted_at', null)
     if (params?.type) query = query.eq('type', params.type)
     if (params?.status) query = query.eq('status', params.status)
 
@@ -510,23 +513,44 @@ export const supabaseHobbiesApi = {
   },
 
   delete: async (id: number) => {
+    // 逻辑删除
+    const { error } = await supabase.from('hobbies').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw error
+    return true
+  },
+
+  batchDelete: async (ids: number[]) => {
+    const { error } = await supabase.from('hobbies').update({ deleted_at: new Date().toISOString() }).in('id', ids)
+    if (error) throw error
+    return true
+  },
+
+  listTrash: async (): Promise<Hobby[]> => {
+    const { data, error } = await supabase.from('hobbies').select('*').not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
+    if (error) throw error
+    return (data || []).map((h: any) => ({ ...h, tags: normalizeTags(h.tags) }))
+  },
+
+  restore: async (id: number) => {
+    const { error } = await supabase.from('hobbies').update({ deleted_at: null }).eq('id', id)
+    if (error) throw error
+    return true
+  },
+
+  permanentlyDelete: async (id: number) => {
     const { data: hobby } = await supabase.from('hobbies').select('cover_url').eq('id', id).single()
-    
     const { error } = await supabase.from('hobbies').delete().eq('id', id)
     if (error) throw error
-    
     if (hobby?.cover_url) {
       deleteFileByUrl(hobby.cover_url)
     }
     return true
   },
 
-  batchDelete: async (ids: number[]) => {
+  batchPermanentlyDelete: async (ids: number[]) => {
     const { data: hobbies } = await supabase.from('hobbies').select('cover_url').in('id', ids)
-    
     const { error } = await supabase.from('hobbies').delete().in('id', ids)
     if (error) throw error
-    
     if (hobbies) {
       const urls = hobbies.map(h => h.cover_url).filter(Boolean)
       urls.forEach(url => deleteFileByUrl(url))

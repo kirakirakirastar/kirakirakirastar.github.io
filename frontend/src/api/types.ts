@@ -51,6 +51,7 @@ export interface Hobby {
   created_at: string
   updated_at: string
   is_private: boolean
+  deleted_at?: string
 }
 
 export interface Todo {

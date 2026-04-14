@@ -35,9 +35,9 @@
     </div>
 
     <!-- Tabs -->
-    <div class="flex p-1 bg-slate-100 dark:bg-slate-800/50 rounded-2xl mb-8 max-w-xs transition-all duration-500">
+    <div class="flex p-1 bg-slate-100 dark:bg-slate-800/50 rounded-2xl mb-8 max-w-sm transition-all duration-500">
       <button 
-        v-for="tab in (['notes', 'journals'] as const)"
+        v-for="tab in (['notes', 'journals', 'hobbies'] as const)"
         :key="tab"
         @click="activeTab = tab"
         class="flex-1 py-2 text-sm font-bold rounded-xl transition-all duration-300"
@@ -45,7 +45,7 @@
           ? 'bg-white dark:bg-slate-700 shadow-lg text-primary dark:text-white' 
           : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'"
       >
-        {{ tab === 'notes' ? '笔记' : '日志' }}
+        {{ tab === 'notes' ? '笔记' : tab === 'journals' ? '日志' : '爱好' }}
       </button>
     </div>
 
@@ -108,35 +108,41 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { supabaseNotesApi, supabaseJournalsApi } from '@/api/supabaseData'
+import { supabaseNotesApi, supabaseJournalsApi, supabaseHobbiesApi } from '@/api/supabaseData'
 import { useUiStore } from '@/stores/ui'
 import dayjs from 'dayjs'
 
 const uiStore = useUiStore()
-const activeTab = ref<'notes' | 'journals'>('notes')
+const activeTab = ref<'notes' | 'journals' | 'hobbies'>('notes')
 const loading = ref(false)
 
 const trashedNotes = ref<any[]>([])
 const trashedJournals = ref<any[]>([])
+const trashedHobbies = ref<any[]>([])
 
 const hasItems = computed(() => {
   if (activeTab.value === 'notes') return trashedNotes.value.length > 0
-  return trashedJournals.value.length > 0
+  if (activeTab.value === 'journals') return trashedJournals.value.length > 0
+  return trashedHobbies.value.length > 0
 })
 
 const currentItems = computed(() => {
-  return activeTab.value === 'notes' ? trashedNotes.value : trashedJournals.value
+  if (activeTab.value === 'notes') return trashedNotes.value
+  if (activeTab.value === 'journals') return trashedJournals.value
+  return trashedHobbies.value
 })
 
 const loadAll = async () => {
   loading.value = true
   try {
-    const [notes, journals] = await Promise.all([
+    const [notes, journals, hobbies] = await Promise.all([
       supabaseNotesApi.listTrash(),
-      supabaseJournalsApi.listTrash()
+      supabaseJournalsApi.listTrash(),
+      supabaseHobbiesApi.listTrash()
     ])
     trashedNotes.value = notes
     trashedJournals.value = journals
+    trashedHobbies.value = hobbies
   } catch (err) {
     console.error('Failed to load trash:', err)
     uiStore.addToast('无法加载回收站内容', 'error')
@@ -150,9 +156,12 @@ const restoreItem = async (id: number) => {
     if (activeTab.value === 'notes') {
       await supabaseNotesApi.restore(id)
       trashedNotes.value = trashedNotes.value.filter(n => n.id !== id)
-    } else {
+    } else if (activeTab.value === 'journals') {
       await supabaseJournalsApi.restore(id)
       trashedJournals.value = trashedJournals.value.filter(j => j.id !== id)
+    } else {
+      await supabaseHobbiesApi.restore(id)
+      trashedHobbies.value = trashedHobbies.value.filter(h => h.id !== id)
     }
     uiStore.addToast('已成功还原', 'success')
   } catch (err) {
@@ -161,15 +170,18 @@ const restoreItem = async (id: number) => {
 }
 
 const confirmPurge = async (id: number) => {
-  if (!confirm('确定要永久销毁此条目吗？关联的云端图片也将被同步清理，此操作不可撤销！')) return
+  if (!confirm('确定要永久销毁此条目吗？关联的云端资源也将被同步清理，此操作不可撤销！')) return
   
   try {
     if (activeTab.value === 'notes') {
       await supabaseNotesApi.permanentlyDelete(id)
       trashedNotes.value = trashedNotes.value.filter(n => n.id !== id)
-    } else {
+    } else if (activeTab.value === 'journals') {
       await supabaseJournalsApi.permanentlyDelete(id)
       trashedJournals.value = trashedJournals.value.filter(j => j.id !== id)
+    } else {
+      await supabaseHobbiesApi.permanentlyDelete(id)
+      trashedHobbies.value = trashedHobbies.value.filter(h => h.id !== id)
     }
     uiStore.addToast('已永久销毁', 'success')
   } catch (err) {
@@ -178,16 +190,20 @@ const confirmPurge = async (id: number) => {
 }
 
 const confirmEmptyTrash = async () => {
-  if (!confirm(`确定要清空所有已删除的${activeTab.value === 'notes' ? '笔记' : '日志'}吗？此操作将永久抹除所有数据及关联图片。`)) return
+  const typeName = activeTab.value === 'notes' ? '笔记' : activeTab.value === 'journals' ? '日志' : '爱好'
+  if (!confirm(`确定要清空所有已删除的${typeName}吗？此操作将永久抹除所有数据及关联图片。`)) return
   
   try {
     const ids = currentItems.value.map(i => i.id)
     if (activeTab.value === 'notes') {
       await supabaseNotesApi.batchPermanentlyDelete(ids)
       trashedNotes.value = []
-    } else {
+    } else if (activeTab.value === 'journals') {
       await supabaseJournalsApi.batchPermanentlyDelete(ids)
       trashedJournals.value = []
+    } else {
+      await supabaseHobbiesApi.batchPermanentlyDelete(ids)
+      trashedHobbies.value = []
     }
     uiStore.addToast('回收站已清空', 'success')
   } catch (err) {
