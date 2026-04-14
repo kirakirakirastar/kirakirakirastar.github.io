@@ -127,6 +127,7 @@
         </div>
       </div>
     </div>
+    </div>
 
     <!-- Batch Actions -->
     <BatchActionBar 
