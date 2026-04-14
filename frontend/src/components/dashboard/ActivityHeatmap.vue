@@ -102,8 +102,9 @@
                   <div v-if="day.count.total > 0" class="space-y-3">
                     <div v-if="day.count.notes" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#6366f1]" style="background: #6366f1"></div>学习笔记</span> <span class="font-black">{{ day.count.notes }}</span></div>
                     <div v-if="day.count.journals" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#a855f7]" style="background: #a855f7"></div>个志日志</span> <span class="font-black">{{ day.count.journals }}</span></div>
+                    <div v-if="day.count.checkins" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#06b6d4]" style="background: #06b6d4"></div>每日打卡</span> <span class="font-black">{{ day.count.checkins }}</span></div>
                     <div v-if="day.count.todos" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#10b981]" style="background: #10b981"></div>任务巡航</span> <span class="font-black">{{ day.count.todos }}</span></div>
-                    <div v-if="day.count.hobbies" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#f59e0b]" style="background: #f59e0b"></div>生活爱好</span> <span class="font-black">{{ day.count.hobbies }}</span></div>
+                    <div v-if="day.count.hobbies" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#3b82f6]" style="background: #3b82f6"></div>生活爱好</span> <span class="font-black">{{ day.count.hobbies }}</span></div>
                   </div>
                   <div v-else class="text-slate-500 italic py-1.5 text-center font-bold text-[12px] tracking-widest">CALM DAY</div>
 
@@ -144,6 +145,7 @@ interface DayCount {
   journals: number;
   todos: number;
   hobbies: number;
+  checkins: number; // Added
   total: number;
 }
 
@@ -165,6 +167,7 @@ const categories = [
   { id: 'all', name: '全域', color: '#f59e0b', icon: IconActivity },
   { id: 'notes', name: '学习笔记', color: '#6366f1', icon: IconNotes },
   { id: 'journals', name: '个人日志', color: '#a855f7', icon: IconJournals },
+  { id: 'checkins', name: '每日打卡', color: '#06b6d4', icon: IconActivity }, // Added
   { id: 'todos', name: '任务巡航', color: '#10b981', icon: IconTodos },
   { id: 'hobbies', name: '爱好条目', color: '#3b82f6', icon: IconHobbies }
 ]
