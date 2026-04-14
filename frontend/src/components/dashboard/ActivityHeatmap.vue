@@ -252,11 +252,11 @@ const heatmapData = computed(() => {
 
     currentWeek.push({
       date: dateStr,
-      monthKey: current.format('YYYY-M'), // Match the label logic month format
+      dateDisplay: current.format('YYYY年MM月DD日'),
       isMonthStart,
       isYearStart,
       monthLabel,
-      monthKey: isMonthStart ? current.format('YYYY-M') : current.format('YYYY-M'), // Ensure every day has a consistent key
+      monthKey: current.format('YYYY-M'), // Match the label logic month format
       count: data
     })
     
