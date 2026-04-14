@@ -10,6 +10,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      // Handle Vite asset loading errors (common on GitHub Pages during redeployments)
+      window.addEventListener('error', (e) => {
+        const target = e.target;
+        if (target && (target.tagName === 'LINK' || target.tagName === 'SCRIPT')) {
+          const url = target.src || target.href;
+          if (url && url.includes('/assets/')) {
+            console.warn('Asset load failed, attempting page reload...', url);
+            window.location.reload();
+          }
+        }
+      }, true);
+    </script>
   </head>
   <body class="text-gray-900 dark:text-gray-100">
     <div id="app"></div>
