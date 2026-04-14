@@ -475,24 +475,59 @@ export const supabaseDashboardApi = {
     weekStart.setHours(0, 0, 0, 0)
     const weekStartStr = weekStart.toISOString()
 
+    // Check auth for privacy filtering
+    const { data: { user } } = await supabase.auth.getUser()
+    const isOwner = !!user
+
     const fetchPromises = [
       supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(5),
       supabase.from('journals').select('*').order('created_at', { ascending: false }).limit(5),
       supabase.from('hobbies').select('*').order('updated_at', { ascending: false }).limit(5),
     ]
 
+    // Apply privacy filter if not owner
+    if (!isOwner) {
+      fetchPromises[0] = fetchPromises[0].eq('is_private', false)
+      fetchPromises[1] = fetchPromises[1].eq('is_private', false)
+      fetchPromises[2] = fetchPromises[2].eq('is_private', false)
+    }
+
     // If stats weren't fetched via RPC, add individual count queries
     if (!stats) {
+      const notesQuery = supabase.from('notes').select('*', { count: 'exact', head: true })
+      const journalsQuery = supabase.from('journals').select('*', { count: 'exact', head: true })
+      const hobbiesQuery = supabase.from('hobbies').select('*', { count: 'exact', head: true })
+      
+      const todosTodayQuery = supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', todayStartStr)
+      const todosWeekQuery = supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', weekStartStr)
+      const todosMonthQuery = supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', monthStartStr)
+      
+      const notesMonthQuery = supabase.from('notes').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr)
+      const journalsMonthQuery = supabase.from('journals').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr)
+      const hobbiesMonthQuery = supabase.from('hobbies').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr)
+
+      if (!isOwner) {
+        notesQuery.eq('is_private', false)
+        journalsQuery.eq('is_private', false)
+        hobbiesQuery.eq('is_private', false)
+        todosTodayQuery.eq('is_private', false)
+        todosWeekQuery.eq('is_private', false)
+        todosMonthQuery.eq('is_private', false)
+        notesMonthQuery.eq('is_private', false)
+        journalsMonthQuery.eq('is_private', false)
+        hobbiesMonthQuery.eq('is_private', false)
+      }
+
       fetchPromises.push(
-        supabase.from('notes').select('*', { count: 'exact', head: true }),
-        supabase.from('journals').select('*', { count: 'exact', head: true }),
-        supabase.from('hobbies').select('*', { count: 'exact', head: true }),
-        supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', todayStartStr),
-        supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', weekStartStr),
-        supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', monthStartStr),
-        supabase.from('notes').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
-        supabase.from('journals').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
-        supabase.from('hobbies').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
+        notesQuery,
+        journalsQuery,
+        hobbiesQuery,
+        todosTodayQuery,
+        todosWeekQuery,
+        todosMonthQuery,
+        notesMonthQuery,
+        journalsMonthQuery,
+        hobbiesMonthQuery
       )
     }
 
@@ -648,14 +683,19 @@ export const supabaseTodosApi = {
     const payload = {
       status,
       completed: isCompleted,
-      completed_at: isCompleted ? new Date().toISOString() : null
+      completed_at: isCompleted ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString()
     }
     const { data, error } = await supabase.from('todos').update(payload).eq('id', id).select().single()
     if (error) throw error
     return data
   },
   update: async (id: string, updates: any) => {
-    const { data, error } = await supabase.from('todos').update(updates).eq('id', id).select().single()
+    const payload = {
+      ...updates,
+      updated_at: new Date().toISOString()
+    }
+    const { data, error } = await supabase.from('todos').update(payload).eq('id', id).select().single()
     if (error) throw error
     return data
   },

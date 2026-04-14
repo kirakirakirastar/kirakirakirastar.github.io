@@ -142,8 +142,15 @@
               loading="lazy"
               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-              <span class="text-white text-xs font-medium">最后更新: {{ formatDate(hobby.updated_at || hobby.created_at) }}</span>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+              <span class="text-white text-[10px] sm:text-xs font-medium flex items-center gap-1.5 mb-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                添加于: {{ formatDate(hobby.created_at) }}
+              </span>
+              <span v-if="hobby.updated_at && hobby.updated_at !== hobby.created_at" class="text-white text-[10px] sm:text-xs font-medium flex items-center gap-1.5 opacity-90">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                更新于: {{ formatDate(hobby.updated_at) }}
+              </span>
             </div>
           </div>
           <div v-else class="aspect-[3/4] bg-gray-50 dark:bg-theme-bg-dark/30 flex items-center justify-center">

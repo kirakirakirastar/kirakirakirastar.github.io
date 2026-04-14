@@ -47,6 +47,14 @@
               {{ todo.text }}
             </span>
           </span>
+          <div class="flex items-center gap-2 mt-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+            <span class="text-[9px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
+              创建: {{ formatDateSimple(todo.created_at) }}
+            </span>
+            <span v-if="todo.updated_at && todo.updated_at !== todo.created_at" class="text-[9px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
+              更新: {{ formatDateSimple(todo.updated_at) }}
+            </span>
+          </div>
         </template>
         <div v-else class="py-1">
            <input 
@@ -218,4 +226,6 @@ const getDateClass = (todo: any) => {
   if (diffDays === 1) return 'text-amber-500'
   return 'text-slate-500 dark:text-slate-400'
 }
+
+const formatDateSimple = (date: string) => dayjs(date).format('MM-DD HH:mm')
 </script>

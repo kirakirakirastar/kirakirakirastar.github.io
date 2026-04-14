@@ -216,7 +216,10 @@
               <svg v-if="note.is_private" class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
               {{ note.title }}
             </div>
-            <div class="text-xs text-slate-400 dark:text-slate-400 mt-2">{{ formatShortDate(note.created_at) }}</div>
+            <div class="text-xs text-slate-400 dark:text-slate-400 mt-2 flex flex-wrap gap-x-3 gap-y-1">
+              <span>{{ formatShortDate(note.created_at) }}</span>
+              <span v-if="note.updated_at && note.updated_at !== note.created_at" class="opacity-60">更于 {{ formatShortDate(note.updated_at) }}</span>
+            </div>
           </router-link>
           <div v-if="filteredNotes.length === 0" class="text-center py-8 text-slate-400 text-xs italic">该日期暂无笔记</div>
         </div>
@@ -248,7 +251,10 @@
               <svg v-if="journal.is_private" class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
               {{ journal.title }}
             </div>
-            <div class="text-xs text-slate-400 dark:text-slate-400 mt-2">{{ formatShortDate(journal.created_at) }}</div>
+            <div class="text-xs text-slate-400 dark:text-slate-400 mt-2 flex flex-wrap gap-x-3 gap-y-1">
+              <span>{{ formatShortDate(journal.created_at) }}</span>
+              <span v-if="journal.updated_at && journal.updated_at !== journal.created_at" class="opacity-60">修于 {{ formatShortDate(journal.updated_at) }}</span>
+            </div>
           </router-link>
           <div v-if="filteredJournals.length === 0" class="text-center py-8 text-slate-400 text-xs italic">该日期暂无日志</div>
         </div>
@@ -277,9 +283,15 @@
               <svg v-if="hobby.is_private" class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
               {{ hobby.title }}
             </div>
-            <div class="text-xs text-gray-400 mt-2 flex items-center gap-2">
-              <span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary dark:text-primary-light">{{ hobby.type }}</span>
-              <span>· {{ hobby.status }}</span>
+            <div class="text-xs text-gray-400 mt-2 flex flex-col gap-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary dark:text-primary-light">{{ typeLabel(hobby.type) }}</span>
+                <span>· {{ statusLabel(hobby.status) }}</span>
+              </div>
+              <div class="flex flex-wrap gap-x-3 gap-y-1 opacity-80">
+                <span>{{ formatShortDate(hobby.created_at) }}</span>
+                <span v-if="hobby.updated_at && hobby.updated_at !== hobby.created_at">更于 {{ formatShortDate(hobby.updated_at) }}</span>
+              </div>
             </div>
           </router-link>
           <div v-if="filteredHobbies.length === 0" class="text-center py-8 text-slate-400 text-xs italic">该日期暂无条目</div>
@@ -346,6 +358,25 @@ const filteredHobbies = computed(() => {
   if (!selectedDate.value) return latestHobbies.value
   return latestHobbies.value.filter(item => dayjs(item.created_at).format('YYYY-MM-DD') === selectedDate.value)
 })
+
+const statusLabel = (status: string) => {
+  const labels: Record<string, string> = {
+    want: '想看',
+    in_progress: '在看',
+    completed: '已完成',
+    paused: '搁置'
+  }
+  return labels[status] || status
+}
+
+const typeLabel = (type: string) => {
+  const labels: Record<string, string> = {
+    anime: '动漫',
+    book: '书籍',
+    game: '游戏'
+  }
+  return labels[type] || type
+}
 
 const loadDashboard = async () => {
   try {
