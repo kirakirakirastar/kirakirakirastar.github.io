@@ -47,7 +47,6 @@
               ></div>
             </div>
           </div>
-          </div>
           <div class="absolute bottom-5 right-7 opacity-40 group-hover:opacity-100 transition-opacity">
              <MiniHeatmap v-if="!loading" :activities="activities" category="notes" color="#6366f1" />
           </div>
@@ -78,7 +77,6 @@
               ></div>
             </div>
           </div>
-          </div>
           <div class="absolute bottom-5 right-7 opacity-40 group-hover:opacity-100 transition-opacity">
              <MiniHeatmap v-if="!loading" :activities="activities" category="journals" color="#a855f7" />
           </div>
@@ -108,7 +106,6 @@
                 :style="getStreakStyle(i, 'blue')"
               ></div>
             </div>
-          </div>
           </div>
           <div class="absolute bottom-5 right-7 opacity-40 group-hover:opacity-100 transition-opacity">
              <MiniHeatmap v-if="!loading" :activities="activities" category="hobbies" color="#3b82f6" />
@@ -141,7 +138,6 @@
             <div class="flex flex-col">
               <span class="text-[9px] text-slate-400 uppercase font-black">M: {{ loading ? '...' : stats.completed_todos_month }}</span>
             </div>
-          </div>
           </div>
           <div class="absolute bottom-5 right-7 opacity-40 group-hover:opacity-100 transition-opacity">
              <MiniHeatmap v-if="!loading" :activities="activities" category="todos" color="#10b981" />
