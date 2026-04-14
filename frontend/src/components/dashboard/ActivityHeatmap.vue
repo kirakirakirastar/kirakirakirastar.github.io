@@ -207,6 +207,7 @@ const heatmapData = computed(() => {
   let current = startDate
   let lastMonth = -1
   let lastYear = startDate.year()
+  let weeksSinceLastLabel = 10 // Start with enough buffer
 
   while (current.isBefore(endDate) || current.isSame(endDate, 'day')) {
     const dateStr = current.format('YYYY-MM-DD')
@@ -216,13 +217,17 @@ const heatmapData = computed(() => {
     const currentMonth = current.month()
     const currentYear = current.year()
     
+    if (isFirstRow) {
+      weeksSinceLastLabel++
+    }
+    
     let isMonthStart = false
     let isYearStart = false
     let monthLabel = ''
 
     // Only show month label if it's the first time we see this month in the first row
-    // AND it's not too close to the edge or previous label
-    if (isFirstRow && currentMonth !== lastMonth) {
+    // AND it's not too close to the previous label (min 2 weeks gap)
+    if (isFirstRow && currentMonth !== lastMonth && weeksSinceLastLabel >= 2) {
       isMonthStart = true
       if (currentYear !== lastYear) {
         isYearStart = true
@@ -231,6 +236,7 @@ const heatmapData = computed(() => {
       // Formatting change to fix overlap: shorter labels if year is the same
       monthLabel = isYearStart ? current.format('YYYY年M月') : current.format('M月')
       lastMonth = currentMonth
+      weeksSinceLastLabel = 0
     }
 
     currentWeek.push({

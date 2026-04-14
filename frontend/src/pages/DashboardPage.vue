@@ -33,16 +33,6 @@
           <div class="flex items-center justify-between mb-2">
             <Skeleton v-if="loading" width="60px" height="40px" />
             <div v-else class="text-4xl font-black text-slate-800 dark:text-white tracking-tight">{{ stats.notes_count }}</div>
-            
-            <div class="flex gap-1">
-              <div 
-                v-for="i in 7" 
-                :key="i" 
-                class="w-1.5 h-1.5 rounded-full transition-all duration-500" 
-                :class="getStreakClass(i, 'indigo')"
-                :style="getStreakStyle(i, 'indigo')"
-              ></div>
-            </div>
           </div>
           <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
             <span>学习笔记</span>
@@ -66,16 +56,6 @@
           <div class="flex items-center justify-between mb-2">
             <Skeleton v-if="loading" width="60px" height="40px" />
             <div v-else class="text-4xl font-black text-slate-800 dark:text-white tracking-tight">{{ stats.journals_count }}</div>
-            
-            <div class="flex gap-1">
-              <div 
-                v-for="i in 7" 
-                :key="i" 
-                class="w-1.5 h-1.5 rounded-full transition-all duration-500" 
-                :class="getStreakClass(i, 'purple')"
-                :style="getStreakStyle(i, 'purple')"
-              ></div>
-            </div>
           </div>
           <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
             <span>个人日志</span>
@@ -99,16 +79,6 @@
           <div class="flex items-center justify-between mb-2">
             <Skeleton v-if="loading" width="60px" height="40px" />
             <div v-else class="text-4xl font-black text-slate-800 dark:text-white tracking-tight">{{ stats.hobbies_count }}</div>
-            
-            <div class="flex gap-1">
-              <div 
-                v-for="i in 7" 
-                :key="i" 
-                class="w-1.5 h-1.5 rounded-full transition-all duration-500" 
-                :class="getStreakClass(i, 'blue')"
-                :style="getStreakStyle(i, 'blue')"
-              ></div>
-            </div>
           </div>
           <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
             <span>爱好条目</span>
@@ -182,16 +152,6 @@
               <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-1">
                 <span>全域概览</span>
               </div>
-            </div>
-            
-            <div class="flex gap-1 self-start pt-2">
-              <div 
-                v-for="i in 7" 
-                :key="i" 
-                class="w-1.5 h-1.5 rounded-full transition-all duration-500" 
-                :class="getStreakClass(i, 'amber')"
-                :style="getStreakStyle(i, 'amber')"
-              ></div>
             </div>
           </div>
 
@@ -434,6 +394,12 @@ const getStreakStyle = (index: number, colorName: string) => {
   }
   return {}
 }
+    let current = startDate
+  let lastMonth = -1
+  let lastYear = startDate.year()
+  let weeksSinceLastLabel = 10 // Start with a safe buffer
+
+
 
 onMounted(() => {
   loadDashboard()
