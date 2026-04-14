@@ -2,7 +2,7 @@
   <div class="activity-heatmap bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-6 sm:p-10 border border-white/60 dark:border-slate-700/60 shadow-xl transition-all duration-500 overflow-visible relative">
     
     <!-- Header: Full Width -->
-    <div class="flex flex-wrap items-center justify-between gap-6 mb-12 w-full px-2">
+    <div class="flex flex-wrap items-center justify-between gap-6 mb-8 w-full px-2">
       <div class="flex items-center gap-4">
         <div class="p-3.5 rounded-2xl bg-primary/15 text-primary shadow-inner ring-1 ring-white/20">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,12 +15,34 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-4">
+      <!-- Combined Controls -->
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- Year Selector -->
+        <div class="flex p-1.5 bg-slate-100/60 dark:bg-slate-900/40 rounded-[1.25rem] border border-slate-200/50 dark:border-slate-700/50">
+          <button 
+            @click="selectedYear = 'rolling'"
+            class="px-4 py-2 rounded-xl text-[11px] font-black transition-all duration-300"
+            :class="selectedYear === 'rolling' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
+          >
+            最近一年
+          </button>
+          <button 
+            v-for="year in availableYears" 
+            :key="year"
+            @click="selectedYear = year"
+            class="px-4 py-2 rounded-xl text-[11px] font-black transition-all duration-300"
+            :class="selectedYear === year ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
+          >
+            {{ year }}
+          </button>
+        </div>
+
+        <!-- Mode Switcher -->
         <div class="flex p-1.5 bg-slate-100/60 dark:bg-slate-900/40 rounded-[1.25rem] border border-slate-200/50 dark:border-slate-700/50 shadow-inner">
           <button 
             v-for="cat in categories" 
             :key="cat.id"
-            @click="activeCategory = cat.id"
+            @click="activeCategory = cat.id as any"
             class="px-5 py-2.5 rounded-xl text-[12px] font-black transition-all duration-500 flex items-center gap-2.5 whitespace-nowrap"
             :class="activeCategory === cat.id ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xl ring-1 ring-black/5 scale-105' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
           >
@@ -46,7 +68,7 @@
       :class="isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[800px] opacity-100 overflow-visible'"
     >
       <div class="flex w-full items-start px-2">
-        <!-- Y-Axis: Day Labels (Synchronized with Cell Height/Gap) -->
+        <!-- Y-Axis: Day Labels -->
         <div class="flex flex-col day-labels-col shrink-0 text-right pr-5 select-none pt-12">
           <span v-for="day in ['一', '二', '三', '四', '五', '六', '日']" :key="day" class="day-label font-black text-slate-400/50 dark:text-slate-500/40 uppercase tracking-tighter">
             {{ day }}
@@ -58,10 +80,10 @@
           <div class="flex heatmap-grid w-max relative">
             <div v-for="(week, weekIndex) in heatmapData" :key="weekIndex" class="flex flex-col heatmap-week relative">
               
-              <!-- X-Axis: Month Labels (with Year Transition Indicator) -->
+              <!-- X-Axis: Month Labels -->
               <div 
                 v-if="week[0].isMonthStart" 
-                class="absolute -top-10 left-0 text-[10px] sm:text-[11px] font-black uppercase tracking-widest whitespace-nowrap px-3 py-1.5 rounded-xl border transition-all duration-500 shadow-sm"
+                class="absolute -top-9 left-0 text-[11px] font-black uppercase tracking-widest whitespace-nowrap px-3 py-1.5 rounded-xl border transition-all duration-500 shadow-sm"
                 :class="week[0].isYearStart 
                   ? 'bg-primary/20 text-primary border-primary/40 scale-105 z-10 shadow-primary/20 ring-2 ring-primary/10' 
                   : 'bg-slate-50/50 dark:bg-slate-700/20 text-slate-500 dark:text-slate-400 border-slate-200/30 dark:border-slate-600/20'"
@@ -77,7 +99,7 @@
                 :class="day.count[activeCategory === 'all' ? 'total' : activeCategory] === 0 ? 'bg-slate-100/80 dark:bg-slate-700/40 hover:bg-slate-200 dark:hover:bg-slate-600/60' : ''"
                 :style="getCellStyle(day)"
               >
-                <!-- Smart Tooltip: Positions based on row AND column to prevent ALL clipping -->
+                <!-- Smart Tooltip -->
                 <div 
                   class="absolute w-52 px-5 py-4.5 bg-slate-900/98 backdrop-blur-3xl text-white text-[11px] rounded-[1.5rem] opacity-0 scale-90 invisible group-hover/cell:opacity-100 group-hover/cell:scale-100 group-hover/cell:visible transition-all duration-300 pointer-events-none z-[100] shadow-[0_25px_60px_rgba(0,0,0,0.5)] ring-1 ring-white/10"
                   :class="[
@@ -138,6 +160,7 @@ const props = defineProps<{
 
 const isCollapsed = ref(false)
 const activeCategory = ref<keyof DayCount | 'all'>('all')
+const selectedYear = ref<'rolling' | number>('rolling')
 
 const categories = [
   { id: 'all', name: '全向巡航', color: '' },
@@ -147,12 +170,29 @@ const categories = [
   { id: 'hobbies', name: '爱好', color: '#f59e0b' }
 ]
 
+// Extract historical years from activity data
+const availableYears = computed(() => {
+  const years = new Set<number>()
+  Object.keys(props.activities).forEach(date => {
+    years.add(dayjs(date).year())
+  })
+  return Array.from(years).sort((a, b) => b - a)
+})
+
 const heatmapData = computed(() => {
   const weeks = []
   let currentWeek = []
   
-  const endDate = dayjs()
-  const startDate = dayjs().subtract(52, 'week').startOf('week')
+  let startDate, endDate
+  
+  if (selectedYear.value === 'rolling') {
+    endDate = dayjs()
+    startDate = dayjs().subtract(52, 'week').startOf('week')
+  } else {
+    // Fixed calendar year: Jan 1 to Dec 31
+    startDate = dayjs(`${selectedYear.value}-01-01`).startOf('week')
+    endDate = dayjs(`${selectedYear.value}-12-31`)
+  }
   
   let current = startDate
   let lastMonth = -1

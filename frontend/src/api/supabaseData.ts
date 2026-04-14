@@ -332,22 +332,16 @@ export const supabaseDashboardApi = {
     }
   },
   activities: async () => {
-    const now = new Date()
-    const oneYearAgo = new Date(now)
-    oneYearAgo.setDate(now.getDate() - 365)
-    oneYearAgo.setHours(0, 0, 0, 0)
-    const startDateStr = oneYearAgo.toISOString()
-
     const [
       { data: notes },
       { data: journals },
       { data: hobbies },
       { data: todos },
     ] = await Promise.all([
-      supabase.from('notes').select('created_at').gte('created_at', startDateStr),
-      supabase.from('journals').select('created_at').gte('created_at', startDateStr),
-      supabase.from('hobbies').select('updated_at').gte('updated_at', startDateStr),
-      supabase.from('todos').select('completed_at').eq('status', 'completed').gte('completed_at', startDateStr),
+      supabase.from('notes').select('created_at'),
+      supabase.from('journals').select('created_at'),
+      supabase.from('hobbies').select('updated_at'),
+      supabase.from('todos').select('completed_at').eq('status', 'completed'),
     ])
 
     const activityMap: Record<string, { notes: number, journals: number, todos: number, hobbies: number, total: number }> = {}
