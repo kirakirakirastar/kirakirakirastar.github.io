@@ -78,6 +78,7 @@ import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import { journalsApi } from '@/api/journals'
 import { useAuthStore } from '@/stores/auth'
+import { calculateReadingTime } from '@/utils/text'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -88,9 +89,7 @@ const journal = ref<any>(null)
 const readingTime = computed(() => {
   if (!journal.value?.content_html) return 0
   const text = journal.value.content_html.replace(/<[^>]*>/g, '') // Strip HTML
-  const words = text.trim().split(/\s+/).length
-  const minutes = Math.ceil(words / 200)
-  return minutes > 0 ? minutes : 1
+  return calculateReadingTime(text)
 })
 
 const showScrollTop = ref(false)

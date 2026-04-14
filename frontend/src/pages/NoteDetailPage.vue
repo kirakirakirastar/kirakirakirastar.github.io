@@ -80,6 +80,7 @@ import { renderMarkdown } from '@/utils/markdown'
 import { notesApi } from '@/api/notes'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
+import { calculateReadingTime } from '@/utils/text'
 
 const uiStore = useUiStore()
 const authStore = useAuthStore()
@@ -94,10 +95,7 @@ const renderedContent = computed(() => {
 })
 
 const readingTime = computed(() => {
-  if (!note.value?.content_md) return 0
-  const words = note.value.content_md.trim().split(/\s+/).length
-  const minutes = Math.ceil(words / 200)
-  return minutes > 0 ? minutes : 1
+  return calculateReadingTime(note.value?.content_md)
 })
 
 const showScrollTop = ref(false)
