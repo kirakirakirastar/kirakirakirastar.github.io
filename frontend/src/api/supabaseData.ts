@@ -683,8 +683,7 @@ export const supabaseTodosApi = {
     const payload = {
       status,
       completed: isCompleted,
-      completed_at: isCompleted ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString()
+      completed_at: isCompleted ? new Date().toISOString() : null
     }
     const { data, error } = await supabase.from('todos').update(payload).eq('id', id).select().single()
     if (error) throw error
@@ -692,8 +691,7 @@ export const supabaseTodosApi = {
   },
   update: async (id: string, updates: any) => {
     const payload = {
-      ...updates,
-      updated_at: new Date().toISOString()
+      ...updates
     }
     const { data, error } = await supabase.from('todos').update(payload).eq('id', id).select().single()
     if (error) throw error
