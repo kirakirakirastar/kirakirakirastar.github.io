@@ -64,7 +64,7 @@
         </div>
 
         <!-- Heatmap Grid -->
-        <div class="flex-1 overflow-x-auto custom-scrollbar pt-12 pb-20">
+        <div ref="scrollContainer" class="flex-1 overflow-x-auto custom-scrollbar pt-12 pb-20 scroll-smooth">
           <div class="flex heatmap-grid w-max relative">
             <div v-for="(week, weekIndex) in heatmapData" :key="weekIndex" class="flex flex-col heatmap-week relative">
               
@@ -84,6 +84,7 @@
                 v-for="(day, dayIndex) in week"
                 :key="day.date"
                 @click="$emit('day-click', day.date === selectedDate ? null : day.date)"
+                :id="day.date === dayjs().format('YYYY-MM-DD') ? 'today-cell' : ''"
                 class="heatmap-cell rounded-[4px] sm:rounded-[5px] md:rounded-[6.5px] relative group/cell transition-all duration-500 hover:z-50 cursor-pointer"
                 :class="[
                   day.count[props.activeCategory === 'all' ? 'total' : props.activeCategory] === 0 ? 'bg-slate-100/80 dark:bg-slate-700/40 hover:bg-slate-200 dark:hover:bg-slate-600/60' : '',
@@ -134,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineComponent, h } from 'vue'
+import { ref, computed, defineComponent, h, onMounted, nextTick, watch } from 'vue'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 
@@ -202,7 +203,7 @@ const heatmapData = computed(() => {
   
   if (selectedYear.value === 'rolling') {
     endDate = dayjs().add(6, 'month') // Extend 6 months
-    startDate = dayjs().subtract(52, 'week').startOf('week')
+    startDate = dayjs().subtract(1, 'year').startOf('week') // Use 1 full year for past
   } else {
     // Fixed calendar year: Jan 1 to Dec 31
     startDate = dayjs(`${selectedYear.value}-01-01`).startOf('week')
@@ -265,6 +266,27 @@ const heatmapData = computed(() => {
 })
 
 const hoveredRow = ref<number | null>(null)
+const scrollContainer = ref<HTMLElement | null>(null)
+
+const scrollToToday = () => {
+  nextTick(() => {
+    const todayEl = document.getElementById('today-cell')
+    if (todayEl && scrollContainer.value) {
+      const container = scrollContainer.value
+      // Center the element
+      const targetScroll = todayEl.offsetLeft - (container.clientWidth / 2) + (todayEl.clientWidth / 2)
+      container.scrollLeft = targetScroll
+    }
+  })
+}
+
+onMounted(() => {
+  scrollToToday()
+})
+
+watch([heatmapData, selectedYear], () => {
+  scrollToToday()
+})
 
 const getCellStyle = (day: any) => {
   const isFuture = dayjs(day.date).isAfter(dayjs(), 'day')
