@@ -62,11 +62,13 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
-import MarkdownIt from 'markdown-it'
+import { renderMarkdown } from '@/utils/markdown'
 import { notesApi } from '@/api/notes'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
+import { useUiStore } from '@/stores/ui'
 
+const uiStore = useUiStore()
 const route = useRoute()
 const router = useRouter()
 const isEdit = computed(() => Boolean(route.params.id))
@@ -95,8 +97,6 @@ const editor = useEditor({
   },
 })
 
-// Configure Markdown-It for loading existing markdown files safely, retaining HTML
-const md = new MarkdownIt({ html: true })
 
 const loadNote = async () => {
   if (!isEdit.value) return
@@ -107,7 +107,7 @@ const loadNote = async () => {
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
 
   // Render raw markdown content to HTML so TipTap can process it safely
-  const htmlContent = md.render(data.content_md || '')
+  const htmlContent = renderMarkdown(data.content_md || '')
   editor.value?.commands.setContent(htmlContent)
 }
 
@@ -121,7 +121,7 @@ const handleImageUpload = async (event: Event) => {
     editor.value?.chain().focus().setImage({ src: resolveAssetUrl(result.url), alt: result.original_name }).run()
   } catch (error) {
     console.error('上传图片失败:', error)
-    alert('图片上传失败')
+    uiStore.addToast('上传图片失败', 'error')
   }
 }
 
@@ -134,14 +134,16 @@ const saveNote = async () => {
     }
     if (isEdit.value) {
       await notesApi.update(Number(route.params.id), payload)
+      uiStore.addToast('保存成功', 'success')
       router.push(`/notes/${route.params.id}`)
     } else {
       const created = await notesApi.create(payload)
+      uiStore.addToast('保存成功', 'success')
       router.push(`/notes/${created.id}`)
     }
   } catch (error) {
     console.error('保存笔记失败:', error)
-    alert('保存失败，请稍后重试')
+    uiStore.addToast('保存失败', 'error', '请稍后重试')
   } finally {
     saving.value = false
   }

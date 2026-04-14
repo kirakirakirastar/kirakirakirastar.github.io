@@ -27,8 +27,8 @@
               编辑
             </router-link>
             <button
-              @click="deleteNote"
-              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              @click="handleDelete"
+              class="px-4 py-2 bg-red-600/10 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-all duration-300"
             >
               删除
             </button>
@@ -48,34 +48,21 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
-import MarkdownIt from 'markdown-it'
-import hljs from 'highlight.js'
+import { renderMarkdown } from '@/utils/markdown'
 import { notesApi } from '@/api/notes'
 import { useAuthStore } from '@/stores/auth'
+import { useUiStore } from '@/stores/ui'
 
+const uiStore = useUiStore()
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
 const note = ref<any>(null)
 
-const md: MarkdownIt = new MarkdownIt({
-  html: true,
-  highlight: function (str, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        return '<pre class="hljs"><code>' +
-               hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
-               '</code></pre>'
-      } catch (_) {}
-    }
-    return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>'
-  }
-})
-
 const renderedContent = computed(() => {
   if (!note.value) return ''
-  return md.render(note.value.content_md)
+  return renderMarkdown(note.value.content_md)
 })
 
 const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm')
@@ -85,19 +72,22 @@ const loadNote = async () => {
     note.value = await notesApi.get(Number(route.params.id))
   } catch (error) {
     console.error('加载笔记失败:', error)
+    uiStore.addToast('加载失败', 'error', '无法获取笔记详情')
   } finally {
     loading.value = false
   }
 }
 
-const deleteNote = async () => {
+const handleDelete = async () => {
   if (!confirm('确定要删除这篇笔记吗？')) return
 
   try {
     await notesApi.delete(Number(route.params.id))
+    uiStore.addToast('删除成功', 'success')
     router.push('/notes')
   } catch (error) {
     console.error('删除笔记失败:', error)
+    uiStore.addToast('删除失败', 'error', '请稍后重试')
   }
 }
 

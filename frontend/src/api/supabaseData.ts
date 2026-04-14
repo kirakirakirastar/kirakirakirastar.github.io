@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import type { Note, Journal, Hobby, Todo } from './types'
 
 const includesKeyword = (values: Array<string | undefined>, keyword?: string) => {
   if (!keyword) return true
@@ -49,7 +50,7 @@ const normalizeTags = (tagsRaw: any) => {
 }
 
 export const supabaseNotesApi = {
-  list: async (params?: any) => {
+  list: async (params?: any): Promise<Note[]> => {
     let query = supabase.from('notes').select('*')
     
     if (params?.keyword) {
@@ -78,7 +79,7 @@ export const supabaseNotesApi = {
     return (data || []).map((n: any) => ({ ...n, tags: normalizeTags(n.tags) }))
   },
 
-  create: async (data: any) => {
+  create: async (data: any): Promise<Note> => {
     const payload = {
       title: data.title,
       summary: data.summary || '',
@@ -90,13 +91,13 @@ export const supabaseNotesApi = {
     return { ...created, tags: normalizeTags(created.tags) }
   },
 
-  get: async (id: number) => {
+  get: async (id: number): Promise<Note> => {
     const { data, error } = await supabase.from('notes').select('*').eq('id', id).single()
     if (error) throw error
     return { ...data, tags: normalizeTags(data.tags) }
   },
 
-  update: async (id: number, data: any) => {
+  update: async (id: number, data: any): Promise<Note> => {
     const payload = {
       title: data.title,
       summary: data.summary || '',

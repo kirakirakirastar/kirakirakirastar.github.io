@@ -45,8 +45,21 @@
       </div>
     </div>
 
-    <!-- Notes List -->
-    <div v-if="loading" class="text-center py-12 text-gray-400 animate-pulse">加载中...</div>
+    <!-- Skeleton Loader -->
+    <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+      <div v-for="i in 10" :key="i" class="bg-white/50 dark:bg-slate-800/40 rounded-2xl p-6 border border-gray-100 dark:border-white/5 space-y-4">
+        <div class="flex justify-between items-center">
+          <Skeleton width="60%" height="24px" />
+          <Skeleton width="20%" height="16px" />
+        </div>
+        <Skeleton height="16px" />
+        <Skeleton height="16px" width="80%" />
+        <div class="flex gap-2 pt-2">
+          <Skeleton width="40px" height="20px" shape="rect" />
+          <Skeleton width="50px" height="20px" shape="rect" />
+        </div>
+      </div>
+    </div>
     <div v-else-if="notes.length === 0">
       <EmptyState title="暂无笔记" message="点击上方新建按钮创建" />
     </div>
@@ -85,6 +98,7 @@ import dayjs from 'dayjs'
 import { notesApi } from '@/api/notes'
 import { useAuthStore } from '@/stores/auth'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 
 const authStore = useAuthStore()
 const loading = ref(true)

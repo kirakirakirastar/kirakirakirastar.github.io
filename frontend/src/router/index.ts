@@ -1,17 +1,17 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-import MainLayout from '@/layouts/MainLayout.vue'
-import DashboardPage from '@/pages/DashboardPage.vue'
-import NotesPage from '@/pages/NotesPage.vue'
-import NoteDetailPage from '@/pages/NoteDetailPage.vue'
-import NoteEditorPage from '@/pages/NoteEditorPage.vue'
-import JournalsPage from '@/pages/JournalsPage.vue'
-import JournalDetailPage from '@/pages/JournalDetailPage.vue'
-import JournalEditorPage from '@/pages/JournalEditorPage.vue'
-import HobbiesPage from '@/pages/HobbiesPage.vue'
-import HobbyEditorPage from '@/pages/HobbyEditorPage.vue'
-import LoginPage from '@/pages/LoginPage.vue'
-import AnnouncementsPage from '@/pages/AnnouncementsPage.vue'
+const MainLayout = () => import('@/layouts/MainLayout.vue')
+const DashboardPage = () => import('@/pages/DashboardPage.vue')
+const NotesPage = () => import('@/pages/NotesPage.vue')
+const NoteDetailPage = () => import('@/pages/NoteDetailPage.vue')
+const NoteEditorPage = () => import('@/pages/NoteEditorPage.vue')
+const JournalsPage = () => import('@/pages/JournalsPage.vue')
+const JournalDetailPage = () => import('@/pages/JournalDetailPage.vue')
+const JournalEditorPage = () => import('@/pages/JournalEditorPage.vue')
+const HobbiesPage = () => import('@/pages/HobbiesPage.vue')
+const HobbyEditorPage = () => import('@/pages/HobbyEditorPage.vue')
+const LoginPage = () => import('@/pages/LoginPage.vue')
+const AnnouncementsPage = () => import('@/pages/AnnouncementsPage.vue')
 import { useAuthStore } from '@/stores/auth'
 
 const routes = [
