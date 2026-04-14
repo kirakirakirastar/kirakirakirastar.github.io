@@ -87,6 +87,11 @@ export interface ActivityDay {
   checkins: number
   schedules: number
   total: number
+  note_list?: string[]
+  journal_list?: string[]
+  hobby_list?: string[]
+  todo_list?: string[]
+  schedule_list?: string[]
 }
 
 export interface Announcement {

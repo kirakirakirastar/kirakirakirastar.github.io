@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Note, Journal, Hobby, Todo, Folder, DashboardData, ActivityMap, Tag, Announcement } from './types'
+import type { Note, Journal, Hobby, Todo, Folder, DashboardData, ActivityMap, ActivityDay, Tag, Announcement } from './types'
 import dayjs from 'dayjs'
 
 const includesKeyword = (values: Array<string | undefined>, keyword?: string) => {
@@ -509,7 +509,12 @@ export const supabaseDashboardApi = {
             todos: Number(row.todo_count),
             checkins: 0, 
             schedules: Number(row.schedule_count),
-            total: Number(row.note_count) + Number(row.journal_count) + Number(row.hobby_count) + Number(row.todo_count) + Number(row.schedule_count)
+            total: Number(row.note_count) + Number(row.journal_count) + Number(row.hobby_count) + Number(row.todo_count) + Number(row.schedule_count),
+            note_list: row.note_titles || [],
+            journal_list: row.journal_titles || [],
+            hobby_list: row.hobby_titles || [],
+            todo_list: row.todo_titles || [],
+            schedule_list: row.schedule_titles || []
           }
         })
 
@@ -542,29 +547,37 @@ export const supabaseDashboardApi = {
       { data: checkin },
       { data: pendingTodos },
     ] = await Promise.all([
-      supabase.from('notes').select('created_at'),
-      supabase.from('journals').select('created_at'),
-      supabase.from('hobbies').select('updated_at'),
-      supabase.from('todos').select('completed_at').eq('status', 'completed'),
+      supabase.from('notes').select('created_at, title'),
+      supabase.from('journals').select('created_at, title'),
+      supabase.from('hobbies').select('updated_at, title'),
+      supabase.from('todos').select('completed_at, text').eq('status', 'completed'),
       supabase.from('checkins').select('*').maybeSingle(),
-      supabase.from('todos').select('due_date').eq('status', 'pending').not('due_date', 'is', null)
+      supabase.from('todos').select('due_date, text').eq('status', 'pending').not('due_date', 'is', null)
     ])
 
     const activityMap: ActivityMap = {}
-    const addActivity = (dateStr: string, type: keyof ActivityMap[string]) => {
+    const addActivity = (dateStr: string, type: keyof ActivityMap[string], title?: string) => {
       const date = dateStr.split('T')[0]
       if (!activityMap[date]) {
-        activityMap[date] = { notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, schedules: 0, total: 0 }
+        activityMap[date] = { 
+          notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, schedules: 0, total: 0,
+          note_list: [], journal_list: [], hobby_list: [], todo_list: [], schedule_list: []
+        }
       }
       (activityMap[date] as any)[type]++
       activityMap[date].total++
+      
+      const listKey = `${type}_list` as keyof ActivityDay
+      if (title && Array.isArray(activityMap[date][listKey])) {
+        (activityMap[date][listKey] as string[]).push(title)
+      }
     }
 
-    (notes || []).forEach(n => addActivity(n.created_at, 'notes'));
-    (journals || []).forEach(j => addActivity(j.created_at, 'journals'));
-    (hobbies || []).forEach(h => addActivity(h.updated_at, 'hobbies'));
-    (todos || []).forEach(t => addActivity(t.completed_at!, 'todos'));
-    (pendingTodos || []).forEach(t => addActivity(t.due_date!, 'schedules'));
+    (notes || []).forEach(n => addActivity(n.created_at, 'notes', n.title));
+    (journals || []).forEach(j => addActivity(j.created_at, 'journals', j.title));
+    (hobbies || []).forEach(h => addActivity(h.updated_at, 'hobbies', h.title));
+    (todos || []).forEach(t => addActivity(t.completed_at!, 'todos', t.text));
+    (pendingTodos || []).forEach(t => addActivity(t.due_date!, 'schedules', t.text));
 
     if (checkin && checkin.last_date && checkin.streak > 0) {
       const last = dayjs(checkin.last_date)

@@ -54,15 +54,52 @@
       <Transition name="tooltip-fade">
         <div 
           v-if="hoveredDayData"
-          class="absolute px-5 py-4.5 bg-slate-900/98 backdrop-blur-3xl text-white text-[11px] rounded-[1.5rem] pointer-events-none z-[100] shadow-[0_25px_60px_rgba(0,0,0,0.5)] ring-1 ring-white/10 w-52"
+          class="absolute px-5 py-4.5 bg-slate-900/98 backdrop-blur-3xl text-white text-[11px] rounded-[1.5rem] pointer-events-none z-[100] shadow-[0_25px_60px_rgba(0,0,0,0.5)] ring-1 ring-white/10 w-64"
           :style="tooltipStyle"
         >
           <div class="font-black border-b border-white/10 pb-3 mb-3.5 flex justify-between items-center text-white/90 tracking-wide text-[13px]">
             <span>{{ hoveredDayData.dateDisplay }}</span>
-            <span v-if="hoveredDayData.count.total > 0" class="px-3 py-1.5 rounded-xl bg-white/10 text-[12px] font-black">{{ hoveredDayData.count.total }}</span>
+            <span 
+              v-if="hoveredDayData.count.total > 0" 
+              class="px-3 py-1.5 rounded-xl text-[12px] font-black transition-colors duration-500"
+              :style="{ 
+                backgroundColor: props.activeCategory === 'all' ? 'rgba(255,255,255,0.1)' : `${currentCategoryInfo.color}30`,
+                color: props.activeCategory === 'all' ? 'white' : currentCategoryInfo.color 
+              }"
+            >
+              {{ props.activeCategory === 'all' ? hoveredDayData.count.total : hoveredDayData.count[props.activeCategory] }}
+            </span>
           </div>
           
-          <div v-if="hoveredDayData.count.total > 0" class="space-y-3">
+          <!-- Detailed Title List for Specific Categories -->
+          <div v-if="props.activeCategory !== 'all' && hoveredDayData.count.total > 0" class="mt-4 space-y-2.5 max-h-[300px] overflow-hidden">
+            <template v-if="hoveredDayData.count[props.activeCategory + '_list']">
+              <div 
+                v-for="(title, idx) in hoveredDayData.count[props.activeCategory + '_list'].slice(0, 10)" 
+                :key="idx"
+                class="flex items-start gap-3 text-[11px] leading-relaxed group/item"
+              >
+                <div class="mt-1 w-1.5 h-1.5 rounded-full shrink-0 transition-transform duration-300 group-hover/item:scale-125" :style="{ backgroundColor: currentCategoryInfo.color, boxShadow: `0 0 8px ${currentCategoryInfo.color}80` }"></div>
+                <span class="text-white/80 line-clamp-2">{{ title }}</span>
+              </div>
+              
+              <!-- Indicator for more items -->
+              <div 
+                v-if="hoveredDayData.count[props.activeCategory + '_list'].length > 10"
+                class="pt-2 flex items-center justify-center border-t border-white/5 mt-2"
+              >
+                <div class="px-2.5 py-1 rounded-lg bg-white/5 text-[9px] font-black uppercase tracking-widest text-white/40">
+                  + {{ hoveredDayData.count[props.activeCategory + '_list'].length - 10 }} More Items
+                </div>
+              </div>
+            </template>
+            <div v-else-if="hoveredDayData.count[props.activeCategory] === 0" class="text-slate-500 italic py-1 text-center font-bold text-[10px] uppercase tracking-widest">
+              No {{ currentCategoryInfo.name }}
+            </div>
+          </div>
+
+          <!-- Summary View for 'All' Category -->
+          <div v-if="props.activeCategory === 'all' && hoveredDayData.count.total > 0" class="space-y-3">
             <div v-if="hoveredDayData.count.notes" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#6366f1]" style="background: #6366f1"></div>学习笔记</span> <span class="font-black">{{ hoveredDayData.count.notes }}</span></div>
             <div v-if="hoveredDayData.count.journals" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#a855f7]" style="background: #a855f7"></div>个人日志</span> <span class="font-black">{{ hoveredDayData.count.journals }}</span></div>
             <div v-if="hoveredDayData.count.checkins" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#06b6d4]" style="background: #06b6d4"></div>每日打卡</span> <span class="font-black">{{ hoveredDayData.count.checkins }}</span></div>
@@ -70,7 +107,8 @@
             <div v-if="hoveredDayData.count.todos" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#10b981]" style="background: #10b981"></div>任务完成</span> <span class="font-black">{{ hoveredDayData.count.todos }}</span></div>
             <div v-if="hoveredDayData.count.hobbies" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#3b82f6]" style="background: #3b82f6"></div>生活爱好</span> <span class="font-black">{{ hoveredDayData.count.hobbies }}</span></div>
           </div>
-          <div v-else class="text-slate-500 italic py-1.5 text-center font-bold text-[12px] tracking-widest">CALM DAY</div>
+          
+          <div v-if="hoveredDayData.count.total === 0" class="text-slate-500 italic py-1.5 text-center font-bold text-[12px] tracking-widest uppercase">Calm Day</div>
 
           <!-- Dynamic Arrow -->
           <div 
