@@ -15,15 +15,7 @@
       </div>
     </div>
     
-    <!-- Heatmap Section -->
-    <div v-if="authStore.user" class="reveal mb-12" style="--delay: 150ms">
-      <ActivityHeatmap 
-        :activities="activities" 
-        :active-category="activeHeatmapCategory" 
-        :selected-date="selectedDate"
-        @day-click="selectedDate = $event"
-      />
-    </div>
+
 
 
     <!-- Stats -->
@@ -138,11 +130,11 @@
           <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
           </div>
-          <Skeleton v-if="loading" width="50px" height="40px" custom-class="mb-2" />
+          <Skeleton v-if="loading" width="50px" height="40px" />
           <div v-else class="flex items-baseline gap-2">
-            <div class="text-4xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{{ stats.completed_todos_today }}</div>
+            <div class="text-4xl font-black text-slate-800 dark:text-white tracking-tight">{{ stats.completed_todos_today }}</div>
           </div>
-          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-3">今日完成量</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-1">今日完成量</div>
           
           <div class="mt-auto flex gap-3">
             <div class="flex flex-col">
@@ -161,35 +153,65 @@
 
       <!-- Master Perspective Stat (All Categories) -->
       <div 
-        @click="activeHeatmapCategory = 'all'; selectedDate = null"
+        @click="toggleGlobalHeatmap"
         class="reveal group bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] p-7 border transition-all duration-500 cursor-pointer relative overflow-hidden" 
-        :class="activeHeatmapCategory === 'all' ? 'border-amber-500 shadow-[0_20px_60px_rgba(245,158,11,0.25)] ring-2 ring-amber-500/30 -translate-y-2' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-2xl hover:-translate-y-1'"
+        :class="[
+          activeHeatmapCategory === 'all' ? 'border-amber-500 shadow-[0_20px_60px_rgba(245,158,11,0.25)] ring-2 ring-amber-500/30' : 'border-white/60 dark:border-slate-700/60 shadow-sm hover:shadow-2xl hover:-translate-y-1',
+          isHeatmapExpanded ? 'col-span-2 md:col-span-3 lg:col-span-5' : ''
+        ]"
         style="--delay: 600ms"
       >
         <div class="flex flex-col h-full relative z-10">
-          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-          </div>
-          <div class="flex items-center justify-between mb-2">
-            <Skeleton v-if="loading" width="60px" height="40px" />
-            <div v-else class="text-4xl font-black text-slate-800 dark:text-white tracking-tight">{{ stats.month_updates }}</div>
-            
-            <div class="flex gap-1">
-              <div 
-                v-for="i in 7" 
-                :key="i" 
-                class="w-1.5 h-1.5 rounded-full transition-all duration-500" 
-                :class="getStreakClass(i, 'amber')"
-                :style="getStreakStyle(i, 'amber')"
-              ></div>
+          <div class="flex items-start justify-between mb-8">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              </div>
+              <div v-if="isHeatmapExpanded">
+                <div class="text-[10px] font-black text-amber-500 uppercase tracking-widest">Master View</div>
+                <div class="text-sm font-black text-slate-800 dark:text-white uppercase">全域动态看板</div>
+              </div>
+            </div>
+
+            <!-- Stats in header when expanded -->
+            <div class="flex items-center gap-6">
+              <div class="flex flex-col items-end">
+                <Skeleton v-if="loading" width="60px" height="30px" />
+                <div v-else class="text-3xl font-black text-slate-800 dark:text-white tracking-tighter">{{ stats.month_updates }}</div>
+                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">本月更新</div>
+              </div>
+              <div class="flex gap-1">
+                <div 
+                  v-for="i in 7" 
+                  :key="i" 
+                  class="w-1.5 h-1.5 rounded-full transition-all duration-500" 
+                  :class="getStreakClass(i, 'amber')"
+                  :style="getStreakStyle(i, 'amber')"
+                ></div>
+              </div>
             </div>
           </div>
-          <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
-            <span>全域概览</span>
+
+          <!-- Content Choice -->
+          <div v-if="isHeatmapExpanded" class="mt-4 animate-in fade-in slide-in-from-top-4 duration-700">
+             <ActivityHeatmap 
+                :activities="activities" 
+                :active-category="activeHeatmapCategory" 
+                :selected-date="selectedDate"
+                @day-click="selectedDate = $event"
+              />
+          </div>
+          <div v-else class="mt-auto flex items-end justify-between">
+            <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+              <span>全域概览</span>
+            </div>
+            <div class="opacity-40 group-hover:opacity-100 transition-opacity">
+               <MiniHeatmap v-if="!loading" :activities="activities" category="total" color="#f59e0b" />
+            </div>
           </div>
         </div>
         <!-- Ornamental Background for master switch -->
-        <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-colors"></div>
+        <div class="absolute -right-4 -bottom-4 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-colors"></div>
       </div>
     </div>
 
@@ -311,6 +333,17 @@ const gadgetStore = useGadgetStore()
 const loading = ref(true)
 const activeHeatmapCategory = ref('all')
 const selectedDate = ref<string | null>(null)
+const isHeatmapExpanded = ref(false)
+
+const toggleGlobalHeatmap = () => {
+  if (activeHeatmapCategory.value !== 'all') {
+    activeHeatmapCategory.value = 'all'
+    selectedDate.value = null
+    isHeatmapExpanded.value = true
+  } else {
+    isHeatmapExpanded.value = !isHeatmapExpanded.value
+  }
+}
 
 const toggleCategory = (cat: string) => {
   if (activeHeatmapCategory.value === cat) {
