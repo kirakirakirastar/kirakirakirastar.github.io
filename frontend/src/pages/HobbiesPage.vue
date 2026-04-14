@@ -120,6 +120,8 @@
       </div>
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 pt-1">
         <div
+          v-for="hobby in hobbies"
+          :key="hobby.id"
           class="relative bg-theme-bg/70 dark:bg-theme-card-dark/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col"
           :class="[
             isSelected(hobby.id) ? 'ring-2 ring-primary border-primary/50 shadow-lg' : '',
