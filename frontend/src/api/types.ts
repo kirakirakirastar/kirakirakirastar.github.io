@@ -3,12 +3,21 @@ export interface Tag {
   name: string
 }
 
+export interface Folder {
+  id: number
+  name: string
+  type: 'note' | 'journal' | 'hobby'
+  user_id: string
+  created_at: string
+}
+
 export interface Note {
   id: number
   title: string
   summary: string
   content_md: string
   tags: Tag[]
+  folder_id: number | null
   created_at: string
   updated_at: string
 }
@@ -20,6 +29,7 @@ export interface Journal {
   content_html: string
   content_json: string
   tags: Tag[]
+  folder_id: number | null
   created_at: string
   updated_at: string
 }
@@ -32,6 +42,8 @@ export interface Hobby {
   rating: number | null
   review: string
   cover_url: string
+  tags: Tag[]
+  folder_id: number | null
   created_at: string
   updated_at: string
 }

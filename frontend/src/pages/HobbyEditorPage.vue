@@ -6,9 +6,18 @@
     </div>
 
     <form @submit.prevent="saveHobby" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
-      <div>
-        <label class="block text-sm font-medium mb-2">标题</label>
-        <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">标题</label>
+          <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">分类文件夹</label>
+          <select v-model="form.folder_id" class="w-full px-4 py-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow cursor-pointer">
+            <option :value="null">未分类</option>
+            <option v-for="folder in folders" :key="folder.id" :value="folder.id">{{ folder.name }}</option>
+          </select>
+        </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -43,6 +52,15 @@
         <img :src="imageUrl" class="w-full rounded-lg border" alt="cover" />
       </div>
       <div>
+        <label class="block text-sm font-medium mb-2">标签 (英文逗号分隔)</label>
+        <input 
+          v-model="tagsInput" 
+          type="text" 
+          placeholder="例如: 治愈, 奇幻, 2026" 
+          class="w-full px-4 py-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow" 
+        />
+      </div>
+      <div>
         <label class="block text-sm font-medium mb-2">短评</label>
         <textarea v-model="form.review" rows="5" class="w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600"></textarea>
       </div>
@@ -60,6 +78,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { hobbiesApi } from '@/api/hobbies'
+import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 
@@ -67,6 +86,8 @@ const route = useRoute()
 const router = useRouter()
 const isEdit = computed(() => Boolean(route.params.id))
 const saving = ref(false)
+const folders = ref<any[]>([])
+const tagsInput = ref('')
 const form = ref({
   title: '',
   type: 'anime',
@@ -74,6 +95,8 @@ const form = ref({
   rating: null as number | null,
   review: '',
   cover_url: '',
+  folder_id: null as number | null,
+  tags: [] as any[],
 })
 
 const imageUrl = computed(() => resolveAssetUrl(form.value.cover_url))
@@ -88,6 +111,17 @@ const loadHobby = async () => {
     rating: data.rating,
     review: data.review,
     cover_url: data.cover_url,
+    folder_id: data.folder_id,
+    tags: data.tags,
+  }
+  tagsInput.value = data.tags.map(t => t.name).join(', ')
+}
+
+const loadFolders = async () => {
+  try {
+    folders.value = await supabaseFoldersApi.list('hobby')
+  } catch (error) {
+    console.error('加载文件夹失败:', error)
   }
 }
 
@@ -107,10 +141,18 @@ const handleCoverUpload = async (event: Event) => {
 const saveHobby = async () => {
   saving.value = true
   try {
+    // Process tags
+    const tags = tagsInput.value
+      .split(',')
+      .map(t => t.trim())
+      .filter(Boolean)
+    
+    const payload = { ...form.value, tags }
+
     if (isEdit.value) {
-      await hobbiesApi.update(Number(route.params.id), form.value)
+      await hobbiesApi.update(Number(route.params.id), payload)
     } else {
-      await hobbiesApi.create(form.value)
+      await hobbiesApi.create(payload)
     }
     router.push('/hobbies')
   } catch (error) {
@@ -123,5 +165,6 @@ const saveHobby = async () => {
 
 onMounted(() => {
   loadHobby()
+  loadFolders()
 })
 </script>

@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Note, Journal, Hobby, Todo } from './types'
+import type { Note, Journal, Hobby, Todo, Folder } from './types'
 import dayjs from 'dayjs'
 
 const includesKeyword = (values: Array<string | undefined>, keyword?: string) => {
@@ -60,10 +60,15 @@ export const supabaseNotesApi = {
     }
 
     if (params?.tag) {
-      // Tags are stored as JSONB array of strings or objects.
-      // If it's a string array: .contains('tags', ['tagname'])
-      // But based on create(), it's passed as data.tags (array)
       query = query.contains('tags', [params.tag])
+    }
+
+    if (params?.folderId !== undefined) {
+      if (params.folderId === null) {
+        query = query.is('folder_id', null)
+      } else {
+        query = query.eq('folder_id', params.folderId)
+      }
     }
 
     if (params?.year) {
@@ -85,7 +90,8 @@ export const supabaseNotesApi = {
       title: data.title,
       summary: data.summary || '',
       content_md: data.content_md || '',
-      tags: data.tags || [], // pass string array directly to JSONB
+      tags: data.tags || [],
+      folder_id: data.folder_id || null,
     }
     const { data: created, error } = await supabase.from('notes').insert(payload).select().single()
     if (error) throw error
@@ -104,6 +110,7 @@ export const supabaseNotesApi = {
       summary: data.summary || '',
       content_md: data.content_md || '',
       tags: data.tags || [],
+      folder_id: data.folder_id !== undefined ? data.folder_id : undefined,
       updated_at: new Date().toISOString(),
     }
     const { data: updated, error } = await supabase.from('notes').update(payload).eq('id', id).select().single()
@@ -113,6 +120,18 @@ export const supabaseNotesApi = {
 
   delete: async (id: number) => {
     const { error } = await supabase.from('notes').delete().eq('id', id)
+    if (error) throw error
+    return true
+  },
+
+  batchDelete: async (ids: number[]) => {
+    const { error } = await supabase.from('notes').delete().in('id', ids)
+    if (error) throw error
+    return true
+  },
+
+  batchMove: async (ids: number[], folderId: number | null) => {
+    const { error } = await supabase.from('notes').update({ folder_id: folderId }).in('id', ids)
     if (error) throw error
     return true
   },
@@ -150,6 +169,14 @@ export const supabaseJournalsApi = {
       query = query.contains('tags', [params.tag])
     }
 
+    if (params?.folderId !== undefined) {
+      if (params.folderId === null) {
+        query = query.is('folder_id', null)
+      } else {
+        query = query.eq('folder_id', params.folderId)
+      }
+    }
+
     if (params?.year) {
       const year = Number(params.year)
       const month = params.month ? Number(params.month) : null
@@ -170,6 +197,7 @@ export const supabaseJournalsApi = {
       content_html: data.content_html || '',
       content_json: data.content_json || '{}',
       tags: data.tags || [],
+      folder_id: data.folder_id || null,
     }
     const { data: created, error } = await supabase.from('journals').insert(payload).select().single()
     if (error) throw error
@@ -189,6 +217,7 @@ export const supabaseJournalsApi = {
       content_html: data.content_html || '',
       content_json: data.content_json || '{}',
       tags: data.tags || [],
+      folder_id: data.folder_id !== undefined ? data.folder_id : undefined,
       updated_at: new Date().toISOString(),
     }
     const { data: updated, error } = await supabase.from('journals').update(payload).eq('id', id).select().single()
@@ -198,6 +227,18 @@ export const supabaseJournalsApi = {
 
   delete: async (id: number) => {
     const { error } = await supabase.from('journals').delete().eq('id', id)
+    if (error) throw error
+    return true
+  },
+
+  batchDelete: async (ids: number[]) => {
+    const { error } = await supabase.from('journals').delete().in('id', ids)
+    if (error) throw error
+    return true
+  },
+
+  batchMove: async (ids: number[], folderId: number | null) => {
+    const { error } = await supabase.from('journals').update({ folder_id: folderId }).in('id', ids)
     if (error) throw error
     return true
   },
@@ -223,16 +264,26 @@ export const supabaseJournalsApi = {
 }
 
 export const supabaseHobbiesApi = {
-  list: async (params?: any) => {
+  list: async (params?: any): Promise<Hobby[]> => {
     let query = supabase.from('hobbies').select('*').order('updated_at', { ascending: false })
     if (params?.type) query = query.eq('type', params.type)
     if (params?.status) query = query.eq('status', params.status)
+    if (params?.tag) {
+      query = query.contains('tags', [params.tag])
+    }
+    if (params?.folderId !== undefined) {
+      if (params.folderId === null) {
+        query = query.is('folder_id', null)
+      } else {
+        query = query.eq('folder_id', params.folderId)
+      }
+    }
     const { data, error } = await query
     if (error) throw error
-    return data || []
+    return (data || []).map((h: any) => ({ ...h, tags: normalizeTags(h.tags) }))
   },
 
-  create: async (data: any) => {
+  create: async (data: any): Promise<Hobby> => {
     const payload = {
       title: data.title,
       type: data.type || 'anime',
@@ -240,19 +291,21 @@ export const supabaseHobbiesApi = {
       rating: typeof data.rating === 'number' ? data.rating : null,
       review: data.review || '',
       cover_url: data.cover_url || '',
+      tags: data.tags || [],
+      folder_id: data.folder_id || null,
     }
     const { data: created, error } = await supabase.from('hobbies').insert(payload).select().single()
     if (error) throw error
-    return created
+    return { ...created, tags: normalizeTags(created.tags) }
   },
 
-  get: async (id: number) => {
+  get: async (id: number): Promise<Hobby> => {
     const { data, error } = await supabase.from('hobbies').select('*').eq('id', id).single()
     if (error) throw error
-    return data
+    return { ...data, tags: normalizeTags(data.tags) }
   },
 
-  update: async (id: number, data: any) => {
+  update: async (id: number, data: any): Promise<Hobby> => {
     const payload = {
       title: data.title,
       type: data.type || 'anime',
@@ -260,17 +313,44 @@ export const supabaseHobbiesApi = {
       rating: typeof data.rating === 'number' ? data.rating : null,
       review: data.review || '',
       cover_url: data.cover_url || '',
+      tags: data.tags || [],
+      folder_id: data.folder_id !== undefined ? data.folder_id : undefined,
       updated_at: new Date().toISOString(),
     }
     const { data: updated, error } = await supabase.from('hobbies').update(payload).eq('id', id).select().single()
     if (error) throw error
-    return updated
+    return { ...updated, tags: normalizeTags(updated.tags) }
   },
 
   delete: async (id: number) => {
     const { error } = await supabase.from('hobbies').delete().eq('id', id)
     if (error) throw error
     return true
+  },
+
+  batchDelete: async (ids: number[]) => {
+    const { error } = await supabase.from('hobbies').delete().in('id', ids)
+    if (error) throw error
+    return true
+  },
+
+  batchMove: async (ids: number[], folderId: number | null) => {
+    const { error } = await supabase.from('hobbies').update({ folder_id: folderId }).in('id', ids)
+    if (error) throw error
+    return true
+  },
+
+  tags: async () => {
+    const { data, error } = await supabase.from('hobbies').select('tags')
+    if (error) throw error
+    const tagMap = new Map<string, any>()
+    for (const hobby of data || []) {
+      const tags = normalizeTags(hobby.tags)
+      for (const tag of tags) {
+        if (!tagMap.has(tag.name)) tagMap.set(tag.name, tag)
+      }
+    }
+    return [...tagMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
   },
 
   stats: async () => {
@@ -516,3 +596,31 @@ export const uploadImageLocally = (file: File) => new Promise<{ url: string; ori
   reader.onerror = () => reject(new Error('读取图片失败'))
   reader.readAsDataURL(file)
 })
+export const supabaseFoldersApi = {
+  list: async (type: 'note' | 'journal' | 'hobby'): Promise<Folder[]> => {
+    const { data, error } = await supabase.from('folders').select('*').eq('type', type).order('created_at', { ascending: true })
+    if (error) throw error
+    return data || []
+  },
+
+  create: async (name: string, type: 'note' | 'journal' | 'hobby'): Promise<Folder> => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+    
+    const { data, error } = await supabase.from('folders').insert({ name, type, user_id: user.id }).select().single()
+    if (error) throw error
+    return data
+  },
+
+  update: async (id: number, name: string): Promise<Folder> => {
+    const { data, error } = await supabase.from('folders').update({ name }).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+
+  delete: async (id: number) => {
+    const { error } = await supabase.from('folders').delete().eq('id', id)
+    if (error) throw error
+    return true
+  }
+}

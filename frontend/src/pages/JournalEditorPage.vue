@@ -7,9 +7,18 @@
 
     <form @submit.prevent="saveJournal" class="space-y-6">
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-2">标题</label>
-          <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-2">标题</label>
+            <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">分类文件夹</label>
+            <select v-model="form.folder_id" class="w-full px-4 py-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-secondary outline-none transition-shadow cursor-pointer">
+              <option :value="null">未分类</option>
+              <option v-for="folder in folders" :key="folder.id" :value="folder.id">{{ folder.name }}</option>
+            </select>
+          </div>
         </div>
         <div>
           <label class="block text-sm font-medium mb-2">摘要</label>
@@ -63,6 +72,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { journalsApi } from '@/api/journals'
+import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 import { useUiStore } from '@/stores/ui'
@@ -73,11 +83,13 @@ const router = useRouter()
 const isEdit = computed(() => Boolean(route.params.id))
 const saving = ref(false)
 const tagsInput = ref('')
+const folders = ref<any[]>([])
 const form = ref({
   title: '',
   excerpt: '',
   content_html: '',
   content_json: '{}',
+  folder_id: null as number | null,
 })
 
 const uploadAndInsertImage = async (file: File) => {
@@ -138,17 +150,24 @@ const editor = useEditor({
   },
 })
 
-const loadJournal = async () => {
-  if (!isEdit.value) return
   const data = await journalsApi.get(Number(route.params.id))
   form.value = {
     title: data.title,
     excerpt: data.excerpt,
     content_html: data.content_html,
     content_json: data.content_json,
+    folder_id: data.folder_id,
   }
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
   editor.value?.commands.setContent(data.content_html)
+}
+
+const loadFolders = async () => {
+  try {
+    folders.value = await supabaseFoldersApi.list('journal')
+  } catch (error) {
+    console.error('加载文件夹失败:', error)
+  }
 }
 
 const handleImageUpload = async (event: Event) => {
@@ -184,6 +203,7 @@ const saveJournal = async () => {
 
 onMounted(() => {
   loadJournal()
+  loadFolders()
 })
 
 onBeforeUnmount(() => {

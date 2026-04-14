@@ -7,9 +7,18 @@
 
     <form @submit.prevent="saveNote" class="space-y-6">
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-2">标题</label>
-          <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-2">标题</label>
+            <input v-model="form.title" type="text" required class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">分类文件夹</label>
+            <select v-model="form.folder_id" class="w-full px-4 py-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition-shadow cursor-pointer">
+              <option :value="null">未分类</option>
+              <option v-for="folder in folders" :key="folder.id" :value="folder.id">{{ folder.name }}</option>
+            </select>
+          </div>
         </div>
         <div>
           <label class="block text-sm font-medium mb-2">摘要</label>
@@ -64,6 +73,7 @@ import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { renderMarkdown } from '@/utils/markdown'
 import { notesApi } from '@/api/notes'
+import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 import { useUiStore } from '@/stores/ui'
@@ -74,10 +84,12 @@ const router = useRouter()
 const isEdit = computed(() => Boolean(route.params.id))
 const saving = ref(false)
 const tagsInput = ref('')
+const folders = ref<any[]>([])
 const form = ref({
   title: '',
   summary: '',
   content_md: '', // This will hold HTML
+  folder_id: null as number | null,
 })
 
 const uploadAndInsertImage = async (file: File) => {
@@ -138,17 +150,24 @@ const editor = useEditor({
 })
 
 
-const loadNote = async () => {
-  if (!isEdit.value) return
   const data = await notesApi.get(Number(route.params.id))
   form.value.title = data.title
   form.value.summary = data.summary
   form.value.content_md = data.content_md
+  form.value.folder_id = data.folder_id
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
 
   // Render raw markdown content to HTML so TipTap can process it safely
   const htmlContent = renderMarkdown(data.content_md || '')
   editor.value?.commands.setContent(htmlContent)
+}
+
+const loadFolders = async () => {
+  try {
+    folders.value = await supabaseFoldersApi.list('note')
+  } catch (error) {
+    console.error('加载文件夹失败:', error)
+  }
 }
 
 const DRAFT_KEY = 'note_editor_draft'
@@ -159,6 +178,7 @@ const saveDraft = () => {
     title: form.value.title,
     summary: form.value.summary,
     content_md: form.value.content_md,
+    folder_id: form.value.folder_id,
     tags: tagsInput.value,
     timestamp: Date.now()
   }
@@ -178,6 +198,7 @@ const checkDraft = () => {
       form.value.title = draft.title
       form.value.summary = draft.summary
       form.value.content_md = draft.content_md
+      form.value.folder_id = draft.folder_id
       tagsInput.value = draft.tags
       editor.value?.commands.setContent(renderMarkdown(draft.content_md))
       uiStore.addToast('草稿已还原', 'success')
@@ -229,6 +250,7 @@ onMounted(() => {
   } else {
     checkDraft()
   }
+  loadFolders()
 })
 
 onBeforeUnmount(() => {
