@@ -149,7 +149,8 @@ const editor = useEditor({
   },
 })
 
-
+const loadNote = async () => {
+  if (!isEdit.value) return
   const data = await notesApi.get(Number(route.params.id))
   form.value.title = data.title
   form.value.summary = data.summary

@@ -149,7 +149,8 @@ const editor = useEditor({
     form.value.content_json = JSON.stringify(editor.getJSON())
   },
 })
-
+const loadJournal = async () => {
+  if (!isEdit.value) return
   const data = await journalsApi.get(Number(route.params.id))
   form.value = {
     title: data.title,
