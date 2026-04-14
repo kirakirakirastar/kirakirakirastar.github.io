@@ -123,12 +123,21 @@ import 'dayjs/locale/zh-cn'
 
 dayjs.locale('zh-cn')
 
+interface DayCount {
+  [key: string]: number;
+  notes: number;
+  journals: number;
+  todos: number;
+  hobbies: number;
+  total: number;
+}
+
 const props = defineProps<{
-  activities: Record<string, { notes: number, journals: number, todos: number, hobbies: number, total: number }>
+  activities: Record<string, DayCount>
 }>()
 
 const isCollapsed = ref(false)
-const activeCategory = ref('all')
+const activeCategory = ref<keyof DayCount | 'all'>('all')
 
 const categories = [
   { id: 'all', name: '全向巡航', color: '' },
