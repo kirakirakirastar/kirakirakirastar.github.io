@@ -80,10 +80,14 @@
       <div class="flex items-center gap-0.5 sm:gap-1">
         <!-- Recurrence -->
         <button 
-          v-if="todo.recurrence && todo.recurrence !== 'none'" 
           @click="handleCycleRecurrence"
-          class="flex-shrink-0 p-1.5 text-primary/40 dark:text-primary/30 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
-          :title="'循环任务: ' + recurrenceLabel(todo.recurrence) + ' (点击切换)'"
+          class="flex-shrink-0 p-1.5 transition-all rounded-lg"
+          :class="[
+            todo.recurrence && todo.recurrence !== 'none' 
+              ? 'text-primary dark:text-primary-light bg-primary/5' 
+              : 'text-slate-400 opacity-0 group-hover/item:opacity-100 hover:text-primary hover:bg-primary/10'
+          ]"
+          :title="'循环周期: ' + recurrenceLabel(todo.recurrence || 'none') + ' (点击切换)'"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
