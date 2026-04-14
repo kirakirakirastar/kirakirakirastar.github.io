@@ -11,7 +11,18 @@ export default defineConfig({
     }
   },
   build: {
-    modulePreload: false
+    modulePreload: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-vue': ['vue', 'vue-router', 'pinia', '@vueuse/core'],
+          'vendor-db': ['@supabase/supabase-js'],
+          'vendor-editor': ['@tiptap/vue-3', '@tiptap/starter-kit', 'markdown-it', 'highlight.js'],
+          'vendor-utils': ['dayjs']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
   },
   server: {
     port: 5173

@@ -79,6 +79,13 @@ export const supabaseNotesApi = {
       query = query.gte('created_at', start).lte('created_at', end)
     }
 
+    // Pagination
+    if (params?.page && params?.pageSize) {
+      const from = (params.page - 1) * params.pageSize
+      const to = from + params.pageSize - 1
+      query = query.range(from, to)
+    }
+
     const { data, error } = await query.order('created_at', { ascending: false })
     if (error) throw error
     
@@ -142,10 +149,20 @@ export const supabaseNotesApi = {
     return buildArchives(data || [])
   },
 
-  tags: async () => {
+  tags: async (): Promise<Tag[]> => {
+    // Optimized: Attempt to use RPC first
+    try {
+      const { data, error } = await supabase.rpc('get_tag_cloud', { table_name: 'notes' })
+      if (!error && data) {
+        return data.map((d: any, index: number) => ({ id: index + 1, name: d.tag_name }))
+      }
+    } catch (e) {
+      console.warn('RPC get_tag_cloud failed, falling back to legacy fetch', e)
+    }
+
     const { data, error } = await supabase.from('notes').select('tags')
     if (error) throw error
-    const tagMap = new Map<string, any>()
+    const tagMap = new Map<string, Tag>()
     for (const note of data || []) {
       const tags = normalizeTags(note.tags)
       for (const tag of tags) {
@@ -183,6 +200,13 @@ export const supabaseJournalsApi = {
       const start = month ? new Date(year, month - 1, 1) : new Date(year, 0, 1)
       const end = month ? new Date(year, month, 0, 23, 59, 59) : new Date(year, 11, 31, 23, 59, 59)
       query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString())
+    }
+
+    // Pagination
+    if (params?.page && params?.pageSize) {
+      const from = (params.page - 1) * params.pageSize
+      const to = from + params.pageSize - 1
+      query = query.range(from, to)
     }
 
     const { data, error } = await query.order('created_at', { ascending: false })
@@ -278,6 +302,14 @@ export const supabaseHobbiesApi = {
         query = query.eq('folder_id', params.folderId)
       }
     }
+
+    // Pagination
+    if (params?.page && params?.pageSize) {
+      const from = (params.page - 1) * params.pageSize
+      const to = from + params.pageSize - 1
+      query = query.range(from, to)
+    }
+
     const { data, error } = await query
     if (error) throw error
     return (data || []).map((h: any) => ({ ...h, tags: normalizeTags(h.tags) }))
@@ -340,10 +372,19 @@ export const supabaseHobbiesApi = {
     return true
   },
 
-  tags: async () => {
+  tags: async (): Promise<Tag[]> => {
+    try {
+      const { data, error } = await supabase.rpc('get_tag_cloud', { table_name: 'hobbies' })
+      if (!error && data) {
+        return data.map((d: any, index: number) => ({ id: index + 1, name: d.tag_name }))
+      }
+    } catch (e) {
+      console.warn('RPC get_tag_cloud failed, falling back to legacy fetch', e)
+    }
+
     const { data, error } = await supabase.from('hobbies').select('tags')
     if (error) throw error
-    const tagMap = new Map<string, any>()
+    const tagMap = new Map<string, Tag>()
     for (const hobby of data || []) {
       const tags = normalizeTags(hobby.tags)
       for (const tag of tags) {
@@ -372,15 +413,26 @@ export const supabaseHobbiesApi = {
   },
 }
 
+import type { Note, Journal, Hobby, Todo, Folder, DashboardData, ActivityMap, Tag } from './types'
+
+// ... (other helper functions)
+
 export const supabaseDashboardApi = {
-  get: async () => {
+  get: async (): Promise<DashboardData> => {
     const now = new Date()
-    
-    const monthStart = new Date(now)
-    monthStart.setDate(1)
-    monthStart.setHours(0, 0, 0, 0)
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     const monthStartStr = monthStart.toISOString()
 
+    // 1. Optimized: Use RPC for combined statistics if available
+    let stats: any = null
+    try {
+      const { data, error } = await supabase.rpc('get_combined_stats', { start_date: monthStartStr })
+      if (!error && data) stats = data
+    } catch (e) {
+      console.warn('RPC get_combined_stats failed, falling back to legacy fetching', e)
+    }
+
+    // 2. Fallback / Fetch Latest items anyway (RPC currently only handles stats)
     const todayStart = new Date(now)
     todayStart.setHours(0, 0, 0, 0)
     const todayStartStr = todayStart.toISOString()
@@ -392,46 +444,92 @@ export const supabaseDashboardApi = {
     weekStart.setHours(0, 0, 0, 0)
     const weekStartStr = weekStart.toISOString()
 
-    const [
-      { data: notes, count: notesCount },
-      { data: journals, count: journalsCount },
-      { data: hobbies, count: hobbiesCount },
-      { count: completedTodosToday },
-      { count: completedTodosWeek },
-      { count: completedTodosMonth },
-      { count: monthNotesCount },
-      { count: monthJournalsCount },
-      { count: monthHobbiesCount },
-    ] = await Promise.all([
-      supabase.from('notes').select('*', { count: 'exact' }).order('created_at', { ascending: false }).limit(5),
-      supabase.from('journals').select('*', { count: 'exact' }).order('created_at', { ascending: false }).limit(5),
-      supabase.from('hobbies').select('*', { count: 'exact' }).order('updated_at', { ascending: false }).limit(5),
-      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', todayStartStr),
-      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', weekStartStr),
-      supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', monthStartStr),
-      supabase.from('notes').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
-      supabase.from('journals').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
-      supabase.from('hobbies').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
-    ])
+    const fetchPromises: Promise<any>[] = [
+      supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(5),
+      supabase.from('journals').select('*').order('created_at', { ascending: false }).limit(5),
+      supabase.from('hobbies').select('*').order('updated_at', { ascending: false }).limit(5),
+    ]
 
-    const monthUpdates = (monthNotesCount || 0) + (monthJournalsCount || 0) + (monthHobbiesCount || 0)
-    
+    // If stats weren't fetched via RPC, add individual count queries
+    if (!stats) {
+      fetchPromises.push(
+        supabase.from('notes').select('*', { count: 'exact', head: true }),
+        supabase.from('journals').select('*', { count: 'exact', head: true }),
+        supabase.from('hobbies').select('*', { count: 'exact', head: true }),
+        supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', todayStartStr),
+        supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', weekStartStr),
+        supabase.from('todos').select('*', { count: 'exact', head: true }).eq('status', 'completed').gte('completed_at', monthStartStr),
+        supabase.from('notes').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
+        supabase.from('journals').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
+        supabase.from('hobbies').select('*', { count: 'exact', head: true }).gte('updated_at', monthStartStr),
+      )
+    }
+
+    const results = await Promise.allSettled(fetchPromises)
+    const [notesRes, journalsRes, hobbiesRes] = results as any[]
+
+    if (!stats) {
+      const [
+        nTotal, jTotal, hTotal, tToday, tWeek, tMonth, nMonth, jMonth, hMonth
+      ] = results.slice(3).map((r: any) => r.value?.count || 0)
+      
+      stats = {
+        notes_count: nTotal,
+        journals_count: jTotal,
+        hobbies_count: hTotal,
+        completed_todos_today: tToday,
+        completed_todos_week: tWeek,
+        completed_todos_month: tMonth,
+        month_updates: nMonth + jMonth + hMonth
+      }
+    }
+
     return {
-      stats: {
-        notes_count: notesCount || 0,
-        journals_count: journalsCount || 0,
-        hobbies_count: hobbiesCount || 0,
-        completed_todos_today: completedTodosToday || 0,
-        completed_todos_week: completedTodosWeek || 0,
-        completed_todos_month: completedTodosMonth || 0,
-        month_updates: monthUpdates,
-      },
-      latest_notes: (notes || []).map((n: any) => ({ ...n, tags: normalizeTags(n.tags) })),
-      latest_journals: journals || [],
-      latest_hobbies: hobbies || [],
+      stats,
+      latest_notes: (notesRes.value?.data || []).map((n: any) => ({ ...n, tags: normalizeTags(n.tags) })),
+      latest_journals: (journalsRes.value?.data || []),
+      latest_hobbies: (hobbiesRes.value?.data || []),
     }
   },
-  activities: async () => {
+
+  activities: async (): Promise<ActivityMap> => {
+    // Optimized: Attempt to use RPC for activity aggregation
+    try {
+      const { data, error } = await supabase.rpc('get_daily_activities')
+      if (!error && data) {
+        const activityMap: ActivityMap = {}
+        data.forEach((row: any) => {
+          activityMap[row.activity_date] = {
+            notes: Number(row.note_count),
+            journals: Number(row.journal_count),
+            hobbies: Number(row.hobby_count),
+            todos: Number(row.todo_count),
+            checkins: 0, // Checkins still need separate handling if based on streak
+            schedules: Number(row.schedule_count),
+            total: Number(row.note_count) + Number(row.journal_count) + Number(row.hobby_count) + Number(row.todo_count) + Number(row.schedule_count)
+          }
+        })
+
+        // Reconstruct check-ins from latest status (legacy logic)
+        const { data: checkin } = await supabase.from('checkins').select('*').single()
+        if (checkin && checkin.last_date && checkin.streak > 0) {
+          const last = dayjs(checkin.last_date)
+          for (let i = 0; i < checkin.streak; i++) {
+            const d = last.subtract(i, 'day').format('YYYY-MM-DD')
+            if (!activityMap[d]) {
+              activityMap[d] = { notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, schedules: 0, total: 0 }
+            }
+            activityMap[d].checkins++
+            activityMap[d].total++
+          }
+        }
+        return activityMap
+      }
+    } catch (e) {
+      console.warn('RPC get_daily_activities failed, falling back to legacy processing', e)
+    }
+
+    // Legacy Fallback
     const [
       { data: notes },
       { data: journals },
@@ -448,14 +546,13 @@ export const supabaseDashboardApi = {
       supabase.from('todos').select('due_date').eq('status', 'pending').not('due_date', 'is', null)
     ])
 
-    const activityMap: Record<string, { notes: number, journals: number, todos: number, hobbies: number, checkins: number, schedules: number, total: number }> = {}
-
-    const addActivity = (dateStr: string, type: 'notes' | 'journals' | 'todos' | 'hobbies' | 'checkins' | 'schedules') => {
+    const activityMap: ActivityMap = {}
+    const addActivity = (dateStr: string, type: keyof ActivityMap[string]) => {
       const date = dateStr.split('T')[0]
       if (!activityMap[date]) {
         activityMap[date] = { notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, schedules: 0, total: 0 }
       }
-      activityMap[date][type]++
+      (activityMap[date] as any)[type]++
       activityMap[date].total++
     }
 
@@ -465,7 +562,6 @@ export const supabaseDashboardApi = {
     (todos || []).forEach(t => addActivity(t.completed_at!, 'todos'));
     (pendingTodos || []).forEach(t => addActivity(t.due_date!, 'schedules'));
 
-    // Reconstruct history from current check-in streak
     if (checkin && checkin.last_date && checkin.streak > 0) {
       const last = dayjs(checkin.last_date)
       for (let i = 0; i < checkin.streak; i++) {
@@ -473,41 +569,15 @@ export const supabaseDashboardApi = {
         addActivity(d, 'checkins')
       }
     }
-
     return activityMap
   }
 }
 
 export const supabaseTodosApi = {
-  list: async () => {
+  list: async (): Promise<Todo[]> => {
     const { data, error } = await supabase.from('todos').select('*').order('created_at', { ascending: false })
     if (error) throw error
-    
-    // Lazy Evaluate Failures
-    const now = new Date()
-    now.setHours(0, 0, 0, 0)
-    const failedIds: string[] = []
-    
-    const todos = (data || []).map((t: any) => {
-      // Auto-migrate legacy boolean
-      if (t.completed === true && (!t.status || t.status === 'pending')) {
-        t.status = 'completed'
-      } else if (t.status === 'pending' && t.due_date) {
-        const dueDate = new Date(t.due_date)
-        if (dueDate < now) {
-          t.status = 'failed'
-          failedIds.push(t.id)
-        }
-      }
-      return t
-    })
-
-    // Fire and forget update
-    if (failedIds.length > 0) {
-      supabase.from('todos').update({ status: 'failed' }).in('id', failedIds).then()
-    }
-
-    return todos
+    return data || []
   },
   create: async (text: string, payloadUpdates?: any) => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -527,7 +597,7 @@ export const supabaseTodosApi = {
     if (error) throw error
     return data
   },
-  updateStatus: async (id: string, status: string) => {
+  updateStatus: async (id: string, status: Todo['status']): Promise<Todo> => {
     const isCompleted = status === 'completed'
     const payload = {
       status,
@@ -576,7 +646,7 @@ export const supabaseAnnouncementsApi = {
     if (error) throw error
     return data || []
   },
-  create: async (text: string, type: string = 'info') => {
+  create: async (text: string, type: Announcement['type'] = 'info'): Promise<Announcement> => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
     const { data, error } = await supabase.from('announcements').insert({ text, type, user_id: user.id }).select().single()

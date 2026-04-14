@@ -51,11 +51,49 @@ export interface Hobby {
 export interface Todo {
   id: string
   text: string
+  completed: boolean
   status: 'pending' | 'completed' | 'failed'
   priority: 'low' | 'medium' | 'high'
   due_date: string | null
   start_date: string | null
+  recurrence: string
   completed_at: string | null
   user_id: string
   created_at: string
 }
+
+export interface DashboardStats {
+  notes_count: number
+  journals_count: number
+  hobbies_count: number
+  completed_todos_today: number
+  completed_todos_week: number
+  completed_todos_month: number
+  month_updates: number
+}
+
+export interface DashboardData {
+  stats: DashboardStats
+  latest_notes: Note[]
+  latest_journals: Journal[]
+  latest_hobbies: Hobby[]
+}
+
+export interface ActivityDay {
+  notes: number
+  journals: number
+  todos: number
+  hobbies: number
+  checkins: number
+  schedules: number
+  total: number
+}
+
+export interface Announcement {
+  id: string
+  text: string
+  type: 'info' | 'success' | 'warning'
+  created_at: string
+}
+
+export type ActivityMap = Record<string, ActivityDay>

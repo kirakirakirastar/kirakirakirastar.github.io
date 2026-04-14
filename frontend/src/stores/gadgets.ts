@@ -5,19 +5,7 @@ import { todosApi, checkinApi, announcementsApi } from '@/api/gadgets'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/api/supabase'
 import { getErrorMessage } from '@/utils/error'
-
-export interface Todo {
-  id: string
-  text: string
-  completed: boolean
-  status: string
-  priority: string
-  start_date?: string | null
-  due_date?: string | null
-  recurrence: string
-  completed_at?: string | null
-  created_at: string
-}
+import type { Todo, DashboardStats, ActivityDay, Announcement } from '@/api/types'
 
 export interface CheckinState {
   last_date: string | null
@@ -26,12 +14,6 @@ export interface CheckinState {
   last_record?: string | null
 }
 
-export interface Announcement {
-  id: string
-  text: string
-  type: 'info' | 'success' | 'warning'
-  created_at: string
-}
 
 export const useGadgetStore = defineStore('gadgets', () => {
   const authStore = useAuthStore()
@@ -54,7 +36,6 @@ export const useGadgetStore = defineStore('gadgets', () => {
     
     try {
       if (authStore.user) {
-        // Logged in: Fetch everything
         const [todosRes, checkinRes, announcementsRes] = await Promise.allSettled([
           todosApi.list(),
           checkinApi.get(),
@@ -63,14 +44,41 @@ export const useGadgetStore = defineStore('gadgets', () => {
         
         if (requestId !== currentRequestId) return
         
-        todos.value = todosRes.status === 'fulfilled' ? todosRes.value : []
+        let fetchedTodos = todosRes.status === 'fulfilled' ? todosRes.value : []
         checkin.value = checkinRes.status === 'fulfilled' ? (checkinRes.value || { last_date: null, streak: 0, total_count: 0 }) : { last_date: null, streak: 0, total_count: 0 }
         announcements.value = announcementsRes.status === 'fulfilled' ? announcementsRes.value : []
 
-        // Setup Real-time
+        // --- Domain Logic: Evaluate Todo Statuses/Failures ---
+        const now = dayjs().startOf('day')
+        const failedIds: string[] = []
+        
+        todos.value = fetchedTodos.map((t: Todo) => {
+          let updated = { ...t }
+          // 1. Auto-migrate legacy boolean
+          if (updated.completed === true && (!updated.status || updated.status === 'pending')) {
+            updated.status = 'completed'
+          } 
+          // 2. Check for expired pending todos
+          else if (updated.status === 'pending' && updated.due_date) {
+            const dueDate = dayjs(updated.due_date)
+            if (dueDate.isBefore(now)) {
+              updated.status = 'failed'
+              failedIds.push(updated.id)
+            }
+          }
+          return updated
+        })
+
+        // Async update failures in background
+        if (failedIds.length > 0) {
+          Promise.all(failedIds.map(id => todosApi.updateStatus(id, 'failed'))).catch(err => {
+            console.error('Failed to sync expired todos to server:', err)
+          })
+        }
+
         setupRealtime()
       } else {
-        // Guest: Only fetch announcements
+        // ... (Guest handling)
         try {
           const announcementsData = await announcementsApi.list()
           if (requestId !== currentRequestId) return
@@ -182,7 +190,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
     }
   }
 
-  const updateTodoStatus = async (id: string, status: string) => {
+  const updateTodoStatus = async (id: string, status: Todo['status']) => {
     const todo = todos.value.find(t => t.id === id)
     if (!todo) return
 
@@ -351,7 +359,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
   }
 
   // --- Announcement Actions ---
-  const addAnnouncement = async (text: string, type: string = 'info') => {
+  const addAnnouncement = async (text: string, type: Announcement['type'] = 'info') => {
     try {
       const newAnn = await announcementsApi.create(text, type)
       announcements.value.unshift(newAnn)

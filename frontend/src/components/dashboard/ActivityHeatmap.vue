@@ -48,8 +48,38 @@
 
     <!-- Main Content Area: Centered Grid -->
     <div 
-    class="grid-container transition-all duration-700 ease-in-out w-full max-h-[800px] opacity-100 overflow-visible"
+    class="grid-container transition-all duration-700 ease-in-out w-full max-h-[800px] opacity-100 overflow-visible relative"
     >
+      <!-- Shared Floating Tooltip -->
+      <Transition name="tooltip-fade">
+        <div 
+          v-if="hoveredDayData"
+          class="absolute px-5 py-4.5 bg-slate-900/98 backdrop-blur-3xl text-white text-[11px] rounded-[1.5rem] pointer-events-none z-[100] shadow-[0_25px_60px_rgba(0,0,0,0.5)] ring-1 ring-white/10 w-52"
+          :style="tooltipStyle"
+        >
+          <div class="font-black border-b border-white/10 pb-3 mb-3.5 flex justify-between items-center text-white/90 tracking-wide text-[13px]">
+            <span>{{ hoveredDayData.dateDisplay }}</span>
+            <span v-if="hoveredDayData.count.total > 0" class="px-3 py-1.5 rounded-xl bg-white/10 text-[12px] font-black">{{ hoveredDayData.count.total }}</span>
+          </div>
+          
+          <div v-if="hoveredDayData.count.total > 0" class="space-y-3">
+            <div v-if="hoveredDayData.count.notes" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#6366f1]" style="background: #6366f1"></div>学习笔记</span> <span class="font-black">{{ hoveredDayData.count.notes }}</span></div>
+            <div v-if="hoveredDayData.count.journals" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#a855f7]" style="background: #a855f7"></div>个人日志</span> <span class="font-black">{{ hoveredDayData.count.journals }}</span></div>
+            <div v-if="hoveredDayData.count.checkins" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#06b6d4]" style="background: #06b6d4"></div>每日打卡</span> <span class="font-black">{{ hoveredDayData.count.checkins }}</span></div>
+            <div v-if="hoveredDayData.count.schedules" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#0ea5e9]" style="background: #0ea5e9"></div>日程计划</span> <span class="font-black">{{ hoveredDayData.count.schedules }}</span></div>
+            <div v-if="hoveredDayData.count.todos" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#10b981]" style="background: #10b981"></div>任务完成</span> <span class="font-black">{{ hoveredDayData.count.todos }}</span></div>
+            <div v-if="hoveredDayData.count.hobbies" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#3b82f6]" style="background: #3b82f6"></div>生活爱好</span> <span class="font-black">{{ hoveredDayData.count.hobbies }}</span></div>
+          </div>
+          <div v-else class="text-slate-500 italic py-1.5 text-center font-bold text-[12px] tracking-widest">CALM DAY</div>
+
+          <!-- Dynamic Arrow -->
+          <div 
+            class="absolute border-[9px] border-transparent"
+            :class="tooltipArrowClass"
+          ></div>
+        </div>
+      </Transition>
+
       <div class="flex w-full items-start px-2">
         <div class="flex flex-col day-labels-col shrink-0 text-right pr-5 select-none pt-12" @mouseleave="hoveredRow = null">
           <span 
@@ -65,8 +95,13 @@
 
         <!-- Heatmap Grid -->
         <div ref="scrollContainer" class="flex-1 overflow-x-auto custom-scrollbar pt-12 pb-20 scroll-smooth">
-          <div class="flex heatmap-grid w-max relative">
-            <div v-for="(week, weekIndex) in heatmapData" :key="weekIndex" class="flex flex-col heatmap-week relative">
+          <div class="flex heatmap-grid w-max relative" @mouseleave="hoveredDayData = null">
+            <div 
+              v-for="(week, weekIndex) in heatmapData" 
+              :key="weekIndex" 
+              v-memo="[week, props.activeCategory, props.selectedDate, hoveredRow, hoveredMonth]"
+              class="flex flex-col heatmap-week relative"
+            >
               
               <!-- X-Axis: Month Labels -->
               <div 
@@ -89,6 +124,7 @@
                 v-for="(day, dayIndex) in week"
                 :key="day.date"
                 @click="$emit('day-click', day.date === selectedDate ? null : day.date)"
+                @mouseenter="handleMouseEnter($event, day, dayIndex, weekIndex)"
                 :id="day.date === dayjs().format('YYYY-MM-DD') ? 'today-cell' : ''"
                 class="heatmap-cell rounded-[4px] sm:rounded-[5px] md:rounded-[6.5px] relative group/cell transition-all duration-500 hover:z-50 cursor-pointer"
                 :class="[
@@ -96,40 +132,8 @@
                   day.date === selectedDate ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-800 scale-110 z-20' : '',
                   (hoveredRow === dayIndex || hoveredMonth === day.monthKey) ? 'ring-4 ring-sky-400 z-10 scale-[1.08] !opacity-100 shadow-[0_0_25px_rgba(14,165,233,0.6)] !bg-sky-400/20' : ''
                 ]"
-                :style="getCellStyle(day)"
+                :style="day.style"
               >
-                <!-- Smart Tooltip -->
-                <div 
-                  class="absolute w-52 px-5 py-4.5 bg-slate-900/98 backdrop-blur-3xl text-white text-[11px] rounded-[1.5rem] opacity-0 scale-90 invisible group-hover/cell:opacity-100 group-hover/cell:scale-100 group-hover/cell:visible transition-all duration-300 pointer-events-none z-[100] shadow-[0_25px_60px_rgba(0,0,0,0.5)] ring-1 ring-white/10"
-                  :class="[
-                    dayIndex <= 3 ? 'top-full mt-4' : 'bottom-full mb-4',
-                    weekIndex < 4 ? 'left-0 translate-x-0' : (weekIndex > heatmapData.length - 4 ? 'right-0 translate-x-0' : 'left-1/2 -translate-x-1/2')
-                  ]"
-                >
-                  <div class="font-black border-b border-white/10 pb-3 mb-3.5 flex justify-between items-center text-white/90 tracking-wide text-[13px]">
-                    <span>{{ day.dateDisplay }}</span>
-                    <span v-if="day.count.total > 0" class="px-3 py-1.5 rounded-xl bg-white/10 text-[12px] font-black">{{ day.count.total }}</span>
-                  </div>
-                  
-                  <div v-if="day.count.total > 0" class="space-y-3">
-                    <div v-if="day.count.notes" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#6366f1]" style="background: #6366f1"></div>学习笔记</span> <span class="font-black">{{ day.count.notes }}</span></div>
-                    <div v-if="day.count.journals" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#a855f7]" style="background: #a855f7"></div>个人日志</span> <span class="font-black">{{ day.count.journals }}</span></div>
-                    <div v-if="day.count.checkins" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#06b6d4]" style="background: #06b6d4"></div>每日打卡</span> <span class="font-black">{{ day.count.checkins }}</span></div>
-                    <div v-if="day.count.schedules" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#0ea5e9]" style="background: #0ea5e9"></div>日程计划</span> <span class="font-black">{{ day.count.schedules }}</span></div>
-                    <div v-if="day.count.todos" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#10b981]" style="background: #10b981"></div>任务完成</span> <span class="font-black">{{ day.count.todos }}</span></div>
-                    <div v-if="day.count.hobbies" class="flex justify-between items-center"><span class="flex items-center gap-3.5"><div class="w-2.5 h-2.5 rounded-full shadow-[0_0_12px_#3b82f6]" style="background: #3b82f6"></div>生活爱好</span> <span class="font-black">{{ day.count.hobbies }}</span></div>
-                  </div>
-                  <div v-else class="text-slate-500 italic py-1.5 text-center font-bold text-[12px] tracking-widest">CALM DAY</div>
-
-                  <!-- Dynamic Arrow -->
-                  <div 
-                    class="absolute border-[9px] border-transparent"
-                    :class="[
-                       dayIndex <= 3 ? 'bottom-full border-b-slate-900/98' : 'top-full border-t-slate-900/98',
-                       weekIndex < 4 ? 'left-2 translate-x-0' : (weekIndex > heatmapData.length - 4 ? 'right-2 translate-x-0' : 'left-1/2 -translate-x-1/2')
-                    ]"
-                  ></div>
-                </div>
               </div>
             </div>
           </div>
@@ -204,21 +208,25 @@ const heatmapData = computed(() => {
   const weeks = []
   let currentWeek = []
   
-  let startDate, endDate
+  let startDate: dayjs.Dayjs, endDate: dayjs.Dayjs
   
   if (selectedYear.value === 'rolling') {
     endDate = dayjs().add(6, 'month') 
-    startDate = dayjs().subtract(6, 'month').startOf('month').startOf('week') // Match future projection (6 months past)
+    startDate = dayjs().subtract(6, 'month').startOf('month').startOf('week')
   } else {
-    // Fixed calendar year: Jan 1 to Dec 31
     startDate = dayjs(`${selectedYear.value}-01-01`).startOf('week')
-    endDate = dayjs(`${selectedYear.value}-12-31`).add(6, 'month') // Also extend for fixed years to see next year's plans
+    endDate = dayjs(`${selectedYear.value}-12-31`).add(6, 'month')
   }
   
+  const todayStr = dayjs().format('YYYY-MM-DD')
+  const activeCat = props.activeCategory === 'all' ? 'total' : props.activeCategory
+  const categoryConfig = categories.find(c => c.id === props.activeCategory)
+  const baseTargetColor = categoryConfig?.color || '#f59e0b'
+
   let current = startDate
   let lastMonth = -1
   let lastYear = startDate.year()
-  let weeksSinceLastLabel = 10 // Start with enough buffer
+  let weeksSinceLastLabel = 10 
 
   while (current.isBefore(endDate) || current.isSame(endDate, 'day')) {
     const dateStr = current.format('YYYY-MM-DD')
@@ -236,18 +244,46 @@ const heatmapData = computed(() => {
     let isYearStart = false
     let monthLabel = ''
 
-    // Only show month label if it's the first time we see this month in the first row
-    // AND it's not too close to the previous label (min 2 weeks gap)
     if (isFirstRow && currentMonth !== lastMonth && weeksSinceLastLabel >= 2) {
       isMonthStart = true
       if (currentYear !== lastYear) {
         isYearStart = true
         lastYear = currentYear
       }
-      // Formatting change to fix overlap: shorter labels if year is the same
       monthLabel = isYearStart ? current.format('YYYY年M月') : current.format('M月')
       lastMonth = currentMonth
       weeksSinceLastLabel = 0
+    }
+
+    // --- Pre-calculate Styles for Performance ---
+    const isFuture = current.isAfter(dayjs(), 'day')
+    let intensityValue = data[activeCat]
+    if (props.activeCategory === 'all') {
+      intensityValue = data.total - (data.checkins || 0)
+    }
+
+    let targetColor = baseTargetColor
+    if (isFuture) {
+      targetColor = '#64748b' 
+      if (data.schedules > 0) targetColor = '#0ea5e9'
+    }
+
+    const intensity = Math.min(0.2 + (intensityValue * 0.15), 1)
+    const showSchedules = props.activeCategory === 'all' || props.activeCategory === 'schedules'
+    const showCheckins = props.activeCategory === 'all' || props.activeCategory === 'checkins'
+    const hasContentToFill = intensityValue > 0 || (isFuture && data.schedules > 0 && showSchedules)
+
+    const cellStyle = {
+      backgroundColor: hasContentToFill ? targetColor : undefined,
+      opacity: hasContentToFill ? intensity : undefined,
+      boxShadow: (hasContentToFill && intensityValue > 3) ? `0 0 20px ${targetColor}60` : undefined,
+      border: (isFuture && showSchedules) ? '1px dashed rgba(148, 163, 184, 0.4)' : 'none',
+      ...(showCheckins && (data.checkins > 0 || (dateStr === todayStr && props.todayCheckedIn)) ? {
+        outline: '2.5px solid #f59e0b',
+        outlineOffset: '2px',
+        boxShadow: `0 0 15px #f59e0b90, ${(hasContentToFill && intensityValue > 3) ? `0 0 20px ${targetColor}60` : '0 0 0 transparent'}`,
+        zIndex: 10
+      } : {})
     }
 
     currentWeek.push({
@@ -256,8 +292,9 @@ const heatmapData = computed(() => {
       isMonthStart,
       isYearStart,
       monthLabel,
-      monthKey: current.format('YYYY-M'), // Match the label logic month format
-      count: data
+      monthKey: current.format('YYYY-M'),
+      count: data,
+      style: cellStyle
     })
     
     if (currentWeek.length === 7) {
@@ -274,6 +311,48 @@ const heatmapData = computed(() => {
 const hoveredRow = ref<number | null>(null)
 const hoveredMonth = ref<string | null>(null)
 const scrollContainer = ref<HTMLElement | null>(null)
+
+// Shared Tooltip State
+const hoveredDayData = ref<any>(null)
+const tooltipStyle = ref({ top: '0px', left: '0px', opacity: '0', transform: 'scale(0.9) translateX(-50%)' })
+const tooltipArrowClass = ref('')
+
+let throttleTimeout: any = null
+const handleMouseEnter = (event: MouseEvent, day: any, dayIndex: number, weekIndex: number) => {
+  if (throttleTimeout) return
+  
+  throttleTimeout = setTimeout(() => {
+    throttleTimeout = null
+  }, 16) // ~60fps throttle
+
+  hoveredDayData.value = day
+  
+  const cell = event.currentTarget as HTMLElement
+  const container = cell.closest('.grid-container') as HTMLElement
+  if (!cell || !container) return
+
+  const cellRect = cell.getBoundingClientRect()
+  const containerRect = container.getBoundingClientRect()
+
+  const top = cellRect.top - containerRect.top
+  const left = cellRect.left - containerRect.left + (cellRect.width / 2)
+
+  const isInTopHalf = dayIndex <= 3
+  const isInStartWeeks = weekIndex < 4
+  const isInEndWeeks = weekIndex > heatmapData.value.length - 4
+
+  tooltipStyle.value = {
+    top: isInTopHalf ? `${top + cellRect.height + 15}px` : `${top - 15}px`,
+    left: `${left}px`,
+    opacity: '1',
+    transform: `scale(1) ${isInStartWeeks ? 'translateX(0)' : (isInEndWeeks ? 'translateX(-100%)' : 'translateX(-50%)')}`
+  }
+
+  tooltipArrowClass.value = [
+    isInTopHalf ? 'bottom-full -translate-y-[1px] border-b-slate-900/98' : 'top-full translate-y-[1px] border-t-slate-900/98',
+    isInStartWeeks ? 'left-4' : (isInEndWeeks ? 'right-4' : 'left-1/2 -translate-x-1/2')
+  ].join(' ')
+}
 
 const scrollToToday = () => {
   nextTick(() => {
@@ -296,54 +375,24 @@ watch([heatmapData, selectedYear], () => {
   scrollToToday()
 })
 
-const getCellStyle = (day: any) => {
-  const isFuture = dayjs(day.date).isAfter(dayjs(), 'day')
-  const currentCategory = props.activeCategory === 'all' ? 'total' : props.activeCategory
-  
-  // Logic: Only fill if there's content OTHER than check-ins (unless specifically viewing check-ins)
-  let intensityValue = day.count[currentCategory]
-  if (props.activeCategory === 'all') {
-    intensityValue = day.count.total - (day.count.checkins || 0)
-  }
-
-  const currentCount = intensityValue
-  const categoryConfig = categories.find(c => c.id === props.activeCategory)
-  let targetColor = categoryConfig?.color || '#f59e0b'
-  
-  // Future dates use a distinct schedule color if schedules exist
-  if (isFuture) {
-    targetColor = '#64748b' // Standard future color
-    if (day.count.schedules > 0) targetColor = '#0ea5e9' // Cyan for plans
-  }
-
-  const intensity = Math.min(0.2 + (currentCount * 0.15), 1)
-  
-  // Visibility filters per user request
-  const showSchedules = props.activeCategory === 'all' || props.activeCategory === 'schedules'
-  const showCheckins = props.activeCategory === 'all' || props.activeCategory === 'checkins'
-
-  const hasContentToFill = currentCount > 0 || (isFuture && day.count.schedules > 0 && showSchedules)
-
-  return {
-    ...(hasContentToFill ? {
-      backgroundColor: targetColor,
-      opacity: intensity,
-      boxShadow: currentCount > 3 ? `0 0 20px ${targetColor}60` : 'none',
-    } : {}),
-    transform: 'scale(1)',
-    border: (isFuture && showSchedules) ? '1px dashed rgba(148, 163, 184, 0.4)' : 'none',
-    // Border highlight for any day with a check-in (supports reconstructed history), filtered by category
-    ...((showCheckins && (day.count.checkins > 0 || (day.date === dayjs().format('YYYY-MM-DD') && props.todayCheckedIn))) ? {
-      outline: '2.5px solid #f59e0b',
-      outlineOffset: '2px',
-      boxShadow: `0 0 15px #f59e0b90, ${currentCount > 3 ? `0 0 20px ${targetColor}60` : '0 0 0 transparent'}`,
-      zIndex: 10
-    } : {})
-  }
-}
+// Tooltip positioning is now much simpler and pre-calculated logic in style helps
+// remove the need for getCellStyle entirely
+const getCellStyle = null; // Mark for removal or just don't define
 </script>
 
 <style scoped>
+/* Tooltip Animation */
+.tooltip-fade-enter-active,
+.tooltip-fade-leave-active {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tooltip-fade-enter-from,
+.tooltip-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.95) translateY(5px) !important;
+}
+
 /* Synchronization via CSS Variables */
 .activity-heatmap {
   --cell-size: 14px;

@@ -65,11 +65,25 @@
         <select
           v-model="selectedTag"
           class="flex-1 min-w-[120px] px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
-          @change="loadHobbies"
+          @change="resetAndLoad"
         >
           <option value="">所有标签</option>
           <option v-for="tag in tags" :key="tag.id" :value="tag.name">{{ tag.name }}</option>
         </select>
+
+        <!-- Page Size Selector -->
+        <div class="flex items-center gap-2 ml-auto">
+          <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">每页显示</span>
+          <select
+            v-model="pageSize"
+            class="px-3 py-2 border border-slate-200 dark:border-slate-700/50 rounded-lg bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all text-xs font-bold cursor-pointer"
+            @change="resetAndLoad"
+          >
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -125,6 +139,7 @@
             <img
               :src="getImageUrl(hobby.cover_url)"
               :alt="hobby.title"
+              loading="lazy"
               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
@@ -184,6 +199,21 @@
       </div>
     </div>
 
+    <!-- Load More -->
+    <div v-if="hasMore" class="mt-12 flex justify-center pb-20">
+      <button 
+        @click="loadMore"
+        :disabled="loading"
+        class="px-10 py-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 rounded-2xl font-black shadow-lg hover:shadow-primary/20 hover:border-primary/50 hover:-translate-y-1 transition-all flex items-center gap-3 disabled:opacity-50"
+      >
+        <svg v-if="loading" class="animate-spin h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>{{ loading ? '努力加载中...' : '加载更多条目' }}</span>
+      </button>
+    </div>
+
     <!-- Batch Actions -->
     <BatchActionBar 
       :count="selectedIds.length" 
@@ -219,6 +249,11 @@ const selectedStatus = ref('')
 const selectedTag = ref('')
 const selectedFolderId = ref<number | null | undefined>(undefined)
 
+// Pagination state
+const page = ref(1)
+const pageSize = ref(20)
+const hasMore = ref(true)
+
 // Batch selection state
 const isBatchMode = ref(false)
 const selectedIds = ref<number[]>([])
@@ -248,7 +283,7 @@ const loadFolders = async () => {
 
 const onFolderSelect = (id: number | null | undefined) => {
   selectedFolderId.value = id
-  loadHobbies()
+  resetAndLoad()
 }
 
 const onFolderAdd = async () => {
@@ -283,7 +318,7 @@ const onFolderDelete = async (id: number) => {
     await supabaseFoldersApi.delete(id)
     if (selectedFolderId.value === id) selectedFolderId.value = undefined
     await loadFolders()
-    await loadHobbies()
+    await resetAndLoad()
     uiStore.addToast('文件夹已删除', 'success')
   } catch (error: any) {
     console.error('删除失败:', error)
@@ -298,7 +333,7 @@ const onBatchMove = async (folderId: number | null) => {
     await hobbiesApi.batchMove(selectedIds.value, folderId)
     uiStore.addToast(`成功移动 ${selectedIds.value.length} 条爱好`, 'success')
     clearSelection()
-    await loadHobbies()
+    await resetAndLoad()
   } catch (error) {
     console.error('批量移动失败:', error)
     uiStore.addToast('操作失败', 'error')
@@ -312,7 +347,7 @@ const onBatchDelete = async () => {
     await hobbiesApi.batchDelete(selectedIds.value)
     uiStore.addToast('删除成功', 'success')
     clearSelection()
-    await loadHobbies()
+    await resetAndLoad()
     await loadStats()
   } catch (error) {
     console.error('批量删除失败:', error)
@@ -355,18 +390,38 @@ const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD')
 const loadHobbies = async () => {
   loading.value = true
   try {
-    const params: any = {}
+    const params: any = {
+      page: page.value,
+      pageSize: pageSize.value
+    }
     if (selectedType.value) params.type = selectedType.value
     if (selectedStatus.value) params.status = selectedStatus.value
     if (selectedTag.value) params.tag = selectedTag.value
     if (selectedFolderId.value !== undefined) params.folderId = selectedFolderId.value
     
-    hobbies.value = await hobbiesApi.list(params)
+    const data = await hobbiesApi.list(params)
+    if (page.value === 1) {
+      hobbies.value = data
+    } else {
+      hobbies.value = [...hobbies.value, ...data]
+    }
+    hasMore.value = data.length === pageSize.value
   } catch (error) {
     console.error('加载条目失败:', error)
   } finally {
     loading.value = false
   }
+}
+
+const resetAndLoad = () => {
+  page.value = 1
+  loadHobbies()
+}
+
+const loadMore = () => {
+  if (loading.value || !hasMore.value) return
+  page.value++
+  loadHobbies()
 }
 
 const loadFilters = async () => {
@@ -391,7 +446,7 @@ const deleteHobby = async (id: number) => {
   try {
     await hobbiesApi.delete(id)
     uiStore.addToast('已删除', 'success')
-    await loadHobbies()
+    await resetAndLoad()
     await loadStats()
   } catch (error) {
     console.error('删除条目失败:', error)

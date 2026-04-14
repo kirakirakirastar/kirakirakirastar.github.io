@@ -59,13 +59,27 @@
         <select
           v-model="selectedArchive"
           class="w-full sm:w-auto px-4 py-3 border border-slate-200 dark:border-slate-700/50 rounded-xl bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all backdrop-blur-sm cursor-pointer"
-          @change="loadNotes"
+          @change="resetAndLoad"
         >
           <option value="">所有时间</option>
           <option v-for="arch in archives" :key="`${arch.year}-${arch.month}`" :value="`${arch.year}-${arch.month}`">
             {{ arch.year }}年{{ arch.month }}月 ({{ arch.count }})
           </option>
         </select>
+
+        <!-- Page Size Selector -->
+        <div class="flex items-center gap-2 ml-auto">
+          <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">每页显示</span>
+          <select
+            v-model="pageSize"
+            class="px-3 py-2 border border-slate-200 dark:border-slate-700/50 rounded-lg bg-white/50 dark:bg-slate-900/40 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary outline-none transition-all text-xs font-bold cursor-pointer"
+            @change="resetAndLoad"
+          >
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -128,6 +142,21 @@
       </div>
     </div>
 
+    <!-- Load More -->
+    <div v-if="hasMore" class="mt-12 flex justify-center pb-20">
+      <button 
+        @click="loadMore"
+        :disabled="loading"
+        class="px-10 py-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 rounded-2xl font-black shadow-lg hover:shadow-primary/20 hover:border-primary/50 hover:-translate-y-1 transition-all flex items-center gap-3 disabled:opacity-50"
+      >
+        <svg v-if="loading" class="animate-spin h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>{{ loading ? '努力加载中...' : '加载更多笔记' }}</span>
+      </button>
+    </div>
+
     <!-- Batch Actions -->
     <BatchActionBar 
       :count="selectedIds.length" 
@@ -163,6 +192,11 @@ const selectedTag = ref('')
 const selectedArchive = ref('')
 const selectedFolderId = ref<number | null | undefined>(undefined)
 
+// Pagination state
+const page = ref(1)
+const pageSize = ref(20)
+const hasMore = ref(true)
+
 // Batch selection state
 const isBatchMode = ref(false)
 const selectedIds = ref<number[]>([])
@@ -192,7 +226,7 @@ const loadFolders = async () => {
 
 const onFolderSelect = (id: number | null | undefined) => {
   selectedFolderId.value = id
-  loadNotes()
+  resetAndLoad()
 }
 
 const onFolderAdd = async () => {
@@ -227,7 +261,7 @@ const onFolderDelete = async (id: number) => {
     await supabaseFoldersApi.delete(id)
     if (selectedFolderId.value === id) selectedFolderId.value = undefined
     await loadFolders()
-    await loadNotes()
+    await resetAndLoad()
     uiStore.addToast('文件夹已删除', 'success')
   } catch (error: any) {
     console.error('删除失败:', error)
@@ -242,7 +276,7 @@ const onBatchMove = async (folderId: number | null) => {
     await notesApi.batchMove(selectedIds.value, folderId)
     uiStore.addToast(`成功移动 ${selectedIds.value.length} 条笔记`, 'success')
     clearSelection()
-    await loadNotes()
+    await resetAndLoad()
   } catch (error) {
     console.error('批量移动失败:', error)
     uiStore.addToast('操作失败', 'error')
@@ -256,7 +290,7 @@ const onBatchDelete = async () => {
     await notesApi.batchDelete(selectedIds.value)
     uiStore.addToast('删除成功', 'success')
     clearSelection()
-    await loadNotes()
+    await resetAndLoad()
     await loadFilters()
   } catch (error) {
     console.error('批量删除失败:', error)
@@ -267,7 +301,7 @@ const onBatchDelete = async () => {
 let searchTimer: any = null
 const debouncedSearch = () => {
   if (searchTimer) clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => loadNotes(), 300)
+  searchTimer = setTimeout(() => resetAndLoad(), 300)
 }
 
 const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD')
@@ -275,7 +309,10 @@ const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD')
 const loadNotes = async () => {
   loading.value = true
   try {
-    const params: any = {}
+    const params: any = {
+      page: page.value,
+      pageSize: pageSize.value
+    }
     if (keyword.value) params.keyword = keyword.value
     if (selectedTag.value) params.tag = selectedTag.value
     if (selectedArchive.value) {
@@ -286,12 +323,29 @@ const loadNotes = async () => {
     if (selectedFolderId.value !== undefined) {
       params.folderId = selectedFolderId.value
     }
-    notes.value = await notesApi.list(params)
+    const data = await notesApi.list(params)
+    if (page.value === 1) {
+      notes.value = data
+    } else {
+      notes.value = [...notes.value, ...data]
+    }
+    hasMore.value = data.length === pageSize.value
   } catch (error) {
     console.error('加载笔记失败:', error)
   } finally {
     loading.value = false
   }
+}
+
+const resetAndLoad = () => {
+  page.value = 1
+  loadNotes()
+}
+
+const loadMore = () => {
+  if (loading.value || !hasMore.value) return
+  page.value++
+  loadNotes()
 }
 
 const loadFilters = async () => {
