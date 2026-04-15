@@ -781,7 +781,7 @@ export const supabaseTodosApi = {
       start_date: payloadUpdates?.start_date || null,
       due_date: payloadUpdates?.due_date || null,
       recurrence: payloadUpdates?.recurrence || 'none',
-      status: 'pending',
+      recurrence_until: payloadUpdates?.recurrence_until || null,
       is_private: payloadUpdates?.is_private || false
     }
     

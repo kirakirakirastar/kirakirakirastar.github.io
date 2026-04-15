@@ -254,6 +254,11 @@ export const useGadgetStore = defineStore('gadgets', () => {
     }
 
     if (nextDueDate) {
+      // Check if we reached the recurrence end date
+      if (todo.recurrence_until && dayjs(nextDueDate).isAfter(dayjs(todo.recurrence_until))) {
+        return
+      }
+
       // Deduplication: Check if we already have a pending task with the same text and next date
       const exists = todos.value.some(t => 
         t.status === 'pending' && 
@@ -266,7 +271,9 @@ export const useGadgetStore = defineStore('gadgets', () => {
           priority: todo.priority,
           start_date: nextStartDate,
           due_date: nextDueDate,
-          recurrence: todo.recurrence
+          recurrence: todo.recurrence,
+          recurrence_until: todo.recurrence_until,
+          is_private: todo.is_private
         })
       }
     }

@@ -42,6 +42,12 @@
           <span>{{ recurrenceLabel(recurrence) }}</span>
         </button>
 
+        <!-- Recurrence Until -->
+        <div v-if="recurrence !== 'none'" class="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-1 text-slate-600 dark:text-slate-300">
+           <span class="text-[10px] font-bold text-slate-400">截止循环于:</span>
+           <input type="date" v-model="recurrenceUntil" class="bg-transparent text-[10px] outline-none w-[105px] dark:[color-scheme:dark]" placeholder="无限循环" />
+        </div>
+
         <!-- Privacy Toggle -->
         <button 
           @click="isPrivate = !isPrivate"
@@ -80,6 +86,7 @@ const todayStr = dayjs().format('YYYY-MM-DD')
 const startDate = ref(todayStr)
 const dueDate = ref(todayStr)
 const recurrence = ref('none')
+const recurrenceUntil = ref<string | null>(null)
 const isPrivate = ref(false)
 
 const recurrenceOptions = ['none', 'daily', 'weekly', 'monthly']
@@ -104,6 +111,7 @@ const handleSubmit = () => {
     start_date: startDate.value || null,
     due_date: dueDate.value || null,
     recurrence: recurrence.value,
+    recurrence_until: recurrenceUntil.value || null,
     is_private: isPrivate.value
   })
   
@@ -113,6 +121,7 @@ const handleSubmit = () => {
   startDate.value = todayStr
   dueDate.value = todayStr
   recurrence.value = 'none'
+  recurrenceUntil.value = null
   isPrivate.value = false
 }
 </script>

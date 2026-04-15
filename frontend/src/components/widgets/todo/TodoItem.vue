@@ -97,6 +97,10 @@
             <input v-model="tempStartDate" type="date" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 rounded-lg px-1 py-0.5 text-[10px] outline-none [color-scheme:dark] w-20 sm:w-24" />
             <span class="text-slate-400">-</span>
             <input v-model="tempDueDate" type="date" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 rounded-lg px-1 py-0.5 text-[10px] outline-none [color-scheme:dark] w-20 sm:w-24" />
+            <div v-if="todo.recurrence !== 'none'" class="ml-2 flex items-center gap-1">
+              <span class="text-[9px] text-slate-400">至:</span>
+              <input v-model="tempRecurrenceUntil" type="date" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 rounded-lg px-1 py-0.5 text-[10px] outline-none [color-scheme:dark] w-20 sm:w-24" />
+            </div>
          </div>
       </div>
 
@@ -177,6 +181,7 @@ const tempText = ref(props.todo.text)
 const tempPriority = ref(props.todo.priority || 'medium')
 const tempStartDate = ref(props.todo.start_date || '')
 const tempDueDate = ref(props.todo.due_date || '')
+const tempRecurrenceUntil = ref(props.todo.recurrence_until || '')
 
 // Sync internal state if updated externally (like via priority bar click)
 watch(() => props.todo.priority, (newPrio) => {
@@ -190,6 +195,7 @@ const startEditing = () => {
   tempPriority.value = props.todo.priority || 'medium'
   tempStartDate.value = props.todo.start_date || ''
   tempDueDate.value = props.todo.due_date || ''
+  tempRecurrenceUntil.value = props.todo.recurrence_until || ''
   emit('start-edit', props.todo.id)
 }
 
@@ -203,7 +209,8 @@ const saveEdit = () => {
     text: tempText.value.trim(),
     priority: tempPriority.value,
     start_date: tempStartDate.value || null,
-    due_date: tempDueDate.value || null
+    due_date: tempDueDate.value || null,
+    recurrence_until: tempRecurrenceUntil.value || null
   })
 }
 

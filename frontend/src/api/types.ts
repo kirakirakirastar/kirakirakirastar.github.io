@@ -63,6 +63,7 @@ export interface Todo {
   due_date: string | null
   start_date: string | null
   recurrence: string
+  recurrence_until: string | null
   completed_at: string | null
   user_id: string
   created_at: string
