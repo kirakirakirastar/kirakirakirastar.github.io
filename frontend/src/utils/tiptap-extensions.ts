@@ -16,28 +16,6 @@ declare module '@tiptap/core' {
        */
       toggleMask: () => ReturnType,
     },
-    underline: {
-      /**
-       * Toggle underline
-       */
-      toggleUnderline: () => ReturnType,
-    },
-    color: {
-      /**
-       * Set text color
-       */
-      setColor: (color: string) => ReturnType,
-      /**
-       * Unset text color
-       */
-      unsetColor: () => ReturnType,
-    },
-    highlight: {
-      /**
-       * Toggle highlight
-       */
-      toggleHighlight: (attributes?: { color: string }) => ReturnType,
-    }
   }
 }
 
@@ -150,6 +128,37 @@ export const MarkdownColor = Color.extend({
       close(_state: any, mark: any) {
         return mark.attrs.color ? '</span>' : ''
       },
+    },
+    parse: {
+      setup(markdownit: any) {
+        markdownit.inline.ruler.before('escape', 'color', (state: any, silent: any) => {
+          const regex = /^<span style="color: ([^"]+)">/
+          const match = state.src.slice(state.pos).match(regex)
+          if (!match) return false
+          if (silent) return true
+
+          const color = match[1]
+          const startTag = match[0]
+          const endTag = '</span>'
+          const start = state.pos
+          const end = state.src.indexOf(endTag, start + startTag.length)
+
+          if (end === -1) return false
+
+          const oldMax = state.posMax
+          state.pos += startTag.length
+          state.posMax = end
+
+          const token = state.push('textStyle_open', 'span', 1)
+          token.attrs = [['style', `color: ${color}`]]
+          state.md.inline.tokenize(state)
+          state.push('textStyle_close', 'span', -1)
+
+          state.pos = end + endTag.length
+          state.posMax = oldMax
+          return true
+        })
+      }
     }
   }
 })
@@ -163,6 +172,32 @@ export const MarkdownHighlight = Highlight.extend({
     serialize: {
       open: '<mark>',
       close: '</mark>',
+    },
+    parse: {
+      setup(markdownit: any) {
+        markdownit.inline.ruler.before('escape', 'highlight', (state: any, silent: any) => {
+          const startTag = '<mark>'
+          const endTag = '</mark>'
+          if (state.src.slice(state.pos, state.pos + startTag.length) !== startTag) return false
+          if (silent) return true
+
+          const start = state.pos
+          const end = state.src.indexOf(endTag, start + startTag.length)
+          if (end === -1) return false
+
+          const oldMax = state.posMax
+          state.pos += startTag.length
+          state.posMax = end
+
+          state.push('highlight_open', 'mark', 1)
+          state.md.inline.tokenize(state)
+          state.push('highlight_close', 'mark', -1)
+
+          state.pos = end + endTag.length
+          state.posMax = oldMax
+          return true
+        })
+      }
     }
   }
 }).configure({ multicolor: true })
@@ -176,6 +211,32 @@ export const MarkdownUnderline = Underline.extend({
     serialize: {
       open: '<u>',
       close: '</u>',
+    },
+    parse: {
+      setup(markdownit: any) {
+        markdownit.inline.ruler.before('escape', 'underline', (state: any, silent: any) => {
+          const startTag = '<u>'
+          const endTag = '</u>'
+          if (state.src.slice(state.pos, state.pos + startTag.length) !== startTag) return false
+          if (silent) return true
+
+          const start = state.pos
+          const end = state.src.indexOf(endTag, start + startTag.length)
+          if (end === -1) return false
+
+          const oldMax = state.posMax
+          state.pos += startTag.length
+          state.posMax = end
+
+          state.push('underline_open', 'u', 1)
+          state.md.inline.tokenize(state)
+          state.push('underline_close', 'u', -1)
+
+          state.pos = end + endTag.length
+          state.posMax = oldMax
+          return true
+        })
+      }
     }
   }
 })
@@ -189,6 +250,15 @@ export const MarkdownStrike = Strike.extend({
     serialize: {
       open: '~~',
       close: '~~',
+    },
+    parse: {
+      setup(markdownit: any) {
+        // Use existing strikethrough rule but ensure it's mapped
+        // In tiptap-markdown, the 'strike' name typically maps to 's' tokens
+      },
+      // Using token: 's' to explicitly tell tiptap-markdown to use markdown-it's 's' token
+      // @ts-ignore
+      token: 's',
     }
   }
 })
