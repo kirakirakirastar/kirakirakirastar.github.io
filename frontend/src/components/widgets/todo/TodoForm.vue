@@ -27,25 +27,78 @@
         </div>
 
         <!-- Recurrence -->
-        <button 
-          @click="toggleRecurrence"
-          type="button"
-          class="px-2.5 py-1.5 border rounded-xl text-[10px] font-bold flex items-center gap-1.5 transition-all outline-none"
-          :class="recurrence !== 'none' 
-            ? 'bg-primary/10 border-primary/20 text-primary' 
-            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'"
-          :title="'重复周期: ' + recurrenceLabel(recurrence)"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-          </svg>
-          <span>{{ recurrenceLabel(recurrence) }}</span>
-        </button>
+        <!-- Integrated Recurrence Button & Popover -->
+        <div class="relative" ref="containerRef">
+          <button 
+            @click="showRecurrenceMenu = !showRecurrenceMenu"
+            type="button"
+            class="px-2.5 py-1.5 border rounded-xl text-[10px] font-bold flex items-center gap-1.5 transition-all outline-none"
+            :class="recurrence !== 'none' 
+              ? 'bg-primary/10 border-primary/20 text-primary' 
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'"
+            :title="'重复设置: ' + recurrenceLabel(recurrence)"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span>{{ recurrenceLabel(recurrence) }}</span>
+            <span v-if="recurrenceUntil" class="ml-1 text-[8px] opacity-70">至 {{ formatDateHeader(recurrenceUntil) }}</span>
+          </button>
 
-        <!-- Recurrence Until -->
-        <div v-if="recurrence !== 'none'" class="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-1 text-slate-600 dark:text-slate-300">
-           <span class="text-[10px] font-bold text-slate-400">截止循环于:</span>
-           <input type="date" v-model="recurrenceUntil" class="bg-transparent text-[10px] outline-none w-[105px] dark:[color-scheme:dark]" placeholder="无限循环" />
+          <!-- Recurrence Popover -->
+          <div 
+            v-if="showRecurrenceMenu" 
+            class="absolute bottom-full mb-2 left-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl z-50 p-3 flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-300">循环设置</span>
+              <button @click="showRecurrenceMenu = false" class="text-slate-400 hover:text-slate-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+
+            <!-- Frequency Selection -->
+            <div class="grid grid-cols-4 gap-1.5">
+              <button 
+                v-for="opt in recurrenceOptions" 
+                :key="opt"
+                @click="recurrence = opt"
+                class="px-1 py-1.5 rounded-lg text-[10px] font-medium border transition-all"
+                :class="recurrence === opt ? 'bg-primary text-white border-primary shadow-sm' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-white/5 text-slate-500 hover:border-primary/30'"
+              >
+                {{ recurrenceLabel(opt) }}
+              </button>
+            </div>
+
+            <!-- End Condition -->
+            <div v-if="recurrence !== 'none'" class="flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
+               <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-bold text-slate-500">截止循环于</span>
+                  <button 
+                    v-if="dueDate"
+                    @click="recurrenceUntil = dueDate"
+                    class="text-[9px] text-primary hover:underline"
+                  >
+                    同步任务截止日
+                  </button>
+               </div>
+               <div class="flex items-center gap-2">
+                 <input 
+                   type="date" 
+                   v-model="recurrenceUntil" 
+                   class="flex-1 bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-primary dark:[color-scheme:dark]"
+                 />
+                 <button 
+                   v-if="recurrenceUntil"
+                   @click="recurrenceUntil = null"
+                   class="p-1 px-2 text-[10px] text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                 >
+                   清除
+                 </button>
+               </div>
+               <p class="text-[9px] text-slate-400 italic">若留空，则循环一直进行到 {{ dueDate || '任务截止' }} 之后。</p>
+            </div>
+          </div>
         </div>
 
         <!-- Privacy Toggle -->
@@ -77,6 +130,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import dayjs from 'dayjs'
+import { onClickOutside } from '@vueuse/core'
 
 const emit = defineEmits(['add'])
 
@@ -88,12 +142,16 @@ const dueDate = ref(todayStr)
 const recurrence = ref('none')
 const recurrenceUntil = ref<string | null>(null)
 const isPrivate = ref(false)
+const showRecurrenceMenu = ref(false)
+
+const formatDateHeader = (d: string) => dayjs(d).format('MM-DD')
 
 const recurrenceOptions = ['none', 'daily', 'weekly', 'monthly']
-const toggleRecurrence = () => {
-  const currentIndex = recurrenceOptions.indexOf(recurrence.value)
-  recurrence.value = recurrenceOptions[(currentIndex + 1) % recurrenceOptions.length]
-}
+
+// Auto-close menu on outside click
+const containerRef = ref(null)
+// @ts-ignore
+onClickOutside(containerRef, () => showRecurrenceMenu.value = false)
 
 const recurrenceLabel = (r: string) => {
   if (r === 'none') return '不重复'
@@ -123,5 +181,6 @@ const handleSubmit = () => {
   recurrence.value = 'none'
   recurrenceUntil.value = null
   isPrivate.value = false
+  showRecurrenceMenu.value = false
 }
 </script>

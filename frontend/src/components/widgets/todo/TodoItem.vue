@@ -106,8 +106,81 @@
 
       <!-- Recurrence & Actions -->
       <div class="flex items-center gap-0.5 sm:gap-1">
-        <!-- Recurrence -->
+        <!-- Integrated Recurrence Button & Popover (Edit Mode) -->
+        <div v-if="isEditing" class="relative" ref="containerRef">
+          <button 
+            @click="showRecurrenceMenu = !showRecurrenceMenu"
+            class="flex-shrink-0 p-1.5 transition-all rounded-lg text-primary dark:text-primary-light bg-primary/5 hover:bg-primary/10"
+            :title="'重复设置: ' + recurrenceLabel(todo.recurrence || 'none')"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span v-if="tempRecurrenceUntil" class="absolute -top-1 -right-1 flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            </span>
+          </button>
+
+          <!-- Recurrence Popover -->
+          <div 
+            v-if="showRecurrenceMenu" 
+            class="absolute bottom-full mb-2 right-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl z-50 p-3 flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-300">循环设置</span>
+              <button @click="showRecurrenceMenu = false" class="text-slate-400 hover:text-slate-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+
+            <!-- Frequency -->
+            <div class="grid grid-cols-4 gap-1.5">
+              <button 
+                v-for="opt in ['none', 'daily', 'weekly', 'monthly']" 
+                :key="opt"
+                @click="tempRecurrence = opt"
+                class="px-1 py-1.5 rounded-lg text-[10px] font-medium border transition-all"
+                :class="tempRecurrence === opt ? 'bg-primary text-white border-primary shadow-sm' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-white/5 text-slate-500 hover:border-primary/30'"
+              >
+                {{ recurrenceLabel(opt) }}
+              </button>
+            </div>
+
+            <!-- End Condition -->
+            <div v-if="tempRecurrence !== 'none'" class="flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
+               <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-bold text-slate-500">截止循环于</span>
+                  <button 
+                    v-if="tempDueDate"
+                    @click="tempRecurrenceUntil = tempDueDate"
+                    class="text-[9px] text-primary hover:underline"
+                  >
+                    同步任务截止日
+                  </button>
+               </div>
+               <div class="flex items-center gap-2">
+                 <input 
+                   type="date" 
+                   v-model="tempRecurrenceUntil" 
+                   class="flex-1 bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-primary dark:[color-scheme:dark]"
+                 />
+                 <button 
+                   v-if="tempRecurrenceUntil"
+                   @click="tempRecurrenceUntil = null"
+                   class="p-1 px-2 text-[10px] text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                 >
+                   清空
+                 </button>
+               </div>
+               <p class="text-[9px] text-slate-400 italic">若不填，默认任务截止日 {{ tempDueDate || '之后' }} 停止循环。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recurrence (Display Mode) -->
         <button 
+          v-else
           @click="handleCycleRecurrence"
           class="flex-shrink-0 p-1.5 transition-all rounded-lg"
           :class="[
@@ -168,6 +241,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import dayjs from 'dayjs'
+import { onClickOutside } from '@vueuse/core'
 import type { Todo } from '@/api/types'
 
 const props = defineProps<{
@@ -181,7 +255,13 @@ const tempText = ref(props.todo.text)
 const tempPriority = ref(props.todo.priority || 'medium')
 const tempStartDate = ref(props.todo.start_date || '')
 const tempDueDate = ref(props.todo.due_date || '')
-const tempRecurrenceUntil = ref(props.todo.recurrence_until || '')
+const tempRecurrence = ref(props.todo.recurrence || 'none')
+const tempRecurrenceUntil = ref<string | null>(props.todo.recurrence_until || null)
+const showRecurrenceMenu = ref(false)
+
+const containerRef = ref(null)
+// @ts-ignore
+onClickOutside(containerRef, () => showRecurrenceMenu.value = false)
 
 // Sync internal state if updated externally (like via priority bar click)
 watch(() => props.todo.priority, (newPrio) => {
@@ -195,7 +275,9 @@ const startEditing = () => {
   tempPriority.value = props.todo.priority || 'medium'
   tempStartDate.value = props.todo.start_date || ''
   tempDueDate.value = props.todo.due_date || ''
-  tempRecurrenceUntil.value = props.todo.recurrence_until || ''
+  tempRecurrence.value = props.todo.recurrence || 'none'
+  tempRecurrenceUntil.value = props.todo.recurrence_until || null
+  showRecurrenceMenu.value = false
   emit('start-edit', props.todo.id)
 }
 
@@ -210,6 +292,7 @@ const saveEdit = () => {
     priority: tempPriority.value,
     start_date: tempStartDate.value || null,
     due_date: tempDueDate.value || null,
+    recurrence: tempRecurrence.value,
     recurrence_until: tempRecurrenceUntil.value || null
   })
 }

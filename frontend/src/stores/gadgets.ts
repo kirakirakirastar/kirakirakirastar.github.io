@@ -254,8 +254,10 @@ export const useGadgetStore = defineStore('gadgets', () => {
     }
 
     if (nextDueDate) {
-      // Check if we reached the recurrence end date
-      if (todo.recurrence_until && dayjs(nextDueDate).isAfter(dayjs(todo.recurrence_until))) {
+      // Priority: use recurrence_until if set, otherwise fallback to the ORIGINAL due_date as the series limit
+      const limit = todo.recurrence_until || todo.due_date
+      
+      if (limit && dayjs(nextDueDate).isAfter(dayjs(limit))) {
         return
       }
 
