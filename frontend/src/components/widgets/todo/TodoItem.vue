@@ -1,11 +1,11 @@
 <template>
   <div 
-    class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-2xl border transition-all duration-300 group/item relative overflow-hidden shadow-sm cursor-default"
+    class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-white/5 transition-all duration-300 group/item relative overflow-hidden shadow-sm cursor-default"
     :class="[
       getPriorityColor(todo.priority),
-      todo.status === 'completed' ? 'bg-emerald-500/5 border-emerald-500/10 opacity-75' : 
-      todo.status === 'failed' ? 'bg-red-500/5 border-red-500/10 opacity-75' : 
-      'bg-white dark:bg-slate-800/60 border-slate-100 dark:border-white/5 hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50'
+      todo.status === 'completed' ? 'bg-emerald-500/5 opacity-75' : 
+      todo.status === 'failed' ? 'bg-red-500/5 opacity-75' : 
+      'bg-white dark:bg-slate-800/60 hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50'
     ]"
   >
     <!-- Priority Color Bar (Interactive) -->
@@ -226,11 +226,12 @@ const recurrenceLabel = (r: string) => {
   return r
 }
 
-const getPriorityColor = (priority: string) => {
-  if (priority === 'high') return 'border-l-4 border-l-red-500'
-  if (priority === 'medium') return 'border-l-4 border-l-amber-400'
-  if (priority === 'low') return 'border-l-4 border-l-blue-400'
-  return 'border-l-4 border-l-slate-300'
+const getPriorityColor = (priority: string | null | undefined) => {
+  const p = (priority || 'medium').toLowerCase()
+  if (p === 'high') return 'border-l-4 !border-l-red-500'
+  if (p === 'medium') return 'border-l-4 !border-l-amber-400'
+  if (p === 'low') return 'border-l-4 !border-l-blue-400'
+  return 'border-l-4 !border-l-slate-300'
 }
 
 const formatDueDate = (dateStr: string) => {
