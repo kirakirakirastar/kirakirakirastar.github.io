@@ -77,14 +77,39 @@ export const Mask = Mark.create({
   },
   // @ts-ignore
   markdown: {
-    serialize(state: MarkdownState, mark: any) {
-      state.write('[mask]')
-      state.renderContent(mark)
-      state.write('[/mask]')
+    serialize: {
+      open: '[mask]',
+      close: '[/mask]',
     },
     parse: {
       setup(markdownit: any) {
-        // Handled by markdown-it custom rule in our renderer
+        markdownit.inline.ruler.before('escape', 'mask', (state: any, silent: any) => {
+          const startChar = '['
+          const startTag = '[mask]'
+          const endTag = '[/mask]'
+          
+          if (state.src.slice(state.pos, state.pos + startTag.length) !== startTag) {
+            return false
+          }
+
+          if (silent) return true
+
+          const start = state.pos
+          const end = state.src.indexOf(endTag, start + startTag.length)
+
+          if (end === -1) return false
+
+          state.pos += startTag.length
+          const token = state.push('mask_open', 'span', 1)
+          token.attrs = [['class', 'mask-text']]
+
+          state.md.inline.tokenize(state)
+
+          const endToken = state.push('mask_close', 'span', -1)
+          state.pos = end + endTag.length
+
+          return true
+        })
       }
     }
   }
@@ -93,18 +118,26 @@ export const Mask = Mark.create({
 /**
  * Enhanced TextStyle with Markdown support
  */
-export const MarkdownTextStyle = Extension.create({
+export const MarkdownTextStyle = Mark.create({
   name: 'textStyle',
+  addOptions() {
+    return {
+      HTMLAttributes: {},
+    }
+  },
+  parseHTML() {
+    return [
+      { tag: 'span' },
+    ]
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['span', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0]
+  },
   // @ts-ignore
   markdown: {
     serialize: {
       open: '',
       close: '',
-    },
-    parse: {
-      setup(markdownit: any) {
-        // Just a container
-      }
     }
   }
 })
@@ -154,16 +187,11 @@ export const MarkdownColor = Mark.create({
   },
   // @ts-ignore
   markdown: {
-    serialize(state: MarkdownState, mark: any) {
-      if (!mark.attrs.color) return
-      state.write(`<span style="color: ${mark.attrs.color}">`)
-      state.renderContent(mark)
-      state.write('</span>')
-    },
-    parse: {
-      setup(markdownit: any) {
-        // html: true handled by markdown-it
-      }
+    serialize: {
+      open(_state: any, mark: any) {
+        return `<span style="color: ${mark.attrs.color}">`
+      },
+      close: '</span>',
     }
   }
 })
@@ -207,15 +235,9 @@ export const MarkdownHighlight = Mark.create({
   },
   // @ts-ignore
   markdown: {
-    serialize(state: MarkdownState, mark: any) {
-      state.write('<mark>')
-      state.renderContent(mark)
-      state.write('</mark>')
-    },
-    parse: {
-      setup(markdownit: any) {
-        // html: true handles <mark>
-      }
+    serialize: {
+      open: '<mark>',
+      close: '</mark>',
     }
   }
 })
@@ -243,14 +265,45 @@ export const MarkdownUnderline = Mark.create({
   },
   // @ts-ignore
   markdown: {
-    serialize(state: MarkdownState, mark: any) {
-      state.write('<u>')
-      state.renderContent(mark)
-      state.write('</u>')
+    serialize: {
+      open: '<u>',
+      close: '</u>',
+    }
+  }
+})
+
+/**
+ * Markdown-compatible Strike extension
+ */
+export const MarkdownStrike = Mark.create({
+  name: 'strike',
+  parseHTML() {
+    return [
+      { tag: 's' },
+      { tag: 'del' },
+      { tag: 'strike' },
+      { style: 'text-decoration: line-through' },
+    ]
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['s', HTMLAttributes, 0]
+  },
+  addCommands() {
+    return {
+      toggleStrike: () => ({ commands }) => {
+        return commands.toggleMark(this.name)
+      },
+    }
+  },
+  // @ts-ignore
+  markdown: {
+    serialize: {
+      open: '~~',
+      close: '~~',
     },
     parse: {
       setup(markdownit: any) {
-         // Standard markdown-it handles <u> if html is enabled
+        // markdown-it default handles ~~
       }
     }
   }

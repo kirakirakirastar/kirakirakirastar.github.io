@@ -107,7 +107,7 @@ import { Typography } from '@tiptap/extension-typography'
 import { TaskList } from '@tiptap/extension-task-list'
 
 // Custom Extensions
-import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight } from '@/utils/tiptap-extensions'
+import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, MarkdownStrike } from '@/utils/tiptap-extensions'
 
 import { journalsApi } from '@/api/journals'
 import { supabaseFoldersApi } from '@/api/supabaseData'
@@ -147,6 +147,7 @@ const editor = useEditor({
   extensions: [
     StarterKit,
     MarkdownUnderline,
+    MarkdownStrike,
     MarkdownHighlight.configure({ multicolor: true }),
     Typography,
     TaskList,

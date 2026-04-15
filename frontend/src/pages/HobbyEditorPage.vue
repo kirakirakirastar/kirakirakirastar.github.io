@@ -79,6 +79,7 @@
             <button type="button" @click="editor?.chain().focus().toggleBulletList().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('bulletList') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">•</button>
             <button type="button" @click="editor?.chain().focus().toggleOrderedList().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('orderedList') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">1.</button>
             <button type="button" @click="editor?.chain().focus().toggleBlockquote().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('blockquote') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">引用</button>
+            <button type="button" @click="editor?.chain().focus().toggleStrike().run()" :class="{ 'bg-slate-200 dark:bg-slate-700': editor?.isActive('strike') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm line-through">S</button>
             <button type="button" @click="editor?.chain().focus().undo().run()" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm ml-auto">撤销</button>
             <button type="button" @click="editor?.chain().focus().redo().run()" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">重做</button>
           </div>
@@ -122,7 +123,7 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from 'tiptap-markdown'
 import Placeholder from '@tiptap/extension-placeholder'
-import { MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, BangumiShortcuts, Mask } from '@/utils/tiptap-extensions'
+import { MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, BangumiShortcuts, Mask, MarkdownStrike } from '@/utils/tiptap-extensions'
 import type { Hobby } from '@/api/types'
 
 const uiStore = useUiStore()
@@ -204,6 +205,7 @@ const editor = useEditor({
     MarkdownHighlight,
     MarkdownColor,
     MarkdownTextStyle,
+    MarkdownStrike,
     Mask,
     BangumiShortcuts,
     Placeholder.configure({

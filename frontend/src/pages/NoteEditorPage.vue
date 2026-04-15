@@ -127,7 +127,7 @@ import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { TableHeader } from '@tiptap/extension-table-header'
-import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight } from '@/utils/tiptap-extensions'
+import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, MarkdownStrike } from '@/utils/tiptap-extensions'
 import { Link } from '@tiptap/extension-link'
 import { renderMarkdown } from '@/utils/markdown'
 import { notesApi } from '@/api/notes'
@@ -166,6 +166,7 @@ const editor = useEditor({
   extensions: [
     StarterKit,
     MarkdownUnderline,
+    MarkdownStrike,
     MarkdownHighlight.configure({ multicolor: true }),
     Typography,
     TaskList,
