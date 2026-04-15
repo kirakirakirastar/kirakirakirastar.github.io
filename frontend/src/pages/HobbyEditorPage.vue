@@ -121,9 +121,9 @@ import { deleteFileByUrl } from '@/api/cleanup'
 import { useUiStore } from '@/stores/ui'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import { Markdown } from 'tiptap-markdown'
+import { createMarkdownExtension } from '@/utils/markdown-config.ts'
 import Placeholder from '@tiptap/extension-placeholder'
-import { MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, BangumiShortcuts, Mask, MarkdownStrike } from '@/utils/tiptap-extensions'
+import { MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, BangumiShortcuts, Mask, MarkdownStrike } from '@/utils/tiptap-extensions.ts'
 import type { Hobby } from '@/api/types'
 
 const uiStore = useUiStore()
@@ -200,23 +200,16 @@ const uploadAndSetCover = async (file: File) => {
 
 const editor = useEditor({
   extensions: [
-    StarterKit.configure({
-      strike: false,
-    }),
+    StarterKit,
     MarkdownUnderline,
     MarkdownHighlight,
     MarkdownColor,
-    MarkdownTextStyle,
-    MarkdownStrike,
     Mask,
     BangumiShortcuts,
     Placeholder.configure({
       placeholder: '在这里写下你的评价与笔记...',
     }),
-    Markdown.configure({
-      html: true,
-      tightLists: true,
-    }),
+    createMarkdownExtension(),
   ],
   content: '',
   onUpdate: ({ editor }) => {

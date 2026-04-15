@@ -119,7 +119,6 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
-import { Markdown } from 'tiptap-markdown'
 import { Typography } from '@tiptap/extension-typography'
 import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
@@ -127,7 +126,9 @@ import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { TableHeader } from '@tiptap/extension-table-header'
-import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, MarkdownStrike } from '@/utils/tiptap-extensions'
+import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, MarkdownStrike } from '@/utils/tiptap-extensions.ts'
+import { createMarkdownExtension } from '@/utils/markdown-config.ts'
+import { runMarkdownDiagnosis } from '@/utils/markdown-diagnostic'
 import { Link } from '@tiptap/extension-link'
 import { renderMarkdown } from '@/utils/markdown'
 import { notesApi } from '@/api/notes'
@@ -164,12 +165,8 @@ const uploadAndInsertImage = async (file: File) => {
 
 const editor = useEditor({
   extensions: [
-    StarterKit.configure({
-      strike: false,
-    }),
-    MarkdownTextStyle,
+    StarterKit,
     MarkdownUnderline,
-    MarkdownStrike,
     MarkdownHighlight,
     MarkdownColor,
     Typography,
@@ -195,14 +192,7 @@ const editor = useEditor({
     Placeholder.configure({
       placeholder: '在这里写内容...',
     }),
-    Markdown.configure({
-      html: true,
-      tightLists: true,
-      tightListClass: 'tight',
-      bulletListMarker: '-',
-      linkify: true,
-      breaks: true,
-    }),
+    createMarkdownExtension(),
   ],
   content: '',
   editorProps: {
@@ -235,7 +225,6 @@ const editor = useEditor({
     },
   },
   onUpdate: ({ editor }) => {
-    // Save as raw Markdown
     form.value.content_md = editor.storage.markdown.getMarkdown()
   },
 })
@@ -250,8 +239,6 @@ const loadNote = async () => {
   form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
 
-  // Set content directly. tiptap-markdown handles both MD and HTML if configured correctly.
-  // We specify the format as markdown to ensure it parses correctly.
   editor.value?.commands.setContent(data.content_md || '')
 }
 
@@ -339,13 +326,18 @@ const saveNote = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (isEdit.value) {
-    loadNote()
+    await loadNote()
   } else {
     checkDraft()
   }
-  loadFolders()
+  await loadFolders()
+
+  // Run Markdown logic diagnosis to verify the fix
+  if (editor.value) {
+    runMarkdownDiagnosis(editor.value)
+  }
 })
 
 onBeforeUnmount(() => {

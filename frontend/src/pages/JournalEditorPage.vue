@@ -101,13 +101,12 @@ import { TableHeader } from '@tiptap/extension-table-header'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { Link } from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
-import Placeholder from '@tiptap/extension-placeholder'
-import { Markdown } from 'tiptap-markdown'
 import { Typography } from '@tiptap/extension-typography'
 import { TaskList } from '@tiptap/extension-task-list'
-
+import Placeholder from '@tiptap/extension-placeholder'
 // Custom Extensions
-import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, MarkdownStrike } from '@/utils/tiptap-extensions'
+import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, MarkdownStrike } from '@/utils/tiptap-extensions.ts'
+import { createMarkdownExtension } from '@/utils/markdown-config.ts'
 
 import { journalsApi } from '@/api/journals'
 import { supabaseFoldersApi } from '@/api/supabaseData'
@@ -145,12 +144,8 @@ const uploadAndInsertImage = async (file: File) => {
 
 const editor = useEditor({
   extensions: [
-    StarterKit.configure({
-      strike: false,
-    }),
-    MarkdownTextStyle,
+    StarterKit,
     MarkdownUnderline,
-    MarkdownStrike,
     MarkdownHighlight,
     MarkdownColor,
     Typography,
@@ -167,8 +162,6 @@ const editor = useEditor({
     Link.configure({
       openOnClick: false,
     }),
-    MarkdownColor,
-    MarkdownTextStyle,
     Mask,
     BangumiShortcuts,
     Image.configure({
@@ -178,14 +171,7 @@ const editor = useEditor({
     Placeholder.configure({
       placeholder: '在这里写日志...',
     }),
-    Markdown.configure({
-      html: true,
-      tightLists: true,
-      tightListClass: 'tight',
-      bulletListMarker: '-',
-      linkify: true,
-      breaks: true,
-    }),
+    createMarkdownExtension(),
   ],
   content: '',
   editorProps: {
