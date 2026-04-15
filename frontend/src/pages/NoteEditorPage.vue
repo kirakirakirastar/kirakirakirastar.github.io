@@ -170,7 +170,8 @@ const editor = useEditor({
     MarkdownTextStyle,
     MarkdownUnderline,
     MarkdownStrike,
-    MarkdownHighlight.configure({ multicolor: true }),
+    MarkdownHighlight,
+    MarkdownColor,
     Typography,
     TaskList,
     TaskItem.configure({
@@ -185,8 +186,6 @@ const editor = useEditor({
     Link.configure({
       openOnClick: false,
     }),
-    MarkdownColor,
-    MarkdownTextStyle,
     Mask,
     BangumiShortcuts,
     Image.configure({

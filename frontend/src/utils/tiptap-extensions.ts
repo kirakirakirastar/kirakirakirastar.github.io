@@ -127,9 +127,6 @@ export const Mask = Mark.create({
 /**
  * Enhanced TextStyle with Markdown support
  */
-/**
- * Enhanced TextStyle with Markdown support
- */
 export const MarkdownTextStyle = TextStyle.extend({
   // @ts-ignore
   markdown: {
@@ -143,24 +140,20 @@ export const MarkdownTextStyle = TextStyle.extend({
 /**
  * Markdown-compatible Color extension
  */
-/**
- * Markdown-compatible Color extension
- */
 export const MarkdownColor = Color.extend({
   // @ts-ignore
   markdown: {
     serialize: {
       open(_state: any, mark: any) {
-        return `<span style="color: ${mark.attrs.color}">`
+        return mark.attrs.color ? `<span style="color: ${mark.attrs.color}">` : ''
       },
-      close: '</span>',
+      close(_state: any, mark: any) {
+        return mark.attrs.color ? '</span>' : ''
+      },
     }
   }
 })
 
-/**
- * Markdown-compatible Highlight extension
- */
 /**
  * Markdown-compatible Highlight extension
  */
@@ -172,11 +165,8 @@ export const MarkdownHighlight = Highlight.extend({
       close: '</mark>',
     }
   }
-})
+}).configure({ multicolor: true })
 
-/**
- * Markdown-compatible Underline extension
- */
 /**
  * Markdown-compatible Underline extension
  */
@@ -193,20 +183,12 @@ export const MarkdownUnderline = Underline.extend({
 /**
  * Markdown-compatible Strike extension
  */
-/**
- * Markdown-compatible Strike extension
- */
 export const MarkdownStrike = Strike.extend({
   // @ts-ignore
   markdown: {
     serialize: {
       open: '~~',
       close: '~~',
-    },
-    parse: {
-      setup(markdownit: any) {
-        // markdown-it default handles ~~
-      }
     }
   }
 })
@@ -240,3 +222,4 @@ export const BangumiShortcuts = Extension.create({
     }
   },
 })
+

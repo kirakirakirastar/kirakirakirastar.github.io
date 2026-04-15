@@ -151,7 +151,8 @@ const editor = useEditor({
     MarkdownTextStyle,
     MarkdownUnderline,
     MarkdownStrike,
-    MarkdownHighlight.configure({ multicolor: true }),
+    MarkdownHighlight,
+    MarkdownColor,
     Typography,
     TaskList,
     TaskItem.configure({
