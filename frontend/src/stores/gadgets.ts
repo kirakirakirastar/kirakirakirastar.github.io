@@ -256,14 +256,8 @@ export const useGadgetStore = defineStore('gadgets', () => {
     if (nextDueDate) {
       // Priority boundary: Task Deadline (due_date) is the absolute limit.
       // If recurrence_until is set, it cannot exceed the due_date.
-      let seriesLimit: string | null = null
-      if (todo.due_date && todo.recurrence_until) {
-        seriesLimit = dayjs(todo.due_date).isBefore(dayjs(todo.recurrence_until)) 
-          ? todo.due_date 
-          : todo.recurrence_until
-      } else {
-        seriesLimit = todo.due_date || todo.recurrence_until
-      }
+      // Boundary: Only recurrence_until (Series Deadline) stops the creation of new instances.
+      const seriesLimit = todo.recurrence_until || null
       
       if (seriesLimit && dayjs(nextDueDate).isAfter(dayjs(seriesLimit))) {
         return
