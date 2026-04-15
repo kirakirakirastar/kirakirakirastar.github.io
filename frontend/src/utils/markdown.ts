@@ -1,35 +1,20 @@
+import { full as emoji } from 'markdown-it-emoji'
+import anchor from 'markdown-it-anchor'
+import toc from 'markdown-it-toc-done-right'
+import externalLinks from 'markdown-it-external-links'
+import taskLists from 'markdown-it-task-lists'
+import footnote from 'markdown-it-footnote'
+import abbr from 'markdown-it-abbr'
+import container from 'markdown-it-container'
+import ins from 'markdown-it-ins'
+import mark from 'markdown-it-mark'
+import sub from 'markdown-it-sub'
+import sup from 'markdown-it-sup'
+import katex from 'markdown-it-katex'
+import deflist from 'markdown-it-deflist'
+
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
-// @ts-ignore
-import emoji from 'markdown-it-emoji'
-// @ts-ignore
-import anchor from 'markdown-it-anchor'
-// @ts-ignore
-import toc from 'markdown-it-toc-done-right'
-// @ts-ignore
-import externalLinks from 'markdown-it-external-links'
-// @ts-ignore
-import taskLists from 'markdown-it-task-lists'
-// @ts-ignore
-import footnote from 'markdown-it-footnote'
-// @ts-ignore
-import abbr from 'markdown-it-abbr'
-// @ts-ignore
-import container from 'markdown-it-container'
-// @ts-ignore
-import ins from 'markdown-it-ins'
-// @ts-ignore
-import mark from 'markdown-it-mark'
-// @ts-ignore
-import sub from 'markdown-it-sub'
-// @ts-ignore
-import sup from 'markdown-it-sup'
-// @ts-ignore
-import katex from 'markdown-it-katex'
-// @ts-ignore
-import deflist from 'markdown-it-deflist'
-// @ts-ignore
-import abbr from 'markdown-it-abbr'
 
 /**
  * Configure Markdown-It with advanced plugins and syntax highlighting
