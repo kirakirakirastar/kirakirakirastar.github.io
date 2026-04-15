@@ -57,7 +57,7 @@
 
       <!-- Content -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
-        <div class="rich-html" v-html="journal.content_html"></div>
+        <div class="rich-html" v-html="renderMarkdown(journal.content_md || journal.content_html)"></div>
       </div>
       <!-- Scroll to Top Button -->
       <button 
@@ -76,9 +76,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
-import { journalsApi } from '@/api/journals'
-import { useAuthStore } from '@/stores/auth'
 import { calculateReadingTime } from '@/utils/text'
+import { renderMarkdown } from '@/utils/markdown'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -87,8 +86,9 @@ const loading = ref(true)
 const journal = ref<any>(null)
 
 const readingTime = computed(() => {
-  if (!journal.value?.content_html) return 0
-  const text = journal.value.content_html.replace(/<[^>]*>/g, '') // Strip HTML
+  if (!journal.value) return 0
+  const content = journal.value.content_md || journal.value.content_html || ''
+  const text = content.replace(/<[^>]*>/g, '') // Strip HTML
   return calculateReadingTime(text)
 })
 

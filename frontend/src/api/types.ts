@@ -29,6 +29,7 @@ export interface Journal {
   title: string
   excerpt: string
   content_html: string
+  content_md: string
   content_json: string
   tags: Tag[]
   folder_id: number | null

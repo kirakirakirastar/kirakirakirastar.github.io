@@ -169,14 +169,6 @@ const uploadAndInsertImage = async (file: File) => {
 const editor = useEditor({
   extensions: [
     StarterKit,
-    Markdown.configure({
-      html: true,
-      tightLists: true,
-      tightListClass: 'tight',
-      bulletListMarker: '-',
-      linkify: true,
-      breaks: true,
-    }),
     Underline,
     Highlight.configure({ multicolor: true }),
     Typography,
@@ -203,6 +195,14 @@ const editor = useEditor({
     }),
     Placeholder.configure({
       placeholder: '在这里写内容...',
+    }),
+    Markdown.configure({
+      html: true,
+      tightLists: true,
+      tightListClass: 'tight',
+      bulletListMarker: '-',
+      linkify: true,
+      breaks: true,
     }),
   ],
   content: '',

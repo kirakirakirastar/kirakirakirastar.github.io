@@ -263,7 +263,7 @@ export const supabaseJournalsApi = {
 
     if (params?.keyword) {
       const kw = `%${params.keyword}%`
-      query = query.or(`title.ilike.${kw},excerpt.ilike.${kw},content_html.ilike.${kw}`)
+      query = query.or(`title.ilike.${kw},excerpt.ilike.${kw},content_html.ilike.${kw},content_md.ilike.${kw}`)
     }
 
     query = query.is('deleted_at', null)
@@ -311,6 +311,7 @@ export const supabaseJournalsApi = {
       title: data.title,
       excerpt: data.excerpt || '',
       content_html: data.content_html || '',
+      content_md: data.content_md || '',
       content_json: data.content_json || '{}',
       tags: data.tags || [],
       folder_id: data.folder_id || null,
@@ -340,6 +341,7 @@ export const supabaseJournalsApi = {
       title: data.title,
       excerpt: data.excerpt || '',
       content_html: data.content_html || '',
+      content_md: data.content_md || '',
       content_json: data.content_json || '{}',
       tags: data.tags || [],
       folder_id: data.folder_id !== undefined ? data.folder_id : undefined,
@@ -379,8 +381,8 @@ export const supabaseJournalsApi = {
     const { data: journal } = await supabase.from('journals').select('content_html').eq('id', id).single()
     const { error } = await supabase.from('journals').delete().eq('id', id)
     if (error) throw error
-    if (journal?.content_html) {
-      const paths = extractStoragePaths(journal.content_html)
+    if (journal?.content_md || journal?.content_html) {
+      const paths = extractStoragePaths(journal.content_md || journal.content_html || '')
       deleteStorageFiles(paths)
     }
     return true
@@ -391,7 +393,7 @@ export const supabaseJournalsApi = {
     const { error } = await supabase.from('journals').delete().in('id', ids)
     if (error) throw error
     if (journals) {
-      const allPaths = journals.flatMap(j => extractStoragePaths(j.content_html || ''))
+      const allPaths = journals.flatMap(j => extractStoragePaths(j.content_md || j.content_html || ''))
       deleteStorageFiles(allPaths)
     }
     return true

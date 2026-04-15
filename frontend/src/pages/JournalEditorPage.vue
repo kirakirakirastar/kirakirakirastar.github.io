@@ -31,12 +31,14 @@
 
         <div class="flex items-center gap-3 py-2">
           <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" v-model="form.is_private" class="sr-only peer">
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-secondary/20 dark:peer-focus:ring-secondary/30 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-secondary"></div>
+            <input type="checkbox" v-model="form.is_private" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-secondary/20 rounded-full peer dark:bg-gray-700 peer-checked:bg-secondary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
           </label>
           <div class="flex flex-col">
             <span class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <svg v-if="form.is_private" class="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+              <svg v-if="form.is_private" class="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+              </svg>
               私密日志
             </span>
             <span class="text-[10px] text-slate-500">仅登录后可见。</span>
@@ -58,6 +60,15 @@
               <button type="button" @click="editor?.chain().focus().toggleCodeBlock().run()" :class="{ 'bg-secondary/20 text-secondary': editor?.isActive('codeBlock') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">代码</button>
               <button type="button" @click="editor?.chain().focus().undo().run()" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">撤销</button>
               <button type="button" @click="editor?.chain().focus().redo().run()" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">重做</button>
+              
+              <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 self-center mx-1"></div>
+              
+              <input 
+                type="color" 
+                class="w-8 h-8 p-0 border-none bg-transparent cursor-pointer"
+                @input="(e) => editor?.chain().focus().setColor((e.target as HTMLInputElement).value).run()"
+              />
+
               <label class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm cursor-pointer">
                 插入图片
                 <input type="file" accept="image/*" class="hidden" @change="handleImageUpload" />
@@ -83,8 +94,25 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
+import { Underline } from '@tiptap/extension-underline'
+import { Highlight } from '@tiptap/extension-highlight'
+import { Typography } from '@tiptap/extension-typography'
+import { TaskList } from '@tiptap/extension-task-list'
+import { TaskItem } from '@tiptap/extension-task-item'
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableHeader } from '@tiptap/extension-table-header'
+import { TableCell } from '@tiptap/extension-table-cell'
+import { Link } from '@tiptap/extension-link'
+import { Color } from '@tiptap/extension-color'
+import { TextStyle } from '@tiptap/extension-text-style'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
+import { Markdown } from 'tiptap-markdown'
+
+// Custom Extensions
+import { Mask, BangumiShortcuts } from '@/utils/tiptap-extensions'
+
 import { journalsApi } from '@/api/journals'
 import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
@@ -102,6 +130,7 @@ const form = ref({
   title: '',
   excerpt: '',
   content_html: '',
+  content_md: '',
   content_json: '{}',
   folder_id: null as number | null,
   is_private: false,
@@ -121,12 +150,40 @@ const uploadAndInsertImage = async (file: File) => {
 const editor = useEditor({
   extensions: [
     StarterKit,
+    Underline,
+    Highlight.configure({ multicolor: true }),
+    Typography,
+    TaskList,
+    TaskItem.configure({
+      nested: true,
+    }),
+    Table.configure({
+      resizable: true,
+    }),
+    TableRow,
+    TableHeader,
+    TableCell,
+    Link.configure({
+      openOnClick: false,
+    }),
+    Color,
+    TextStyle,
+    Mask,
+    BangumiShortcuts,
     Image.configure({
       inline: true,
       allowBase64: true,
     }),
     Placeholder.configure({
       placeholder: '在这里写日志...',
+    }),
+    Markdown.configure({
+      html: true,
+      tightLists: true,
+      tightListClass: 'tight',
+      bulletListMarker: '-',
+      linkify: true,
+      breaks: true,
     }),
   ],
   content: '',
@@ -160,23 +217,19 @@ const editor = useEditor({
     },
   },
   onUpdate: ({ editor }) => {
-    form.value.content_html = editor.getHTML()
-    form.value.content_json = JSON.stringify(editor.getJSON())
+    form.value.content_md = editor.storage.markdown.getMarkdown()
   },
 })
 const loadJournal = async () => {
   if (!isEdit.value) return
   const data = await journalsApi.get(Number(route.params.id))
-  form.value = {
-    title: data.title,
-    excerpt: data.excerpt,
-    content_html: data.content_html,
-    content_json: data.content_json,
-    folder_id: data.folder_id,
-    is_private: data.is_private || false,
-  }
+  form.value.title = data.title
+  form.value.excerpt = data.excerpt
+  form.value.content_md = data.content_md
+  form.value.folder_id = data.folder_id
+  form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
-  editor.value?.commands.setContent(data.content_html)
+  editor.value?.commands.setContent(data.content_md || '')
 }
 
 const loadFolders = async () => {
