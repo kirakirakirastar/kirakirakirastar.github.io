@@ -1,4 +1,9 @@
 import { Mark, mergeAttributes, Extension } from '@tiptap/core'
+import TextStyle from '@tiptap/extension-text-style'
+import Underline from '@tiptap/extension-underline'
+import Strike from '@tiptap/extension-strike'
+import Highlight from '@tiptap/extension-highlight'
+import Color from '@tiptap/extension-color'
 
 /**
  * TypeScript Module Augmentation to let Tiptap know about our custom commands.
@@ -99,14 +104,18 @@ export const Mask = Mark.create({
 
           if (end === -1) return false
 
+          const oldMax = state.posMax
           state.pos += startTag.length
+          state.posMax = end
+
           const token = state.push('mask_open', 'span', 1)
           token.attrs = [['class', 'mask-text']]
 
           state.md.inline.tokenize(state)
 
-          const endToken = state.push('mask_close', 'span', -1)
+          state.push('mask_close', 'span', -1)
           state.pos = end + endTag.length
+          state.posMax = oldMax
 
           return true
         })
@@ -118,21 +127,10 @@ export const Mask = Mark.create({
 /**
  * Enhanced TextStyle with Markdown support
  */
-export const MarkdownTextStyle = Mark.create({
-  name: 'textStyle',
-  addOptions() {
-    return {
-      HTMLAttributes: {},
-    }
-  },
-  parseHTML() {
-    return [
-      { tag: 'span' },
-    ]
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ['span', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0]
-  },
+/**
+ * Enhanced TextStyle with Markdown support
+ */
+export const MarkdownTextStyle = TextStyle.extend({
   // @ts-ignore
   markdown: {
     serialize: {
@@ -145,46 +143,10 @@ export const MarkdownTextStyle = Mark.create({
 /**
  * Markdown-compatible Color extension
  */
-export const MarkdownColor = Mark.create({
-  name: 'color', 
-  addOptions() {
-    return {
-      HTMLAttributes: {},
-    }
-  },
-  addAttributes() {
-    return {
-      color: {
-        default: null,
-        parseHTML: element => element.style.color || (element as HTMLElement).getAttribute('data-color'),
-        renderHTML: attributes => {
-          if (!attributes.color) return {}
-          return { style: `color: ${attributes.color}`, 'data-color': attributes.color }
-        },
-      },
-    }
-  },
-  parseHTML() {
-    return [{ tag: 'span', getAttrs: element => (element as HTMLElement).style.color ? {} : false }]
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ['span', HTMLAttributes, 0]
-  },
-  addCommands() {
-    return {
-      setColor: color => ({ chain }) => {
-        return chain()
-          .setMark('textStyle')
-          .setMark(this.name, { color })
-          .run()
-      },
-      unsetColor: () => ({ chain }) => {
-        return chain()
-          .unsetMark(this.name)
-          .run()
-      },
-    }
-  },
+/**
+ * Markdown-compatible Color extension
+ */
+export const MarkdownColor = Color.extend({
   // @ts-ignore
   markdown: {
     serialize: {
@@ -199,40 +161,10 @@ export const MarkdownColor = Mark.create({
 /**
  * Markdown-compatible Highlight extension
  */
-export const MarkdownHighlight = Mark.create({
-  name: 'highlight',
-  addOptions() {
-    return {
-      multicolor: true,
-      HTMLAttributes: {},
-    }
-  },
-  addAttributes() {
-    if (!this.options.multicolor) return {}
-    return {
-      color: {
-        default: null,
-        parseHTML: element => element.getAttribute('data-color') || element.style.backgroundColor,
-        renderHTML: attributes => {
-          if (!attributes.color) return {}
-          return { 'data-color': attributes.color, style: `background-color: ${attributes.color}` }
-        },
-      },
-    }
-  },
-  parseHTML() {
-    return [{ tag: 'mark' }]
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ['mark', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0]
-  },
-  addCommands() {
-    return {
-      toggleHighlight: attributes => ({ commands }) => {
-        return commands.toggleMark(this.name, attributes)
-      },
-    }
-  },
+/**
+ * Markdown-compatible Highlight extension
+ */
+export const MarkdownHighlight = Highlight.extend({
   // @ts-ignore
   markdown: {
     serialize: {
@@ -245,24 +177,10 @@ export const MarkdownHighlight = Mark.create({
 /**
  * Markdown-compatible Underline extension
  */
-export const MarkdownUnderline = Mark.create({
-  name: 'underline',
-  parseHTML() {
-    return [
-      { tag: 'u' },
-      { style: 'text-decoration=underline' },
-    ]
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ['u', HTMLAttributes, 0]
-  },
-  addCommands() {
-    return {
-      toggleUnderline: () => ({ commands }) => {
-        return commands.toggleMark(this.name)
-      },
-    }
-  },
+/**
+ * Markdown-compatible Underline extension
+ */
+export const MarkdownUnderline = Underline.extend({
   // @ts-ignore
   markdown: {
     serialize: {
@@ -275,26 +193,10 @@ export const MarkdownUnderline = Mark.create({
 /**
  * Markdown-compatible Strike extension
  */
-export const MarkdownStrike = Mark.create({
-  name: 'strike',
-  parseHTML() {
-    return [
-      { tag: 's' },
-      { tag: 'del' },
-      { tag: 'strike' },
-      { style: 'text-decoration: line-through' },
-    ]
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ['s', HTMLAttributes, 0]
-  },
-  addCommands() {
-    return {
-      toggleStrike: () => ({ commands }) => {
-        return commands.toggleMark(this.name)
-      },
-    }
-  },
+/**
+ * Markdown-compatible Strike extension
+ */
+export const MarkdownStrike = Strike.extend({
   // @ts-ignore
   markdown: {
     serialize: {
