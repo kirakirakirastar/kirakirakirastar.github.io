@@ -94,23 +94,20 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import { Highlight } from '@tiptap/extension-highlight'
-import { Typography } from '@tiptap/extension-typography'
-import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
 import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
 import { TableHeader } from '@tiptap/extension-table-header'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { Link } from '@tiptap/extension-link'
-import { Color } from '@tiptap/extension-color'
-import { TextStyle } from '@tiptap/extension-text-style'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
+import { Typography } from '@tiptap/extension-typography'
+import { TaskList } from '@tiptap/extension-task-list'
 
 // Custom Extensions
-import { Mask, BangumiShortcuts, MarkdownUnderline } from '@/utils/tiptap-extensions'
+import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight } from '@/utils/tiptap-extensions'
 
 import { journalsApi } from '@/api/journals'
 import { supabaseFoldersApi } from '@/api/supabaseData'
@@ -150,7 +147,7 @@ const editor = useEditor({
   extensions: [
     StarterKit,
     MarkdownUnderline,
-    Highlight.configure({ multicolor: true }),
+    MarkdownHighlight.configure({ multicolor: true }),
     Typography,
     TaskList,
     TaskItem.configure({
@@ -165,8 +162,8 @@ const editor = useEditor({
     Link.configure({
       openOnClick: false,
     }),
-    Color,
-    TextStyle,
+    MarkdownColor,
+    MarkdownTextStyle,
     Mask,
     BangumiShortcuts,
     Image.configure({

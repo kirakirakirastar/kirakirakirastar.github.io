@@ -69,8 +69,21 @@
         />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-2">短评</label>
-        <textarea v-model="form.review" rows="5" class="w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600"></textarea>
+        <label class="block text-sm font-medium mb-2">详细记录 / 评价</label>
+        <div class="border rounded-xl dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800 focus-within:ring-2 focus-within:ring-primary transition-shadow">
+          <!-- Toolbar -->
+          <div class="flex flex-wrap gap-1 p-2 bg-slate-50 dark:bg-slate-900 border-b dark:border-slate-700">
+            <button type="button" @click="editor?.chain().focus().toggleBold().run()" :class="{ 'bg-slate-200 dark:bg-slate-700': editor?.isActive('bold') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm font-bold">B</button>
+            <button type="button" @click="editor?.chain().focus().toggleItalic().run()" :class="{ 'bg-slate-200 dark:bg-slate-700': editor?.isActive('italic') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm italic">I</button>
+            <button type="button" @click="editor?.chain().focus().toggleUnderline().run()" :class="{ 'bg-slate-200 dark:bg-slate-700': editor?.isActive('underline') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm underline">U</button>
+            <button type="button" @click="editor?.chain().focus().toggleBulletList().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('bulletList') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">•</button>
+            <button type="button" @click="editor?.chain().focus().toggleOrderedList().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('orderedList') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">1.</button>
+            <button type="button" @click="editor?.chain().focus().toggleBlockquote().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('blockquote') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">引用</button>
+            <button type="button" @click="editor?.chain().focus().undo().run()" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm ml-auto">撤销</button>
+            <button type="button" @click="editor?.chain().focus().redo().run()" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">重做</button>
+          </div>
+          <EditorContent :editor="editor" class="prose dark:prose-invert max-w-none p-4 min-h-[200px]" />
+        </div>
       </div>
 
       <div class="flex items-center gap-3 py-2">
@@ -97,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { hobbiesApi } from '@/api/hobbies'
 import { supabaseFoldersApi } from '@/api/supabaseData'
@@ -105,6 +118,11 @@ import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 import { deleteFileByUrl } from '@/api/cleanup'
 import { useUiStore } from '@/stores/ui'
+import { useEditor, EditorContent } from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+import { Markdown } from 'tiptap-markdown'
+import Placeholder from '@tiptap/extension-placeholder'
+import { MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, BangumiShortcuts, Mask } from '@/utils/tiptap-extensions'
 import type { Hobby } from '@/api/types'
 
 const uiStore = useUiStore()
@@ -144,6 +162,7 @@ const loadHobby = async () => {
     is_private: data.is_private || false,
   }
   tagsInput.value = data.tags.map(t => t.name).join(', ')
+  editor.value?.commands.setContent(data.review || '')
 }
 
 const loadFolders = async () => {
@@ -177,6 +196,29 @@ const uploadAndSetCover = async (file: File) => {
     uiStore.addToast('封面上传失败', 'error')
   }
 }
+
+const editor = useEditor({
+  extensions: [
+    StarterKit,
+    MarkdownUnderline,
+    MarkdownHighlight,
+    MarkdownColor,
+    MarkdownTextStyle,
+    Mask,
+    BangumiShortcuts,
+    Placeholder.configure({
+      placeholder: '在这里写下你的评价与笔记...',
+    }),
+    Markdown.configure({
+      html: true,
+      tightLists: true,
+    }),
+  ],
+  content: '',
+  onUpdate: ({ editor }) => {
+    form.value.review = editor.storage.markdown.getMarkdown()
+  },
+})
 
 const handlePaste = (event: ClipboardEvent) => {
   const items = event.clipboardData?.items
@@ -226,7 +268,8 @@ onMounted(() => {
   window.addEventListener('paste', handlePaste)
 })
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
+  editor.value?.destroy()
   window.removeEventListener('paste', handlePaste)
 })
 </script>

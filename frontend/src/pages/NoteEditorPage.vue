@@ -120,7 +120,6 @@ import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
-import { Highlight } from '@tiptap/extension-highlight'
 import { Typography } from '@tiptap/extension-typography'
 import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
@@ -128,10 +127,8 @@ import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { TableHeader } from '@tiptap/extension-table-header'
-import { Mask, BangumiShortcuts, MarkdownUnderline } from '@/utils/tiptap-extensions'
+import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight } from '@/utils/tiptap-extensions'
 import { Link } from '@tiptap/extension-link'
-import { Color } from '@tiptap/extension-color'
-import { TextStyle } from '@tiptap/extension-text-style'
 import { renderMarkdown } from '@/utils/markdown'
 import { notesApi } from '@/api/notes'
 import { supabaseFoldersApi } from '@/api/supabaseData'
@@ -169,7 +166,7 @@ const editor = useEditor({
   extensions: [
     StarterKit,
     MarkdownUnderline,
-    Highlight.configure({ multicolor: true }),
+    MarkdownHighlight.configure({ multicolor: true }),
     Typography,
     TaskList,
     TaskItem.configure({
@@ -184,8 +181,8 @@ const editor = useEditor({
     Link.configure({
       openOnClick: false,
     }),
-    Color,
-    TextStyle,
+    MarkdownColor,
+    MarkdownTextStyle,
     Mask,
     BangumiShortcuts,
     Image.configure({

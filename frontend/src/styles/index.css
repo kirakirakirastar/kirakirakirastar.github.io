@@ -125,14 +125,22 @@ html, body, #app {
 .markdown-body li > ol {
   @apply mt-2 mb-0;
 }
-.markdown-body li p {
-  @apply mb-1 inline-block;
+.markdown-body li > p {
+  @apply mb-0 inline; /* Prevents double spacing in simple lists */
+}
+.markdown-body li > p + p {
+  @apply mt-2 block; /* Allows spacing for multi-paragraph list items */
 }
 
 /* Underline & Insert */
 .markdown-body u,
 .markdown-body ins {
   @apply underline decoration-current underline-offset-4 decoration-1;
+}
+
+/* Highlights */
+.markdown-body mark {
+  @apply bg-yellow-200 dark:bg-yellow-900/40 px-1 rounded-sm text-inherit;
 }
 
 /* Tables - Enhanced */
