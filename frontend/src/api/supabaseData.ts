@@ -703,7 +703,7 @@ export const supabaseDashboardApi = {
         // Simulate future occurrences for recurring tasks
         try {
           const { data: pendingTodos } = await supabase.from('todos')
-            .select('text, due_date, recurrence, is_private')
+            .select('text, due_date, recurrence, recurrence_until, is_private')
             .eq('status', 'pending')
             .neq('recurrence', 'none')
             .not('due_date', 'is', null)
@@ -719,9 +719,15 @@ export const supabaseDashboardApi = {
                            : 'day'
                 
                 // start from NEXT occurrence (since the current one is already returned by get_daily_activities)
-                current = current.add(1, unit as dayjs.ManipulateType)
+                // Priority boundary: Use recurrence_until if set, otherwise the master deadline (due_date)
+                const seriesLimit = todo.recurrence_until || todo.due_date
                 
                 while(current.isBefore(futureLimit)) {
+                   // If current date exceeds the series limit, stop simulation
+                   if (seriesLimit && current.isAfter(dayjs(seriesLimit))) {
+                      break
+                   }
+                   
                    const dStr = current.format('YYYY-MM-DD')
                    if (!activityMap[dStr]) {
                        activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
