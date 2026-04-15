@@ -78,6 +78,8 @@ import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import { calculateReadingTime } from '@/utils/text'
 import { renderMarkdown } from '@/utils/markdown'
+import { useAuthStore } from '@/stores/auth'
+import { journalsApi } from '@/api/journals'
 
 const authStore = useAuthStore()
 const route = useRoute()
