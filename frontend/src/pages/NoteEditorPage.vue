@@ -120,7 +120,6 @@ import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
-import { Underline } from '@tiptap/extension-underline'
 import { Highlight } from '@tiptap/extension-highlight'
 import { Typography } from '@tiptap/extension-typography'
 import { TaskList } from '@tiptap/extension-task-list'
@@ -129,7 +128,7 @@ import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { TableHeader } from '@tiptap/extension-table-header'
-import { Mask, BangumiShortcuts } from '@/utils/tiptap-extensions'
+import { Mask, BangumiShortcuts, MarkdownUnderline } from '@/utils/tiptap-extensions'
 import { Link } from '@tiptap/extension-link'
 import { Color } from '@tiptap/extension-color'
 import { TextStyle } from '@tiptap/extension-text-style'
@@ -169,7 +168,7 @@ const uploadAndInsertImage = async (file: File) => {
 const editor = useEditor({
   extensions: [
     StarterKit,
-    Underline,
+    MarkdownUnderline,
     Highlight.configure({ multicolor: true }),
     Typography,
     TaskList,

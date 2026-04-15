@@ -57,7 +57,7 @@
 
       <!-- Content -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
-        <div class="rich-html" v-html="renderMarkdown(journal.content_md || journal.content_html)"></div>
+        <div class="markdown-body" v-html="renderMarkdown(journal.content_md || journal.content_html)"></div>
       </div>
       <!-- Scroll to Top Button -->
       <button 

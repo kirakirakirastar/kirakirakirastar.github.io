@@ -1,4 +1,5 @@
 import { Mark, mergeAttributes, Extension } from '@tiptap/core'
+import { Underline } from '@tiptap/extension-underline'
 
 /**
  * TypeScript Module Augmentation to let Tiptap know about our custom commands.
@@ -45,6 +46,38 @@ export const Mask = Mark.create({
       },
     }
   },
+  // @ts-ignore
+  markdown: {
+    serialize(state, mark) {
+      state.write('[mask]')
+      state.renderContent(mark)
+      state.write('[/mask]')
+    },
+    parse: {
+      setup(markdownit) {
+        // Handled by markdown-it custom rule in our renderer
+      }
+    }
+  }
+})
+
+/**
+ * Enhanced Underline extension with Markdown support
+ */
+export const MarkdownUnderline = Underline.extend({
+  // @ts-ignore
+  markdown: {
+    serialize(state, mark) {
+      state.write('<u>')
+      state.renderContent(mark)
+      state.write('</u>')
+    },
+    parse: {
+      setup(markdownit) {
+         // Standard markdown-it handles <u> if html is enabled
+      }
+    }
+  }
 })
 
 /**

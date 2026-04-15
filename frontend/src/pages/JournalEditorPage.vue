@@ -94,7 +94,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import { Underline } from '@tiptap/extension-underline'
 import { Highlight } from '@tiptap/extension-highlight'
 import { Typography } from '@tiptap/extension-typography'
 import { TaskList } from '@tiptap/extension-task-list'
@@ -111,7 +110,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
 
 // Custom Extensions
-import { Mask, BangumiShortcuts } from '@/utils/tiptap-extensions'
+import { Mask, BangumiShortcuts, MarkdownUnderline } from '@/utils/tiptap-extensions'
 
 import { journalsApi } from '@/api/journals'
 import { supabaseFoldersApi } from '@/api/supabaseData'
@@ -150,7 +149,7 @@ const uploadAndInsertImage = async (file: File) => {
 const editor = useEditor({
   extensions: [
     StarterKit,
-    Underline,
+    MarkdownUnderline,
     Highlight.configure({ multicolor: true }),
     Typography,
     TaskList,

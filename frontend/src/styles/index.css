@@ -111,6 +111,30 @@ html, body, #app {
 
 .markdown-body p { @apply mb-4 leading-relaxed; }
 
+/* Lists - Restoring standard markers removed by Tailwind */
+.markdown-body ul {
+  @apply list-disc pl-8 mb-4 space-y-1;
+}
+.markdown-body ol {
+  @apply list-decimal pl-8 mb-4 space-y-1;
+}
+.markdown-body li {
+  @apply mb-1;
+}
+.markdown-body li > ul,
+.markdown-body li > ol {
+  @apply mt-2 mb-0;
+}
+.markdown-body li p {
+  @apply mb-1 inline-block;
+}
+
+/* Underline & Insert */
+.markdown-body u,
+.markdown-body ins {
+  @apply underline decoration-current underline-offset-4 decoration-1;
+}
+
 /* Tables - Enhanced */
 .markdown-body table {
   @apply w-full border-collapse my-8 overflow-hidden rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-opacity-40;
