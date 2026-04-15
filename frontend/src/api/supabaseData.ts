@@ -700,6 +700,45 @@ export const supabaseDashboardApi = {
           }
         })
 
+        // Simulate future occurrences for recurring tasks
+        try {
+          const { data: pendingTodos } = await supabase.from('todos')
+            .select('text, due_date, recurrence, is_private')
+            .eq('status', 'pending')
+            .neq('recurrence', 'none')
+            .not('due_date', 'is', null)
+
+          if (pendingTodos) {
+             const futureLimit = dayjs().add(6, 'month')
+             pendingTodos.forEach(todo => {
+                if (isOwner === false && todo.is_private) return;
+                
+                let current = dayjs(todo.due_date)
+                const unit = todo.recurrence === 'weekly' ? 'week' 
+                           : todo.recurrence === 'monthly' ? 'month' 
+                           : 'day'
+                
+                // start from NEXT occurrence (since the current one is already returned by get_daily_activities)
+                current = current.add(1, unit as dayjs.ManipulateType)
+                
+                while(current.isBefore(futureLimit)) {
+                   const dStr = current.format('YYYY-MM-DD')
+                   if (!activityMap[dStr]) {
+                       activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
+                   }
+                   activityMap[dStr].schedules++
+                   activityMap[dStr].total++
+                   if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
+                   activityMap[dStr].schedules_list.push(todo.text)
+                   
+                   current = current.add(1, unit as dayjs.ManipulateType)
+                }
+             })
+          }
+        } catch (e) {
+          console.error('Failed to simulate future recurrences', e)
+        }
+
         // 注入连续打卡数据（由于 checkins 表只存当前状态，仍需前端配合 heatmap 组件逻辑显示）
         const { data: checkin } = await supabase.from('checkins').select('*').maybeSingle()
         if (checkin && checkin.last_date && checkin.streak > 0) {

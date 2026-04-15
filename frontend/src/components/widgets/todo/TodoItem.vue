@@ -61,15 +61,23 @@
             </span>
           </div>
         </template>
-        <div v-else class="py-1">
+        <div v-else class="py-1 flex items-center gap-2">
            <input 
             v-model="tempText"
             @keyup.enter="saveEdit"
             @keyup.esc="cancelEdit"
             type="text"
-            class="w-full bg-white dark:bg-slate-800 border border-primary/30 dark:border-primary/20 rounded-lg px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-primary shadow-sm"
+            class="flex-1 min-w-0 bg-white dark:bg-slate-800 border border-primary/30 dark:border-primary/20 rounded-lg px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-primary shadow-sm"
             autofocus
           />
+          <select 
+            v-model="tempPriority"
+            class="px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg text-xs outline-none cursor-pointer text-slate-600 dark:text-slate-300 w-24"
+          >
+            <option value="high">🔴 紧急</option>
+            <option value="medium">🟡 普通</option>
+            <option value="low">🔵 轻松</option>
+          </select>
         </div>
       </div>
     </div>
@@ -166,11 +174,13 @@ const props = defineProps<{
 const emit = defineEmits(['toggle-status', 'cycle-priority', 'cycle-recurrence', 'postpone', 'fail', 'retry', 'remove', 'start-edit', 'cancel-edit', 'save-edit'])
 
 const tempText = ref(props.todo.text)
+const tempPriority = ref(props.todo.priority || 'medium')
 const tempStartDate = ref(props.todo.start_date || '')
 const tempDueDate = ref(props.todo.due_date || '')
 
 const startEditing = () => {
   tempText.value = props.todo.text
+  tempPriority.value = props.todo.priority || 'medium'
   tempStartDate.value = props.todo.start_date || ''
   tempDueDate.value = props.todo.due_date || ''
   emit('start-edit', props.todo.id)
@@ -184,6 +194,7 @@ const saveEdit = () => {
   if (!tempText.value.trim()) return
   emit('save-edit', {
     text: tempText.value.trim(),
+    priority: tempPriority.value,
     start_date: tempStartDate.value || null,
     due_date: tempDueDate.value || null
   })
