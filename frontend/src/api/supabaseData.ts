@@ -708,9 +708,8 @@ export const supabaseDashboardApi = {
         // Simulate future occurrences for recurring tasks
         try {
           const { data: pendingTodos } = await supabase.from('todos')
-            .select('text, start_date, due_date, recurrence, recurrence_until, is_private')
+            .select('text, start_date, due_date, recurrence, recurrence_until, is_private, created_at')
             .eq('status', 'pending')
-            .not('due_date', 'is', null)
 
           if (pendingTodos) {
              const futureLimit = dayjs().add(6, 'month')
@@ -723,16 +722,23 @@ export const supabaseDashboardApi = {
                 const unit = todo.recurrence === 'weekly' ? 'week' 
                            : todo.recurrence === 'monthly' ? 'month' 
                            : 'day'
-                let current = dayjs(todo.due_date)
+                
+                // Reference point for simulation logic
+                const refDate = todo.due_date || todo.start_date || todo.created_at
+                let current = dayjs(refDate)
                 
                 // 1. Fill current instance duration (start_date to due_date)
-                if (todo.start_date && todo.due_date) {
-                   let d = dayjs(todo.start_date)
-                   const end = dayjs(todo.due_date)
-                   // Map every day from start to due (inclusive)
+                // If only start_date exists, map just that day
+                // If only due_date exists, map just that day
+                // If both exist, map the range
+                const rangeStart = todo.start_date || todo.due_date || todo.created_at
+                const rangeEnd = todo.due_date || todo.start_date || todo.created_at
+                
+                if (rangeStart && rangeEnd) {
+                   let d = dayjs(rangeStart)
+                   const end = dayjs(rangeEnd)
                    while (d.isSameOrBefore(end)) {
                       const dStr = d.format('YYYY-MM-DD')
-                      // Only map future dates or dates not handled by RPC (usually RPC handled past)
                       if (d.isSameOrAfter(dayjs(), 'day')) {
                         if (!activityMap[dStr]) {
                             activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
@@ -746,25 +752,11 @@ export const supabaseDashboardApi = {
                       }
                       d = d.add(1, 'day')
                    }
-                } else if (todo.due_date) {
-                   // One-off future task with only due_date
-                   const dStr = dayjs(todo.due_date).format('YYYY-MM-DD')
-                   if (dayjs(todo.due_date).isSameOrAfter(dayjs(), 'day')) {
-                      if (!activityMap[dStr]) {
-                          activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
-                      }
-                      activityMap[dStr].schedules++
-                      activityMap[dStr].total++
-                      if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
-                      if (!activityMap[dStr].schedules_list.includes(todo.text)) {
-                        activityMap[dStr].schedules_list.push(todo.text)
-                      }
-                   }
                 }
 
                 // 2. Simulate future occurrences (only for recurring)
                 if (todo.recurrence && todo.recurrence !== 'none') {
-                   // start simulation from NEXT occurrence after the current due_date
+                   // Start simulation from NEXT occurrence after the reference point
                    current = current.add(1, unit as dayjs.ManipulateType)
                    
                    while(current.isBefore(futureLimit)) {
