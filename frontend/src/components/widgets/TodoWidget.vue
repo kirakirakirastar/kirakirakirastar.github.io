@@ -103,8 +103,8 @@ const categorized = computed(() => {
   return {
     active: sortTodos(active),
     planned: sortTodos(planned),
-    failed: all.filter(t => t.status === 'failed'),
-    completed: all.filter(t => t.status === 'completed')
+    failed: sortTodos(all.filter(t => t.status === 'failed')),
+    completed: sortTodos(all.filter(t => t.status === 'completed'))
   }
 })
 
