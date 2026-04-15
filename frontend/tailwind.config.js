@@ -8,22 +8,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          light: 'var(--color-primary-light)',
-          DEFAULT: 'var(--color-primary)',
-        },
-        secondary: {
-          light: 'var(--color-secondary-light)',
-          DEFAULT: 'var(--color-secondary)',
-        },
-        'theme-bg': {
-          DEFAULT: 'var(--color-bg-page)',
-          dark: 'var(--color-bg-page-dark)',
-          tint: 'var(--color-bg-tint)',
-        },
-        'theme-card': {
-          dark: 'var(--color-bg-card-dark)',
-        }
+        primary: 'var(--color-primary)',
+        'primary-light': 'var(--color-primary-light)',
+        secondary: 'var(--color-secondary)',
+        'secondary-light': 'var(--color-secondary-light)',
+        'theme-bg': 'var(--color-bg-page)',
+        'theme-bg-dark': 'var(--color-bg-page-dark)',
+        'theme-bg-tint': 'var(--color-bg-tint)',
+        'theme-card-dark': 'var(--color-bg-card-dark)',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
