@@ -703,7 +703,7 @@ export const supabaseDashboardApi = {
         // Simulate future occurrences for recurring tasks
         try {
           const { data: pendingTodos } = await supabase.from('todos')
-            .select('text, due_date, recurrence, recurrence_until, is_private')
+            .select('text, start_date, due_date, recurrence, recurrence_until, is_private')
             .eq('status', 'pending')
             .neq('recurrence', 'none')
             .not('due_date', 'is', null)
@@ -713,14 +713,31 @@ export const supabaseDashboardApi = {
              pendingTodos.forEach(todo => {
                 if (isOwner === false && todo.is_private) return;
                 
-                let current = dayjs(todo.due_date)
                 const unit = todo.recurrence === 'weekly' ? 'week' 
                            : todo.recurrence === 'monthly' ? 'month' 
                            : 'day'
+                let current = dayjs(todo.due_date)
                 
-                // start from NEXT occurrence (since the current one is already returned by get_daily_activities)
-                // Priority boundary: Use recurrence_until if set, otherwise the master deadline (due_date)
                 const seriesLimit = todo.recurrence_until || todo.due_date
+                
+                // 1. Fill current instance duration (start_date to due_date)
+                if (todo.start_date && todo.due_date && todo.start_date !== todo.due_date) {
+                   let d = dayjs(todo.start_date)
+                   const end = dayjs(todo.due_date)
+                   while (d.isBefore(end)) { // stop BEFORE due_date because RPC/Simulation handle those
+                      const dStr = d.format('YYYY-MM-DD')
+                      if (!activityMap[dStr]) {
+                          activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
+                      }
+                      activityMap[dStr].schedules++
+                      activityMap[dStr].total++
+                      d = d.add(1, 'day')
+                   }
+                }
+
+                // 2. Simulate future occurrences
+                // start simulation from NEXT occurrence
+                current = current.add(1, unit as dayjs.ManipulateType)
                 
                 while(current.isBefore(futureLimit)) {
                    // If current date exceeds the series limit, stop simulation
