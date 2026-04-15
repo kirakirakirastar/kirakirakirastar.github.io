@@ -65,7 +65,28 @@ export const Mask = Mark.create({
       close: '</span>',
     },
     parse: {
-      // Handled by Tiptap's parseHTML and tiptap-markdown's HTML support
+      setup(markdownit: any) {
+        markdownit.inline.ruler.before('escape', 'mask', (state: any, silent: any) => {
+          const startTag = '<span class="mask-text">'
+          const endTag = '</span>'
+          if (!state.src.startsWith(startTag, state.pos)) return false
+          const start = state.pos
+          const contentStart = start + startTag.length
+          const end = state.src.indexOf(endTag, contentStart)
+          if (end === -1) return false
+          if (silent) return true
+          const oldMax = state.posMax
+          state.pos = contentStart
+          state.posMax = end
+          const token = state.push('mask_open', 'span', 1)
+          token.attrs = [['class', 'mask-text']]
+          state.md.inline.tokenize(state)
+          state.push('mask_close', 'span', -1)
+          state.pos = end + endTag.length
+          state.posMax = oldMax
+          return true
+        })
+      }
     }
   }
 })
@@ -98,7 +119,31 @@ export const MarkdownColor = Color.extend({
       },
     },
     parse: {
-      // Handled by Tiptap's parseHTML
+      setup(markdownit: any) {
+        markdownit.inline.ruler.before('escape', 'color', (state: any, silent: any) => {
+          const regex = /^<span style="color: ([^"]+)">/
+          const match = state.src.slice(state.pos).match(regex)
+          if (!match) return false
+          const startTag = match[0]
+          const endTag = '</span>'
+          const start = state.pos
+          const contentStart = start + startTag.length
+          const end = state.src.indexOf(endTag, contentStart)
+          if (end === -1) return false
+          if (silent) return true
+          const color = match[1]
+          const oldMax = state.posMax
+          state.pos = contentStart
+          state.posMax = end
+          const token = state.push('textStyle_open', 'span', 1)
+          token.attrs = [['style', `color: ${color}`]]
+          state.md.inline.tokenize(state)
+          state.push('textStyle_close', 'span', -1)
+          state.pos = end + endTag.length
+          state.posMax = oldMax
+          return true
+        })
+      }
     }
   }
 })
@@ -114,7 +159,27 @@ export const MarkdownHighlight = Highlight.extend({
       close: '</mark>',
     },
     parse: {
-      // Handled by Tiptap's parseHTML
+      setup(markdownit: any) {
+        markdownit.inline.ruler.before('escape', 'highlight', (state: any, silent: any) => {
+          const startTag = '<mark>'
+          const endTag = '</mark>'
+          if (!state.src.startsWith(startTag, state.pos)) return false
+          const start = state.pos
+          const contentStart = start + startTag.length
+          const end = state.src.indexOf(endTag, contentStart)
+          if (end === -1) return false
+          if (silent) return true
+          const oldMax = state.posMax
+          state.pos = contentStart
+          state.posMax = end
+          state.push('highlight_open', 'mark', 1)
+          state.md.inline.tokenize(state)
+          state.push('highlight_close', 'mark', -1)
+          state.pos = end + endTag.length
+          state.posMax = oldMax
+          return true
+        })
+      }
     }
   }
 }).configure({ multicolor: true })
@@ -130,7 +195,27 @@ export const MarkdownUnderline = Underline.extend({
       close: '</u>',
     },
     parse: {
-      // Handled by Tiptap's parseHTML
+      setup(markdownit: any) {
+        markdownit.inline.ruler.before('escape', 'underline', (state: any, silent: any) => {
+          const startTag = '<u>'
+          const endTag = '</u>'
+          if (!state.src.startsWith(startTag, state.pos)) return false
+          const start = state.pos
+          const contentStart = start + startTag.length
+          const end = state.src.indexOf(endTag, contentStart)
+          if (end === -1) return false
+          if (silent) return true
+          const oldMax = state.posMax
+          state.pos = contentStart
+          state.posMax = end
+          state.push('underline_open', 'u', 1)
+          state.md.inline.tokenize(state)
+          state.push('underline_close', 'u', -1)
+          state.pos = end + endTag.length
+          state.posMax = oldMax
+          return true
+        })
+      }
     }
   }
 })
@@ -146,7 +231,27 @@ export const MarkdownStrike = Strike.extend({
       close: '</s>',
     },
     parse: {
-      // Using HTML tags for strike avoids the standard Markdown ~~ escaping issues
+      setup(markdownit: any) {
+        markdownit.inline.ruler.before('escape', 'strike', (state: any, silent: any) => {
+          const startTag = '<s>'
+          const endTag = '</s>'
+          if (!state.src.startsWith(startTag, state.pos)) return false
+          const start = state.pos
+          const contentStart = start + startTag.length
+          const end = state.src.indexOf(endTag, contentStart)
+          if (end === -1) return false
+          if (silent) return true
+          const oldMax = state.posMax
+          state.pos = contentStart
+          state.posMax = end
+          state.push('strike_open', 's', 1)
+          state.md.inline.tokenize(state)
+          state.push('strike_close', 's', -1)
+          state.pos = end + endTag.length
+          state.posMax = oldMax
+          return true
+        })
+      }
     }
   }
 })
