@@ -52,39 +52,42 @@ export const useGadgetStore = defineStore('gadgets', () => {
         await fetchCheckinHistory()
 
         // --- Domain Logic: Evaluate Todo Statuses/Failures ---
-        const now = dayjs().startOf('day')
-        const failedIds: string[] = []
+        const today = dayjs().startOf('day')
         
-        todos.value = fetchedTodos.map((t: Todo) => {
+        let processedTodos = fetchedTodos.map((t: Todo) => {
           let updated = { ...t }
           // 1. Auto-migrate legacy boolean
           if (updated.completed === true && (!updated.status || updated.status === 'pending')) {
             updated.status = 'completed'
           } 
-          // 2. Check for expired pending todos
-          else if (updated.status === 'pending' && updated.due_date) {
-            const dueDate = dayjs(updated.due_date)
-            if (dueDate.isBefore(now)) {
-              updated.status = 'failed'
-              failedIds.push(updated.id)
-            }
-          }
           return updated
         })
 
-        // Async update failures in background
-        if (failedIds.length > 0) {
-          Promise.all(failedIds.map(async id => {
-            await todosApi.updateStatus(id, 'failed')
-            // Also trigger recurrence for these auto-failures
-            const todo = todos.value.find(t => t.id === id)
-            if (todo && todo.recurrence && todo.recurrence !== 'none') {
-              handleRecurrence(todo)
+        // 2. Identify and handle overdue tasks (Auto-Failure)
+        const overdueTasks = processedTodos.filter((t: Todo) => 
+          t.status === 'pending' && 
+          t.due_date && 
+          dayjs(t.due_date).isBefore(today)
+        )
+
+        if (overdueTasks.length > 0) {
+          console.log(`Auto-failing ${overdueTasks.length} overdue tasks...`)
+          for (const task of overdueTasks) {
+            // Update local state first
+            const localTask = processedTodos.find((t: Todo) => t.id === task.id)
+            if (localTask) localTask.status = 'failed'
+            
+            // Sync to DB
+            todosApi.updateStatus(task.id, 'failed').catch(e => console.error('Failed to sync auto-failure:', e))
+            
+            // Trigger next instance for recurring tasks
+            if (task.recurrence && task.recurrence !== 'none') {
+              handleRecurrence(task)
             }
-          })).catch(err => {
-            console.error('Failed to sync expired todos to server:', err)
-          })
+          }
         }
+
+        todos.value = processedTodos
 
         setupRealtime()
       } else {
