@@ -83,128 +83,143 @@
     </div>
 
     <!-- Component Row 2: Dates + Actions -->
-    <div class="flex items-center gap-2 w-full sm:w-auto mt-1 sm:mt-0 pl-9 sm:pl-0 sm:ml-auto">
-      <!-- Dates Display/Edit -->
-      <div class="flex-1 sm:flex-initial min-w-0">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-1 sm:mt-0 pl-9 sm:pl-0 sm:ml-auto">
+      <!-- Dates Section -->
+      <div class="flex-1 sm:flex-initial">
          <template v-if="!isEditing">
-           <div @dblclick="startEditing" v-if="todo.start_date || todo.due_date" class="text-[10px] sm:text-[11px] tracking-wide flex items-center gap-1 cursor-pointer whitespace-nowrap" :class="getDateClass(todo)">
+           <div @dblclick="startEditing" v-if="todo.start_date || todo.due_date" class="text-[10px] sm:text-[11px] tracking-wide flex items-center gap-1 cursor-pointer whitespace-nowrap p-1 hover:bg-slate-50 dark:hover:bg-slate-700/30 rounded-lg transition-colors" :class="getDateClass(todo)">
               <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z"></path></svg>
               <span class="truncate">{{ formatDateRange(todo.start_date, todo.due_date) }}</span>
-              <span v-if="todo.status === 'failed'" class="ml-1 text-red-500 font-bold">(已过期)</span>
            </div>
          </template>
-         <div v-else class="flex flex-col gap-2 p-1 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-white/5">
-            <div class="flex items-center gap-2">
-               <span class="text-[9px] font-bold text-slate-400 w-12 text-right">任务期限</span>
+         <div v-else class="flex flex-col gap-2 p-1.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-white/5">
+            <div class="grid grid-cols-[Auto_1fr] items-center gap-x-2 gap-y-1.5">
+               <span class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">本次任务</span>
                <div class="flex items-center gap-1">
-                 <input v-model="tempStartDate" type="date" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 rounded-lg px-1 py-0.5 text-[10px] outline-none [color-scheme:dark] w-28" />
-                 <span class="text-slate-400">-</span>
-                 <input v-model="tempDueDate" type="date" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 rounded-lg px-1 py-0.5 text-[10px] outline-none [color-scheme:dark] w-28" />
+                 <input v-model="tempStartDate" type="date" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 rounded-lg px-1.5 py-1 text-[10px] outline-none [color-scheme:dark] w-full" />
+                 <span class="text-slate-300">→</span>
+                 <input v-model="tempDueDate" type="date" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 rounded-lg px-1.5 py-1 text-[10px] outline-none [color-scheme:dark] w-full" />
                </div>
-            </div>
-            <div v-if="tempRecurrence !== 'none'" class="flex items-center gap-2">
-               <span class="text-[9px] font-bold text-primary w-12 text-right">系列终点</span>
-               <input v-model="tempRecurrenceUntil" type="date" class="bg-white dark:bg-slate-800 border border-primary/20 dark:border-primary/20 rounded-lg px-1 py-0.5 text-[10px] outline-none [color-scheme:dark] w-28" />
-               <span class="text-[8px] text-slate-400 italic">默认同截止日</span>
+               
+               <template v-if="tempRecurrence !== 'none'">
+                 <span class="text-[9px] font-black text-primary uppercase tracking-wider">周期截止</span>
+                 <div class="flex items-center gap-2">
+                   <input v-model="tempRecurrenceUntil" type="date" class="flex-1 bg-white dark:bg-slate-800 border-2 border-primary/20 dark:border-primary/20 rounded-xl px-2 py-1 text-[11px] font-bold outline-none [color-scheme:dark] shadow-sm focus:border-primary" />
+                   <button @click="tempRecurrenceUntil = null" class="px-2 py-1 bg-slate-100 dark:bg-slate-700/50 text-[10px] text-slate-400 hover:text-red-500 rounded-lg transition-colors">不设限</button>
+                 </div>
+               </template>
             </div>
          </div>
       </div>
 
-      <!-- Unified Action Group -->
-      <div class="flex items-center gap-1 ml-auto">
-        <div class="flex items-center gap-0.5 p-1 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-100 dark:border-white/5">
-          <!-- Integrated Recurrence Button & Popover -->
+      <!-- Refined Action Group (Unified Stack) -->
+      <div class="flex sm:flex-col items-center gap-1 ml-auto shrink-0 self-center sm:self-stretch justify-center pr-1 sm:pr-0">
+        <div class="flex sm:flex-col items-center gap-1 p-1 bg-slate-100/50 dark:bg-slate-900/40 rounded-xl border border-slate-200/50 dark:border-white/5">
+          <!-- Recurrence -->
           <div class="relative" ref="containerRef">
             <button 
               @click.stop="showRecurrenceMenu = !showRecurrenceMenu"
-              class="p-1.5 transition-all rounded-lg"
+              class="p-2 transition-all rounded-lg hover:bg-white dark:hover:bg-slate-700 shadow-sm sm:shadow-none"
               :class="[
                 (isEditing ? tempRecurrence : todo.recurrence) !== 'none' 
-                  ? 'text-primary bg-primary/10' 
-                  : 'text-slate-400 hover:text-primary hover:bg-primary/5'
+                  ? 'text-primary bg-white dark:bg-slate-700' 
+                  : 'text-slate-400 hover:text-primary'
               ]"
               :title="'重复设置: ' + recurrenceLabel(isEditing ? tempRecurrence : (todo.recurrence || 'none'))"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
               </svg>
-              <span v-if="(isEditing ? tempRecurrenceUntil : todo.recurrence_until)" class="absolute -top-0.5 -right-0.5 flex h-1.5 w-1.5">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
-              </span>
             </button>
 
-            <!-- Recurrence Popover -->
-            <div 
-              v-if="showRecurrenceMenu" 
-              class="absolute bottom-full mb-3 right-0 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-[100] p-3 flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200"
-            >
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">循环设置</span>
-                <button @click="showRecurrenceMenu = false" class="text-slate-400 hover:text-slate-600">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-              </div>
-
-              <!-- Frequency Selection -->
-              <div class="grid grid-cols-4 gap-1.5">
-                <button 
-                  v-for="opt in ['none', 'daily', 'weekly', 'monthly']" 
-                  :key="opt"
-                  @click="isEditing ? (tempRecurrence = opt) : handleCycleRecurrenceSpecific(opt)"
-                  class="px-1 py-1.5 rounded-lg text-[10px] font-medium border transition-all"
-                  :class="(isEditing ? tempRecurrence : todo.recurrence) === opt ? 'bg-primary text-white border-primary shadow-sm' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-white/5 text-slate-500 hover:border-primary/30'"
+            <!-- Recurrence Popover (Teleported to avoid clipping) -->
+            <Teleport to="body">
+              <Transition name="fade-scale">
+                <div v-if="showRecurrenceMenu" class="fixed inset-0 z-[9998] bg-slate-900/40 backdrop-blur-sm sm:hidden" @click="showRecurrenceMenu = false"></div>
+              </Transition>
+              <Transition name="fade-scale">
+                <div 
+                  v-if="showRecurrenceMenu" 
+                  ref="popoverRef"
+                  class="fixed w-[300px] sm:w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-[9999] p-4 flex flex-col gap-4"
+                  :style="popoverStyle"
                 >
-                  {{ recurrenceLabel(opt) }}
-                </button>
-              </div>
-
-              <!-- End Condition (Only in editing or if enabled) -->
-              <div v-if="(isEditing ? tempRecurrence : todo.recurrence) !== 'none'" class="flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
-                 <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-bold text-slate-500">系列终点</span>
-                    <button 
-                      v-if="isEditing && tempDueDate"
-                      @click="tempRecurrenceUntil = tempDueDate"
-                      class="text-[9px] text-primary hover:underline"
-                    >
-                      同步截止日
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <div class="w-1.5 h-4 bg-primary rounded-full"></div>
+                      <span class="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">设置循环方式</span>
+                    </div>
+                    <button @click="showRecurrenceMenu = false" class="text-slate-300 hover:text-slate-600 dark:hover:text-white transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
-                 </div>
-                 <div v-if="isEditing" class="flex items-center gap-2">
-                   <input 
-                     type="date" 
-                     v-model="tempRecurrenceUntil" 
-                     class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-primary dark:[color-scheme:dark]"
-                   />
-                   <button @click="tempRecurrenceUntil = null" class="text-[10px] text-red-500 hover:underline">清空</button>
-                 </div>
-                 <div v-else class="text-[10px] text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/50 px-2 py-1.5 rounded-lg">
-                    截止于: {{ todo.recurrence_until || todo.due_date || '无限' }}
-                 </div>
-                 <p class="text-[9px] text-slate-400 italic">设置后，循环将在超过该日期后自动停止。</p>
-              </div>
-            </div>
+                  </div>
+
+                  <!-- Frequency Selection -->
+                  <div class="grid grid-cols-2 gap-2">
+                    <button 
+                      v-for="opt in ['none', 'daily', 'weekly', 'monthly']" 
+                      :key="opt"
+                      @click="isEditing ? (tempRecurrence = opt) : handleCycleRecurrenceSpecific(opt)"
+                      class="px-3 py-2.5 rounded-xl text-[11px] font-black border transition-all flex items-center justify-center gap-2"
+                      :class="(isEditing ? tempRecurrence : todo.recurrence) === opt ? 'bg-primary text-white border-primary shadow-lg shadow-primary/25' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-white/5 text-slate-500 hover:border-primary/40'"
+                    >
+                      <span v-if="(isEditing ? tempRecurrence : todo.recurrence) === opt" class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                      {{ recurrenceLabel(opt) }}
+                    </button>
+                  </div>
+
+                  <!-- End Condition Info -->
+                  <div v-if="(isEditing ? tempRecurrence : todo.recurrence) !== 'none'" class="flex flex-col gap-3 pt-3 border-t border-slate-100 dark:border-white/5">
+                     <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">系列终止于</span>
+                        <button 
+                          v-if="isEditing && tempDueDate"
+                          @click="tempRecurrenceUntil = tempDueDate"
+                          class="text-[9px] text-primary font-bold hover:underline"
+                        >
+                          同步截止日
+                        </button>
+                     </div>
+                     
+                     <div v-if="isEditing" class="flex items-center gap-2">
+                       <input 
+                         type="date" 
+                         v-model="tempRecurrenceUntil" 
+                         class="flex-1 bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-[11px] font-bold outline-none focus:border-primary dark:[color-scheme:dark]"
+                       />
+                       <button @click="tempRecurrenceUntil = null" class="w-8 h-8 flex items-center justify-center bg-red-50 dark:bg-red-900/20 text-red-500 rounded-xl hover:bg-red-100 transition-colors">
+                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                       </button>
+                     </div>
+                     <div v-else class="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                        <span class="opacity-60 font-medium">系统将在 </span>
+                        <span class="text-primary">{{ todo.recurrence_until || todo.due_date || '未设置' }}</span>
+                        <span class="opacity-60 font-medium"> 之后停止循环</span>
+                     </div>
+                  </div>
+                </div>
+              </Transition>
+            </Teleport>
           </div>
 
-          <div class="w-px h-4 bg-slate-200 dark:bg-white/5 mx-0.5"></div>
+          <div class="w-full sm:w-4 h-px sm:h-px bg-slate-200 dark:bg-white/10 mx-0.5 sm:my-0.5"></div>
 
           <!-- Edit / Save Actions -->
           <template v-if="isEditing">
-            <button @click="saveEdit" class="p-1.5 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all" title="保存">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <button @click="saveEdit" class="p-2 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all" title="保存">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
             </button>
-            <button @click="cancelEdit" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="取消">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <button @click="cancelEdit" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="取消">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           </template>
 
           <template v-else>
-            <button v-if="todo.status === 'pending'" @click="startEditing" class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all" title="编辑">
+            <button v-if="todo.status === 'pending'" @click="startEditing" class="p-2 text-slate-400 hover:text-primary hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all" title="编辑">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
             </button>
             
-            <button @click="emit('remove')" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="删除">
+            <button @click="emit('remove')" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="删除">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
           </template>
@@ -230,7 +245,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import dayjs from 'dayjs'
 import { onClickOutside } from '@vueuse/core'
 import type { Todo } from '@/api/types'
@@ -250,9 +265,38 @@ const tempRecurrence = ref(props.todo.recurrence || 'none')
 const tempRecurrenceUntil = ref<string | null>(props.todo.recurrence_until || null)
 const showRecurrenceMenu = ref(false)
 
-const containerRef = ref(null)
+const containerRef = ref<HTMLElement | null>(null)
+const popoverRef = ref<HTMLElement | null>(null)
+const popoverStyle = ref<Record<string, string>>({ top: '0px', left: '0px' })
+
 // @ts-ignore
-onClickOutside(containerRef, () => showRecurrenceMenu.value = false)
+onClickOutside(containerRef, () => showRecurrenceMenu.value = false, { ignore: [popoverRef] })
+
+watch(showRecurrenceMenu, async (val) => {
+  if (val && containerRef.value) {
+    await nextTick()
+    const rect = containerRef.value.getBoundingClientRect()
+    const isSmallScreen = window.innerWidth < 640
+    
+    if (isSmallScreen) {
+      // Center on mobile
+      popoverStyle.value = {
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        position: 'fixed'
+      }
+    } else {
+      // Position above button on desktop
+      popoverStyle.value = {
+        top: `${rect.top - 12}px`,
+        left: `${rect.right}px`,
+        transform: 'translate(-100%, -100%)',
+        position: 'fixed'
+      }
+    }
+  }
+})
 
 // Sync internal state if updated externally (like via priority bar click)
 watch(() => props.todo.priority, (newPrio) => {

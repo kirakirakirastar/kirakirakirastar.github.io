@@ -73,7 +73,7 @@
             <!-- End Condition -->
             <div v-if="recurrence !== 'none'" class="flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
                <div class="flex items-center justify-between">
-                  <span class="text-[10px] font-bold text-slate-500">截止循环于</span>
+                  <span class="text-[10px] font-bold text-slate-500">系列截止于</span>
                   <button 
                     v-if="dueDate"
                     @click="recurrenceUntil = dueDate"
@@ -96,7 +96,7 @@
                    清除
                  </button>
                </div>
-               <p class="text-[9px] text-slate-400 italic">若留空，则循环一直进行到 {{ dueDate || '任务截止' }} 之后。</p>
+               <p class="text-[9px] text-slate-400 italic">若留空，则循环一直进行到 {{ dueDate || '任务截止' }}（即该任务的最终寿命）。</p>
             </div>
           </div>
         </div>

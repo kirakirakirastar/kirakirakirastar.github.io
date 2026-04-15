@@ -1,8 +1,13 @@
 import { supabase } from './supabase'
 import type { Note, Journal, Hobby, Todo, Folder, DashboardData, ActivityMap, ActivityDay, Tag, Announcement } from './types'
 import dayjs from 'dayjs'
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 import { compressImage, fileToBase64 } from '@/utils/image'
 import { extractStoragePaths, deleteStorageFiles, deleteFileByUrl } from './cleanup'
+
+dayjs.extend(isSameOrBefore)
+dayjs.extend(isSameOrAfter)
 
 const includesKeyword = (values: Array<string | undefined>, keyword?: string) => {
   if (!keyword) return true
@@ -705,7 +710,6 @@ export const supabaseDashboardApi = {
           const { data: pendingTodos } = await supabase.from('todos')
             .select('text, start_date, due_date, recurrence, recurrence_until, is_private')
             .eq('status', 'pending')
-            .neq('recurrence', 'none')
             .not('due_date', 'is', null)
 
           if (pendingTodos) {
@@ -713,48 +717,84 @@ export const supabaseDashboardApi = {
              pendingTodos.forEach(todo => {
                 if (isOwner === false && todo.is_private) return;
                 
+                // Priority boundary: Task Deadline (due_date) is the absolute limit.
+                // If recurrence_until is set, it cannot exceed the due_date.
+                let seriesLimit: string | null = null
+                if (todo.due_date && todo.recurrence_until) {
+                    seriesLimit = dayjs(todo.due_date).isBefore(dayjs(todo.recurrence_until)) 
+                    ? todo.due_date 
+                    : todo.recurrence_until
+                } else {
+                    seriesLimit = todo.due_date || todo.recurrence_until
+                }
+                
                 const unit = todo.recurrence === 'weekly' ? 'week' 
                            : todo.recurrence === 'monthly' ? 'month' 
                            : 'day'
                 let current = dayjs(todo.due_date)
                 
-                const seriesLimit = todo.recurrence_until || todo.due_date
-                
                 // 1. Fill current instance duration (start_date to due_date)
-                if (todo.start_date && todo.due_date && todo.start_date !== todo.due_date) {
+                if (todo.start_date && todo.due_date) {
                    let d = dayjs(todo.start_date)
                    const end = dayjs(todo.due_date)
-                   while (d.isBefore(end)) { // stop BEFORE due_date because RPC/Simulation handle those
+                   // Map every day from start to due (inclusive)
+                   while (d.isSameOrBefore(end)) {
                       const dStr = d.format('YYYY-MM-DD')
+                      // Only map future dates or dates not handled by RPC (usually RPC handled past)
+                      if (d.isSameOrAfter(dayjs(), 'day')) {
+                        if (!activityMap[dStr]) {
+                            activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
+                        }
+                        activityMap[dStr].schedules++
+                        activityMap[dStr].total++
+                        if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
+                        if (!activityMap[dStr].schedules_list.includes(todo.text)) {
+                          activityMap[dStr].schedules_list.push(todo.text)
+                        }
+                      }
+                      d = d.add(1, 'day')
+                   }
+                } else if (todo.due_date) {
+                   // One-off future task with only due_date
+                   const dStr = dayjs(todo.due_date).format('YYYY-MM-DD')
+                   if (dayjs(todo.due_date).isSameOrAfter(dayjs(), 'day')) {
                       if (!activityMap[dStr]) {
                           activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
                       }
                       activityMap[dStr].schedules++
                       activityMap[dStr].total++
-                      d = d.add(1, 'day')
+                      if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
+                      if (!activityMap[dStr].schedules_list.includes(todo.text)) {
+                        activityMap[dStr].schedules_list.push(todo.text)
+                      }
                    }
                 }
 
-                // 2. Simulate future occurrences
-                // start simulation from NEXT occurrence
-                current = current.add(1, unit as dayjs.ManipulateType)
-                
-                while(current.isBefore(futureLimit)) {
-                   // If current date exceeds the series limit, stop simulation
-                   if (seriesLimit && current.isAfter(dayjs(seriesLimit))) {
-                      break
-                   }
-                   
-                   const dStr = current.format('YYYY-MM-DD')
-                   if (!activityMap[dStr]) {
-                       activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
-                   }
-                   activityMap[dStr].schedules++
-                   activityMap[dStr].total++
-                   if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
-                   activityMap[dStr].schedules_list.push(todo.text)
-                   
+                // 2. Simulate future occurrences (only for recurring)
+                if (todo.recurrence && todo.recurrence !== 'none') {
+                   // start simulation from NEXT occurrence after the current due_date
                    current = current.add(1, unit as dayjs.ManipulateType)
+                   
+                   while(current.isBefore(futureLimit)) {
+                      // If current date exceeds the series limit, stop simulation
+                      if (seriesLimit && current.isAfter(dayjs(seriesLimit))) {
+                         break
+                      }
+                      
+                      const dStr = current.format('YYYY-MM-DD')
+                      if (!activityMap[dStr]) {
+                          activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
+                      }
+                      
+                      if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
+                      if (!activityMap[dStr].schedules_list.includes(todo.text)) {
+                        activityMap[dStr].schedules++
+                        activityMap[dStr].total++
+                        activityMap[dStr].schedules_list.push(todo.text)
+                      }
+                      
+                      current = current.add(1, unit as dayjs.ManipulateType)
+                   }
                 }
              })
           }
