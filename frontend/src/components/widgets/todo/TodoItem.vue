@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-white/5 transition-all duration-300 group/item relative overflow-hidden shadow-sm cursor-default"
+    class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-white/5 transition-all duration-300 group/item relative shadow-sm cursor-default"
     :class="[
       getPriorityColor(todo.priority),
       todo.status === 'completed' ? 'bg-emerald-500/5 opacity-75' : 
@@ -11,7 +11,7 @@
     <!-- Priority Color Bar (Interactive) -->
     <div 
       @click="handleCyclePriority"
-      class="absolute left-0 top-0 bottom-0 w-1.5 cursor-pointer hover:w-2.5 transition-all group/prio z-10"
+      class="absolute left-0 top-0 bottom-0 w-1.5 cursor-pointer hover:w-2.5 transition-all group/prio z-10 rounded-l-2xl"
       :title="'点击切换优先级: ' + todo.priority"
     >
       <div class="h-full w-full opacity-0 group-hover/prio:opacity-20 bg-slate-400"></div>
