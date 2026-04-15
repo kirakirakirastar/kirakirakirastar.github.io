@@ -1,4 +1,9 @@
-declare module 'markdown-it-emoji';
+declare module 'markdown-it-emoji' {
+  const full: any;
+  const light: any;
+  const bare: any;
+  export { full, light, bare };
+}
 declare module 'markdown-it-anchor';
 declare module 'markdown-it-toc-done-right';
 declare module 'markdown-it-external-links';
