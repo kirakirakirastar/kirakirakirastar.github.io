@@ -1,3 +1,4 @@
+// @ts-ignore
 import { full as emoji } from 'markdown-it-emoji'
 import anchor from 'markdown-it-anchor'
 import toc from 'markdown-it-toc-done-right'
