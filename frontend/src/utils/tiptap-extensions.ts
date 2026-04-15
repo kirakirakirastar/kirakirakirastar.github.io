@@ -63,27 +63,43 @@ export const Mask = Mark.create({
     serialize: {
       open: '[mask]',
       close: '[/mask]',
+      // @ts-ignore
+      mixable: true,
+      exp: '[mask]',
     },
     parse: {
       setup(markdownit: any) {
         markdownit.inline.ruler.before('escape', 'mask', (state: any, silent: any) => {
-          const startChar = '['
           const startTag = '[mask]'
           const endTag = '[/mask]'
           
-          if (state.src.slice(state.pos, state.pos + startTag.length) !== startTag) {
+          if (!state.src.startsWith(startTag, state.pos)) {
             return false
           }
 
-          if (silent) return true
-
           const start = state.pos
-          const end = state.src.indexOf(endTag, start + startTag.length)
+          const contentStart = start + startTag.length
+          
+          // Find the closing tag more robustly
+          let end = -1
+          let depth = 0
+          for (let i = contentStart; i <= state.src.length - endTag.length; i++) {
+            if (state.src.startsWith(startTag, i)) depth++
+            if (state.src.startsWith(endTag, i)) {
+              if (depth === 0) {
+                end = i
+                break
+              }
+              depth--
+            }
+          }
 
           if (end === -1) return false
 
+          if (silent) return true
+
           const oldMax = state.posMax
-          state.pos += startTag.length
+          state.pos = contentStart
           state.posMax = end
 
           const token = state.push('mask_open', 'span', 1)
@@ -128,6 +144,8 @@ export const MarkdownColor = Color.extend({
       close(_state: any, mark: any) {
         return mark.attrs.color ? '</span>' : ''
       },
+      // @ts-ignore
+      mixable: true,
     },
     parse: {
       setup(markdownit: any) {
@@ -135,18 +153,23 @@ export const MarkdownColor = Color.extend({
           const regex = /^<span style="color: ([^"]+)">/
           const match = state.src.slice(state.pos).match(regex)
           if (!match) return false
-          if (silent) return true
-
-          const color = match[1]
+          
           const startTag = match[0]
           const endTag = '</span>'
           const start = state.pos
-          const end = state.src.indexOf(endTag, start + startTag.length)
-
+          const contentStart = start + startTag.length
+          
+          let end = -1
+          // Search for closing span, handling potential nested spans if needed
+          // (Though for simple color spans, usually direct match is enough)
+          end = state.src.indexOf(endTag, contentStart)
           if (end === -1) return false
 
+          if (silent) return true
+
+          const color = match[1]
           const oldMax = state.posMax
-          state.pos += startTag.length
+          state.pos = contentStart
           state.posMax = end
 
           const token = state.push('textStyle_open', 'span', 1)
@@ -172,21 +195,25 @@ export const MarkdownHighlight = Highlight.extend({
     serialize: {
       open: '<mark>',
       close: '</mark>',
+      // @ts-ignore
+      mixable: true,
     },
     parse: {
       setup(markdownit: any) {
         markdownit.inline.ruler.before('escape', 'highlight', (state: any, silent: any) => {
           const startTag = '<mark>'
           const endTag = '</mark>'
-          if (state.src.slice(state.pos, state.pos + startTag.length) !== startTag) return false
-          if (silent) return true
+          if (!state.src.startsWith(startTag, state.pos)) return false
 
           const start = state.pos
-          const end = state.src.indexOf(endTag, start + startTag.length)
+          const contentStart = start + startTag.length
+          const end = state.src.indexOf(endTag, contentStart)
           if (end === -1) return false
 
+          if (silent) return true
+
           const oldMax = state.posMax
-          state.pos += startTag.length
+          state.pos = contentStart
           state.posMax = end
 
           state.push('highlight_open', 'mark', 1)
@@ -211,21 +238,25 @@ export const MarkdownUnderline = Underline.extend({
     serialize: {
       open: '<u>',
       close: '</u>',
+      // @ts-ignore
+      mixable: true,
     },
     parse: {
       setup(markdownit: any) {
         markdownit.inline.ruler.before('escape', 'underline', (state: any, silent: any) => {
           const startTag = '<u>'
           const endTag = '</u>'
-          if (state.src.slice(state.pos, state.pos + startTag.length) !== startTag) return false
-          if (silent) return true
+          if (!state.src.startsWith(startTag, state.pos)) return false
 
           const start = state.pos
-          const end = state.src.indexOf(endTag, start + startTag.length)
+          const contentStart = start + startTag.length
+          const end = state.src.indexOf(endTag, contentStart)
           if (end === -1) return false
 
+          if (silent) return true
+
           const oldMax = state.posMax
-          state.pos += startTag.length
+          state.pos = contentStart
           state.posMax = end
 
           state.push('underline_open', 'u', 1)
@@ -250,13 +281,16 @@ export const MarkdownStrike = Strike.extend({
     serialize: {
       open: '~~',
       close: '~~',
+      // @ts-ignore
+      mixable: true,
+      exp: '~~',
     },
     parse: {
       setup(markdownit: any) {
-        // Use existing strikethrough rule but ensure it's mapped
-        // In tiptap-markdown, the 'strike' name typically maps to 's' tokens
+        // Ensure strikethrough is enabled in markdown-it
+        markdownit.enable('strikethrough')
       },
-      // Using token: 's' to explicitly tell tiptap-markdown to use markdown-it's 's' token
+      // Using token: 's' to explicitly map markdown-it's strikethrough tokens
       // @ts-ignore
       token: 's',
     }
