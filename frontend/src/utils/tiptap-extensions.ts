@@ -1,6 +1,20 @@
 import { Mark, mergeAttributes, Extension } from '@tiptap/core'
 
 /**
+ * TypeScript Module Augmentation to let Tiptap know about our custom commands.
+ */
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    mask: {
+      /**
+       * Toggle the mask (spoiler) status of the selection.
+       */
+      toggleMask: () => ReturnType,
+    }
+  }
+}
+
+/**
  * Mask (Mosaics/Spoiler) extension
  */
 export const Mask = Mark.create({
