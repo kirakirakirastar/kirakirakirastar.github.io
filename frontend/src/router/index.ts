@@ -9,6 +9,7 @@ const JournalsPage = () => import('@/pages/JournalsPage.vue')
 const JournalDetailPage = () => import('@/pages/JournalDetailPage.vue')
 const JournalEditorPage = () => import('@/pages/JournalEditorPage.vue')
 const HobbiesPage = () => import('@/pages/HobbiesPage.vue')
+const HobbyDetailPage = () => import('@/pages/HobbyDetailPage.vue')
 const HobbyEditorPage = () => import('@/pages/HobbyEditorPage.vue')
 const LoginPage = () => import('@/pages/LoginPage.vue')
 const AnnouncementsPage = () => import('@/pages/AnnouncementsPage.vue')
@@ -33,6 +34,7 @@ const routes = [
       { path: 'journals/:id/edit', component: JournalEditorPage, meta: { requiresAuth: true, title: '编辑日志' } },
       { path: 'hobbies', component: HobbiesPage, meta: { title: '爱好追踪' } },
       { path: 'hobbies/new', component: HobbyEditorPage, meta: { requiresAuth: true, title: '新建爱好' } },
+      { path: 'hobbies/:id', component: HobbyDetailPage, meta: { title: '条目详情' } },
       { path: 'hobbies/:id/edit', component: HobbyEditorPage, meta: { requiresAuth: true, title: '编辑爱好' } },
       { path: 'trash', component: TrashPage, meta: { requiresAuth: true, title: '回收站' } },
     ]

@@ -276,7 +276,7 @@
           <router-link
             v-for="hobby in filteredHobbies"
             :key="hobby.id"
-            to="/hobbies"
+            :to="`/hobbies/${hobby.id}`"
             class="block p-4 rounded-xl border border-transparent hover:border-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-300 group"
           >
             <div class="font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-primary transition-colors flex items-center gap-2">

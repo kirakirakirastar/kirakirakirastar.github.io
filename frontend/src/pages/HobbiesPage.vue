@@ -138,37 +138,53 @@
             <svg v-if="isSelected(hobby.id)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
           </div>
 
-          <div v-if="hobby.cover_url" class="aspect-[3/4] bg-gray-200 dark:bg-theme-bg-dark/50 overflow-hidden relative">
-            <img
-              :src="getImageUrl(hobby.cover_url)"
-              :alt="hobby.title"
-              loading="lazy"
-              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-              <span class="text-white text-[10px] sm:text-xs font-medium flex items-center gap-1.5 mb-1">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                添加于: {{ formatDate(hobby.created_at) }}
-              </span>
-              <span v-if="hobby.updated_at && hobby.updated_at !== hobby.created_at" class="text-white text-[10px] sm:text-xs font-medium flex items-center gap-1.5 opacity-90">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                更新于: {{ formatDate(hobby.updated_at) }}
-              </span>
+            <router-link 
+              v-if="!isBatchMode"
+              :to="`/hobbies/${hobby.id}`"
+              class="block aspect-[3/4] bg-gray-200 dark:bg-theme-bg-dark/50 overflow-hidden relative group-hover:opacity-90 transition-opacity"
+            >
+              <img
+                v-if="hobby.cover_url"
+                :src="getImageUrl(hobby.cover_url)"
+                :alt="hobby.title"
+                loading="lazy"
+                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div v-else class="w-full h-full flex items-center justify-center">
+                <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 00-2 2z"></path></svg>
+              </div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                <span class="text-white text-[10px] sm:text-xs font-medium flex items-center gap-1.5 mb-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                  添加于: {{ formatDate(hobby.created_at) }}
+                </span>
+                <span v-if="hobby.updated_at && hobby.updated_at !== hobby.created_at" class="text-white text-[10px] sm:text-xs font-medium flex items-center gap-1.5 opacity-90">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                  更新于: {{ formatDate(hobby.updated_at) }}
+                </span>
+              </div>
+            </router-link>
+            <div v-else class="aspect-[3/4] bg-gray-200 dark:bg-theme-bg-dark/50 relative">
+               <img
+                v-if="hobby.cover_url"
+                :src="getImageUrl(hobby.cover_url)"
+                :alt="hobby.title"
+                class="w-full h-full object-cover"
+              />
             </div>
-          </div>
-          <div v-else class="aspect-[3/4] bg-gray-50 dark:bg-theme-bg-dark/30 flex items-center justify-center">
-            <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 00-2 2z"></path></svg>
-          </div>
 
           <div 
             class="p-5 flex flex-col flex-1"
             :class="{ 'pointer-events-none': isBatchMode }"
           >
             <div class="flex items-start justify-between mb-2" :class="{ 'pl-8': isBatchMode }">
-              <h3 class="font-extrabold text-lg line-clamp-2 leading-tight text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors flex items-center gap-2">
+              <router-link 
+                :to="`/hobbies/${hobby.id}`"
+                class="font-extrabold text-lg line-clamp-2 leading-tight text-slate-800 dark:text-slate-100 hover:text-primary transition-colors flex items-center gap-2"
+              >
                 <svg v-if="hobby.is_private" class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
                 {{ hobby.title }}
-              </h3>
+              </router-link>
               <span
                 class="px-2 py-0.5 text-[10px] font-bold rounded-full whitespace-nowrap ml-2 shadow-sm"
                 :class="statusClass(hobby.status)"
@@ -198,11 +214,11 @@
             
             <div v-if="authStore.user" class="flex gap-2">
               <router-link
-                :to="isBatchMode ? '' : `/hobbies/${hobby.id}/edit`"
+                :to="isBatchMode ? '' : `/hobbies/${hobby.id}`"
                 class="flex-1 px-3 py-2 text-center bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white text-xs font-bold transition-all shadow-sm"
                 @click="isBatchMode ? $event.preventDefault() : null"
               >
-                详情/编辑
+                查看详情
               </router-link>
               <button
                 v-if="!isBatchMode"
