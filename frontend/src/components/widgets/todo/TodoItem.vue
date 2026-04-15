@@ -162,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import type { Todo } from '@/api/types'
 
@@ -177,6 +177,13 @@ const tempText = ref(props.todo.text)
 const tempPriority = ref(props.todo.priority || 'medium')
 const tempStartDate = ref(props.todo.start_date || '')
 const tempDueDate = ref(props.todo.due_date || '')
+
+// Sync internal state if updated externally (like via priority bar click)
+watch(() => props.todo.priority, (newPrio) => {
+  if (props.isEditing) {
+    tempPriority.value = newPrio || 'medium'
+  }
+})
 
 const startEditing = () => {
   tempText.value = props.todo.text

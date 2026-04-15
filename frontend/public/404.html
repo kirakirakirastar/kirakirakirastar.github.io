@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Kirakirastar's Blog</title>
+    <script type="text/javascript">
+      /**
+       * GitHub Pages SPA Hash Router Hack
+       * =================================
+       * 当用户访问 https://domain.com/login 这样不带 # 的路径时，GitHub Pages 会返回 404。
+       * 此脚本会将该路径捕获并重定向为 https://domain.com/#/login，
+       * 以便 Vue Router (Hash模式) 能正确接管路由。
+       */
+      var path = window.location.pathname;
+      var query = window.location.search;
+      var hash = window.location.hash;
+      
+      // 避免无限重定向：仅在路径不是根路径时执行
+      if (path !== '/' && path !== '/index.html') {
+          // 清除结尾的斜杠并拼接到 hash 中
+          var cleanPath = path.endsWith('/') ? path.slice(0, -1) : path;
+          window.location.replace('/#' + cleanPath + query + hash);
+      } else {
+          // 兜底：如果是在根路径由于其它原因触发告警，直接回首页
+          window.location.replace('/');
+      }
+    </script>
+  </head>
+  <body>
+    <!-- 这是一个空白页，用户在重定向时几乎看不到它 -->
+  </body>
+</html>

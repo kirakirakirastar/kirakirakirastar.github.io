@@ -70,11 +70,11 @@ router.beforeEach(async (to, from, next) => {
  * 核心修复：处理动态导入失败 (Failed to fetch dynamically imported module)
  * 这通常发生在项目重新发布后，旧页面尝试加载已过期的 JS 块文件。
  */
-router.onError((error, to) => {
+router.onError((error) => {
   if (error.message.includes('Failed to fetch dynamically imported module') || 
       error.message.includes('Importing a forbidden MIME type')) {
     console.warn('检测到版本更新，正在尝试自动刷新以同步资源...')
-    window.location.href = to.fullPath
+    window.location.reload()
   }
 })
 

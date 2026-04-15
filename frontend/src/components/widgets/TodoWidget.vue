@@ -76,19 +76,33 @@ const activeTab = ref('active')
 
 const today = dayjs().startOf('day')
 
+const priorityMap: Record<string, number> = { high: 3, medium: 2, low: 1 }
+
+const sortTodos = (list: any[]) => {
+  return [...list].sort((a, b) => {
+    const pA = priorityMap[a.priority] || 0
+    const pB = priorityMap[b.priority] || 0
+    if (pA !== pB) return pB - pA
+    return dayjs(b.created_at).diff(dayjs(a.created_at))
+  })
+}
+
 const categorized = computed(() => {
   const all = gadgetStore.todos
+  const active = all.filter(t => {
+    if (t.status !== 'pending') return false
+    if (!t.start_date) return true
+    return today.isSameOrAfter(dayjs(t.start_date).startOf('day'))
+  })
+  const planned = all.filter(t => {
+    if (t.status !== 'pending') return false
+    if (!t.start_date) return false
+    return dayjs(t.start_date).startOf('day').isAfter(today)
+  })
+
   return {
-    active: all.filter(t => {
-      if (t.status !== 'pending') return false
-      if (!t.start_date) return true
-      return today.isSameOrAfter(dayjs(t.start_date).startOf('day'))
-    }),
-    planned: all.filter(t => {
-      if (t.status !== 'pending') return false
-      if (!t.start_date) return false
-      return dayjs(t.start_date).startOf('day').isAfter(today)
-    }),
+    active: sortTodos(active),
+    planned: sortTodos(planned),
     failed: all.filter(t => t.status === 'failed'),
     completed: all.filter(t => t.status === 'completed')
   }
@@ -136,7 +150,7 @@ const toggleStatus = (todo: any) => {
 }
 
 const cyclePriority = (todo: any) => {
-  const priorities = ['high', 'medium', 'low']
+  const priorities = ['low', 'medium', 'high']
   const currentIndex = priorities.indexOf(todo.priority)
   const nextPriority = priorities[(currentIndex + 1) % priorities.length]
   gadgetStore.updateTodo(todo.id, { priority: nextPriority })
