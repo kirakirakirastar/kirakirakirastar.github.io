@@ -237,7 +237,7 @@ const editor = useEditor({
   },
   onUpdate: ({ editor }) => {
     // Save as raw Markdown
-    form.value.content_md = editor.getStorage().markdown.getMarkdown()
+    form.value.content_md = editor.storage.markdown.getMarkdown()
   },
 })
 
