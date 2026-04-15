@@ -67,57 +67,145 @@ html, body, #app {
   @apply bg-indigo-500/30 text-indigo-900 dark:text-indigo-100;
 }
 
-/* 内容样式 */
-.markdown-body,
-.rich-html {
-  max-width: none;
-  line-height: 1.75;
+/* 内容样式 - Premium Markdown System */
+.markdown-body {
+  @apply text-slate-800 dark:text-slate-200 max-w-none;
+  font-size: 16px;
+  line-height: 1.8;
+  counter-reset: h1; /* Reset H1 counter at the root */
 }
 
-.markdown-body pre,
-.rich-html pre {
-  @apply bg-gray-100 dark:bg-gray-800 rounded-lg p-4 overflow-x-auto;
+/* Automatic Heading Numbering */
+.markdown-body h1 { 
+  @apply text-3xl font-bold mt-12 mb-6 pb-2 border-b-2 border-slate-200 dark:border-slate-700 flex items-center gap-3; 
+  counter-reset: h2;
+}
+.markdown-body h1::before {
+  counter-increment: h1;
+  content: counter(h1) ". ";
+  @apply text-primary/40 font-mono text-2xl;
 }
 
-.markdown-body code,
-.rich-html code {
-  @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm;
+.markdown-body h2 { 
+  @apply text-2xl font-bold mt-10 mb-5 pb-1 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3; 
+  counter-reset: h3;
+}
+.markdown-body h2::before {
+  counter-increment: h2;
+  content: counter(h1) "." counter(h2) " ";
+  @apply text-primary/30 font-mono text-xl;
 }
 
-.markdown-body pre code,
-.rich-html pre code {
-  @apply bg-transparent p-0;
+.markdown-body h3 { 
+  @apply text-xl font-bold mt-8 mb-4 flex items-center gap-3; 
+  counter-reset: h4;
+}
+.markdown-body h3::before {
+  counter-increment: h3;
+  content: counter(h1) "." counter(h2) "." counter(h3) " ";
+  @apply text-primary/20 font-mono text-lg;
 }
 
-.markdown-body h1, .markdown-body h2, .markdown-body h3,
-.rich-html h1, .rich-html h2, .rich-html h3 {
-  @apply font-bold mt-6 mb-4;
+.markdown-body h4 { @apply text-lg font-bold mt-6 mb-3 flex items-center gap-3; }
+.markdown-body h4::before {
+  counter-increment: h4;
+  content: counter(h1) "." counter(h2) "." counter(h3) "." counter(h4) " ";
+  @apply text-primary/15 font-mono text-base;
 }
 
-.markdown-body p,
-.rich-html p {
-  @apply mb-4 leading-relaxed;
+.markdown-body p { @apply mb-4 leading-relaxed; }
+
+/* Tables - Enhanced */
+.markdown-body table {
+  @apply w-full border-collapse my-8 overflow-hidden rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/40;
+}
+.markdown-body th { @apply bg-slate-50 dark:bg-slate-800/80 px-4 py-3 text-left font-bold border-b-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300; }
+.markdown-body td { @apply px-4 py-3 border-b border-slate-100 dark:border-slate-800 transition-colors; }
+.markdown-body tr:last-child td { @apply border-b-0; }
+.markdown-body tr:hover td { @apply bg-slate-50/50 dark:bg-slate-800/30; }
+.markdown-body tr:nth-child(even) { @apply bg-slate-50/20 dark:bg-slate-800/10; }
+
+/* Task Lists - Modern */
+.markdown-body .task-list-item { @apply list-none flex items-start gap-4 -ml-8 my-2; }
+.markdown-body .task-list-item label { @apply flex items-start gap-4 cursor-pointer; }
+.markdown-body .task-list-item input[type="checkbox"] {
+  @apply mt-1.5 rounded-md border-slate-300 dark:border-slate-600 text-primary focus:ring-primary w-5 h-5 transition-all cursor-pointer shadow-sm;
+}
+.markdown-body .task-list-item p { @apply my-0; }
+
+/* Admonitions (Containers) */
+.admonition { @apply my-8 p-5 rounded-2xl border-l-4 shadow-sm backdrop-blur-md; }
+.admonition-title { @apply font-bold mb-3 uppercase text-[11px] tracking-[0.2em] opacity-60 flex items-center gap-2; }
+.admonition-title::before { content: "◆"; @apply text-current opacity-50; }
+.admonition p:last-child { @apply mb-0; }
+
+.admonition.info { @apply bg-blue-50/40 dark:bg-blue-900/10 border-blue-500 text-blue-900 dark:text-blue-100; }
+.admonition.warning { @apply bg-amber-50/40 dark:bg-amber-900/10 border-amber-500 text-amber-900 dark:text-amber-100; }
+.admonition.danger { @apply bg-red-50/40 dark:bg-red-900/10 border-red-500 text-red-900 dark:text-red-100; }
+.admonition.success, .admonition.tip { @apply bg-emerald-50/40 dark:bg-emerald-900/10 border-emerald-500 text-emerald-900 dark:text-emerald-100; }
+.admonition.note { @apply bg-slate-100/40 dark:bg-slate-800/20 border-slate-500 text-slate-800 dark:text-slate-100; }
+
+/* Images & Media */
+.markdown-body img { @apply max-w-full h-auto rounded-2xl shadow-xl mx-auto my-10 border border-slate-100 dark:border-slate-800 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl; }
+
+/* Footnotes */
+.markdown-body .footnotes { @apply mt-16 pt-8 border-t-2 border-slate-100 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400; }
+.markdown-body .footnotes-list { @apply list-decimal pl-6 space-y-2; }
+
+/* Code Blocks & Inlines */
+.markdown-body pre { @apply relative my-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-5 overflow-x-auto shadow-inner; }
+/* Code Copy Button Styling */
+.code-block-wrapper { @apply relative group; }
+.copy-code-btn { 
+  @apply absolute top-3 right-3 p-2 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary z-10 shadow-sm; 
 }
 
-.markdown-body ul, .markdown-body ol,
-.rich-html ul, .rich-html ol {
-  @apply mb-4 pl-6;
+.markdown-body code { @apply font-mono text-sm; }
+.markdown-body :not(pre) > code { @apply px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-pink-600 dark:text-pink-400 font-semibold text-[0.9em] shadow-sm; }
+
+/* TOC (markdown-it-toc-done-right) */
+.table-of-contents { @apply p-6 my-10 bg-slate-50/60 dark:bg-slate-900/40 rounded-2xl border-2 border-slate-100 dark:border-slate-800 backdrop-blur-xl shadow-lg; }
+.table-of-contents::before { content: "目录 CONTENTS"; @apply block font-bold mb-4 text-slate-400 dark:text-slate-500 text-[10px] tracking-[0.3em] uppercase border-b border-slate-200 dark:border-slate-800 pb-2; }
+.table-of-contents ol { @apply list-none pl-0 space-y-2; }
+.table-of-contents li ol { @apply pl-6 mt-2 border-l border-slate-100 dark:border-slate-800; }
+.table-of-contents a { @apply text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light no-underline transition-all flex items-center gap-2; }
+.table-of-contents a::before { content: "→"; @apply opacity-0 -ml-4 transition-all; }
+.table-of-contents a:hover::before { @apply opacity-100 ml-0; }
+
+/* Anchors */
+.header-anchor { @apply opacity-0 transition-all ml-[-1.5em] pr-3 text-primary/30 no-underline font-normal hover:text-primary; }
+.markdown-body h1:hover .header-anchor, 
+.markdown-body h2:hover .header-anchor, 
+.markdown-body h3:hover .header-anchor { @apply opacity-100; }
+
+/* Dividers - HR */
+.markdown-body hr { @apply my-12 border-0 h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent; }
+
+/* KaTeX display fix */
+.katex-display { @apply my-8 overflow-x-auto overflow-y-hidden py-4 text-xl bg-slate-50/30 dark:bg-slate-900/30 rounded-2xl; }
+
+/* Mermaid Styling */
+.mermaid { @apply flex justify-center my-10 bg-white dark:bg-slate-900/20 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-xl transition-all hover:shadow-2xl; }
+.mermaid svg { @apply max-w-full h-auto; }
+
+/* Mask (Black Bar / 黑条) Style */
+.mask-text {
+  @apply bg-slate-900 text-slate-900 rounded-sm px-1 transition-all duration-300 border border-slate-800 cursor-help select-none;
+  box-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+.markdown-body .mask-text:hover,
+.ProseMirror .mask-text:hover {
+  @apply bg-transparent text-inherit select-text;
+  box-shadow: none;
+}
+.dark .mask-text {
+  @apply bg-white text-white border-slate-200;
+}
+.dark .markdown-body .mask-text:hover,
+.dark .ProseMirror .mask-text:hover {
+  @apply bg-transparent text-inherit;
 }
 
-.markdown-body li,
-.rich-html li {
-  @apply mb-1;
-}
-
-.markdown-body blockquote,
-.rich-html blockquote {
-  @apply border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-4;
-}
-
-.markdown-body img,
-.rich-html img {
-  @apply max-w-full h-auto rounded-lg;
-}
 
 /* 主题切换过渡 */
 body {

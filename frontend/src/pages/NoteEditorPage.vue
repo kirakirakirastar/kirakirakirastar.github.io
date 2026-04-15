@@ -48,20 +48,54 @@
           <label class="block text-sm font-medium mb-2">内容</label>
           <div class="border rounded-lg dark:border-gray-600 overflow-hidden">
             <div class="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
-              <button type="button" @click="editor?.chain().focus().toggleBold().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('bold') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-bold">B</button>
-              <button type="button" @click="editor?.chain().focus().toggleItalic().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('italic') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm italic">I</button>
-              <button type="button" @click="editor?.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('heading', { level: 1 }) }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">H1</button>
-              <button type="button" @click="editor?.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('heading', { level: 2 }) }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">H2</button>
-              <button type="button" @click="editor?.chain().focus().toggleBulletList().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('bulletList') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">• 列表</button>
-              <button type="button" @click="editor?.chain().focus().toggleOrderedList().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('orderedList') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">1. 列表</button>
-              <button type="button" @click="editor?.chain().focus().toggleBlockquote().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('blockquote') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">引用</button>
-              <button type="button" @click="editor?.chain().focus().toggleCodeBlock().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('codeBlock') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">代码</button>
-              <button type="button" @click="editor?.chain().focus().undo().run()" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">撤销</button>
-              <button type="button" @click="editor?.chain().focus().redo().run()" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm">重做</button>
-              <label class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm cursor-pointer">
-                插入图片
-                <input type="file" accept="image/*" class="hidden" @change="handleImageUpload" />
-              </label>
+              <!-- Text Style Group -->
+              <div class="flex items-center border-r dark:border-gray-600 pr-1 mr-1">
+                <button type="button" @click="editor?.chain().focus().toggleBold().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('bold') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-bold" title="加粗">B</button>
+                <button type="button" @click="editor?.chain().focus().toggleItalic().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('italic') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm italic" title="斜体">I</button>
+                <button type="button" @click="editor?.chain().focus().toggleUnderline().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('underline') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm underline" title="下划线">U</button>
+                <button type="button" @click="editor?.chain().focus().toggleStrike().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('strike') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm line-through" title="删除线 (Ctrl+D)">S</button>
+                <button type="button" @click="editor?.chain().focus().toggleMask().run()" :class="{ 'bg-slate-900 text-white': editor?.isActive('mask') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="黑条/马赛克 (Ctrl+M)">■</button>
+                <input type="color" @input="editor?.chain().focus().setColor(($event.target as HTMLInputElement).value).run()" :value="editor?.getAttributes('textStyle').color || '#000000'" class="w-6 h-6 p-0 border-0 bg-transparent cursor-pointer ml-1" title="文字颜色" />
+                <button type="button" @click="editor?.chain().focus().toggleHighlight().run()" :class="{ 'bg-yellow-200 dark:bg-yellow-900/40': editor?.isActive('highlight') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="背景高亮">M</button>
+                <button type="button" @click="editor?.chain().focus().toggleCode().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('code') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-mono" title="行内代码">C</button>
+              </div>
+
+              <!-- Headings Group -->
+              <div class="flex border-r dark:border-gray-600 pr-1 mr-1">
+                <button type="button" @click="editor?.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('heading', { level: 1 }) }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="一级标题">H1</button>
+                <button type="button" @click="editor?.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('heading', { level: 2 }) }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="二级标题">H2</button>
+                <button type="button" @click="editor?.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('heading', { level: 3 }) }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="三级标题">H3</button>
+                <button type="button" @click="editor?.chain().focus().toggleHeading({ level: 4 }).run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('heading', { level: 4 }) }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="四级标题">H4</button>
+              </div>
+
+              <!-- List Group -->
+              <div class="flex border-r dark:border-gray-600 pr-1 mr-1">
+                <button type="button" @click="editor?.chain().focus().toggleBulletList().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('bulletList') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="无序列表">•</button>
+                <button type="button" @click="editor?.chain().focus().toggleOrderedList().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('orderedList') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="有序列表">1.</button>
+                <button type="button" @click="editor?.chain().focus().toggleTaskList().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('taskList') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="任务列表">[]</button>
+              </div>
+
+              <!-- Structure Group -->
+              <div class="flex border-r dark:border-gray-600 pr-1 mr-1">
+                <button type="button" @click="editor?.chain().focus().toggleBlockquote().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('blockquote') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="引用 blockquote">引用</button>
+                <button type="button" @click="editor?.chain().focus().toggleCodeBlock().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('codeBlock') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="代码块 block">代码块</button>
+                <button type="button" @click="editor?.chain().focus().setHorizontalRule().run()" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="分割线 divider">分割线</button>
+              </div>
+
+              <!-- Tables -->
+              <div class="flex border-r dark:border-gray-600 pr-1 mr-1">
+                <button type="button" @click="editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="插入表格">表格</button>
+              </div>
+
+              <!-- History & Media -->
+              <div class="flex gap-1">
+                <button type="button" @click="editor?.chain().focus().undo().run()" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="撤销 undo">撤销</button>
+                <button type="button" @click="editor?.chain().focus().redo().run()" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="重做 redo">重做</button>
+                <label class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm cursor-pointer" title="上传图片">
+                  图片
+                  <input type="file" accept="image/*" class="hidden" @change="handleImageUpload" />
+                </label>
+              </div>
             </div>
             <EditorContent :editor="editor" class="prose dark:prose-invert max-w-none p-4 min-h-[300px]" />
           </div>
@@ -85,6 +119,18 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
+import { Markdown } from 'tiptap-markdown'
+import Underline from '@tiptap/extension-underline'
+import Highlight from '@tiptap/extension-highlight'
+import Typography from '@tiptap/extension-typography'
+import TaskList from '@tiptap/extension-task-list'
+import TaskItem from '@tiptap/extension-task-item'
+import Table from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import { Mask, BangumiShortcuts } from '@/utils/tiptap-extensions'
+import Link from '@tiptap/extension-link'
 import { renderMarkdown } from '@/utils/markdown'
 import { notesApi } from '@/api/notes'
 import { supabaseFoldersApi } from '@/api/supabaseData'
@@ -121,6 +167,34 @@ const uploadAndInsertImage = async (file: File) => {
 const editor = useEditor({
   extensions: [
     StarterKit,
+    Markdown.configure({
+      html: true,
+      tightLists: true,
+      tightListClass: 'tight',
+      bulletListMarker: '-',
+      linkify: true,
+      breaks: true,
+    }),
+    Underline,
+    Highlight.configure({ multicolor: true }),
+    Typography,
+    TaskList,
+    TaskItem.configure({
+      nested: true,
+    }),
+    Table.configure({
+      resizable: true,
+    }),
+    TableRow,
+    TableHeader,
+    TableCell,
+    Link.configure({
+      openOnClick: false,
+    }),
+    Color,
+    TextStyle,
+    Mask,
+    BangumiShortcuts,
     Image.configure({
       inline: true,
       allowBase64: true,
@@ -160,7 +234,8 @@ const editor = useEditor({
     },
   },
   onUpdate: ({ editor }) => {
-    form.value.content_md = editor.getHTML()
+    // Save as raw Markdown
+    form.value.content_md = editor.getStorage().markdown.getMarkdown()
   },
 })
 
@@ -174,9 +249,9 @@ const loadNote = async () => {
   form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
 
-  // Render raw markdown content to HTML so TipTap can process it safely
-  const htmlContent = renderMarkdown(data.content_md || '')
-  editor.value?.commands.setContent(htmlContent)
+  // Set content directly. tiptap-markdown handles both MD and HTML if configured correctly.
+  // We specify the format as markdown to ensure it parses correctly.
+  editor.value?.commands.setContent(data.content_md || '')
 }
 
 const loadFolders = async () => {
@@ -219,7 +294,7 @@ const checkDraft = () => {
       form.value.folder_id = draft.folder_id
       form.value.is_private = draft.is_private || false
       tagsInput.value = draft.tags
-      editor.value?.commands.setContent(renderMarkdown(draft.content_md))
+      editor.value?.commands.setContent(draft.content_md)
       uiStore.addToast('草稿已还原', 'success')
     } else {
       clearDraft()

@@ -57,7 +57,7 @@
 
       <!-- Content -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
-        <div class="markdown-body" v-html="renderedContent"></div>
+        <div class="markdown-body" v-html="renderedContent" @click="handleCopyCode"></div>
       </div>
       <!-- Scroll to Top Button -->
       <button 
@@ -73,9 +73,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
+import mermaid from 'mermaid'
+import 'katex/dist/katex.min.css'
 import { renderMarkdown } from '@/utils/markdown'
 import { notesApi } from '@/api/notes'
 import { useAuthStore } from '@/stores/auth'
@@ -109,6 +111,25 @@ const scrollToTop = () => {
 
 const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm')
 
+const handleCopyCode = async (event: MouseEvent) => {
+  const target = event.target as HTMLElement
+  const btn = target.closest('.copy-code-btn')
+  if (!btn) return
+  
+  const code = decodeURIComponent(btn.getAttribute('data-code') || '')
+  try {
+    await navigator.clipboard.writeText(code)
+    uiStore.addToast('代码已复制到剪贴板', 'success')
+    
+    // Feedback: temporary icon change
+    const originalIcon = btn.innerHTML
+    btn.innerHTML = `<svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`
+    setTimeout(() => { btn.innerHTML = originalIcon }, 2000)
+  } catch (err) {
+    uiStore.addToast('复制失败', 'error')
+  }
+}
+
 const loadNote = async () => {
   try {
     note.value = await notesApi.get(Number(route.params.id))
@@ -134,13 +155,25 @@ const handleDelete = async () => {
   }
 }
 
-onMounted(() => {
-  loadNote()
+onMounted(async () => {
+  await loadNote()
   window.addEventListener('scroll', handleScroll)
+  
+  mermaid.initialize({ 
+    startOnLoad: false,
+    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+    securityLevel: 'loose'
+  })
+  mermaid.run({ querySelector: '.mermaid' })
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+})
+
+watch(renderedContent, async () => {
+  await nextTick()
+  mermaid.run({ querySelector: '.mermaid' })
 })
 </script>
 
