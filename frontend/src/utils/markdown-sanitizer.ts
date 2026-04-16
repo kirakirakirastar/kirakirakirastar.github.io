@@ -62,26 +62,24 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
   cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\s*\[mark\]\1\[\/mark\]/g, '[mark]$1[/mask]');
   cleaned = cleaned.replace(/\[mark\]([^ \n*\[\]]{2,})\[\/mark\]\s*\1/g, '[mark]$1[/mask]');
 
-  // 3. Collapse repeated tokens INSIDE BBCode tags aggressively.
-  //    This catches cases like "[s]测试测试[/s]" or "[mask]测试 测试[/mask]"
-  let prev = '';
-  while (prev !== cleaned) {
-    prev = cleaned;
-    cleaned = cleaned.replace(/(\[[a-z]+(?:=[^\]]+)?\])(.+?)(\[\/[a-z]+\])/gi, (match, openTag, inner, closeTag) => {
-       let innerPrev = '';
-       let innerClean = inner;
-       while (innerPrev !== innerClean) {
-          innerPrev = innerClean;
-          // Use a non-greedy backreference check to find repeated substrings of length >= 2
-          // This handles "测试1测试1" as well as "测试1 测试1"
-          innerClean = innerClean.replace(/(.{2,})?[\s\u200B]*\1+/g, (m, g1) => g1 || m);
-       }
-       return openTag + innerClean + closeTag;
+  // 3. Task-List Specific Aggressive Cleaning
+  //    Matches: "- [ ] [s]测试1 测试1[/s]"
+  cleaned = cleaned.replace(/^(- \[[ x]\] )([\s\S]+?)$/gm, (line, prefix, content) => {
+    // Inside a task line, if we find any repetition of 2+ chars within any tag
+    return prefix + content.replace(/(\[[a-z]+(?:=[^\]]+)?\])(.+?)(\[\/[a-z]+\])/gi, (tagMatch, open, inner, close) => {
+      let innerPrev = '';
+      let innerClean = inner;
+      while (innerPrev !== innerClean) {
+        innerPrev = innerClean;
+        innerClean = innerClean.replace(/(.{2,})[\s\u200B]*\1+/g, '$1');
+      }
+      return open + innerClean + close;
     });
-  }
-  
+  });
+
+  // (Removed previous generic double-setContent loop logic in favor of this single targeted pass)
   if (cleaned !== markdown) {
-    console.warn('[SANITIZER] Cleaned up duplicates in content.');
+    console.warn('[SANITIZER] Aggressively cleaned TaskList duplicates.');
   }
 
   // 4. Universal BBCode/Markdown tags consecutive duplication fix

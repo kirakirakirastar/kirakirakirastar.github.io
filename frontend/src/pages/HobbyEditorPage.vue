@@ -164,7 +164,7 @@ const loadHobby = async () => {
   }
   tagsInput.value = data.tags.map(t => t.name).join(', ')
   const cleaned = validateAndSanitizeMarkdown(convertLegacyHTMLToBBCode(data.review || ''))
-  editor.value?.commands.setContent(convertBBCodeToEditorHTML(cleaned))
+  editor.value?.commands.setContent(cleaned)
   form.value.review = data.review
 }
 

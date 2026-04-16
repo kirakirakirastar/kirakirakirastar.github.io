@@ -159,11 +159,9 @@ const loadNote = async () => {
   form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
 
-  // Final Pass: sanitize, pre-convert BBCode → HTML, and set into editor.
-  // Note: We only set content ONCE to avoid triggering duplication loops.
+  // Final Pass: sanitize and set into editor.
   const cleaned = validateAndSanitizeMarkdown(convertLegacyHTMLToBBCode(data.content_md || ''))
-  const editorHTML = convertBBCodeToEditorHTML(cleaned)
-  editor.value?.commands.setContent(editorHTML)
+  editor.value?.commands.setContent(cleaned)
   form.value.content_md = data.content_md // Keep raw MD in form for now
 }
 
