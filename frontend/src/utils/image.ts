@@ -31,15 +31,17 @@ export async function compressImage(file: File, options: CompressOptions = {}): 
   }
 
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (ev) => {
-      const img = new Image();
-      img.src = ev.target?.result as string;
-      img.onload = () => {
-        // 计算缩放比例
-        let width = img.width;
-        let height = img.height;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.src = url;
+    
+    img.onload = () => {
+      // Clean up the URL to free memory immediately
+      URL.revokeObjectURL(url);
+      
+      // Calculate aspect ratio
+      let width = img.width;
+      let height = img.height;
 
         if (width > (settings.maxWidth || 2048) || height > (settings.maxHeight || 2048)) {
           const ratio = Math.min(

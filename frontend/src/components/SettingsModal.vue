@@ -130,7 +130,7 @@
               </div>
 
               <!-- Hidden File Input -->
-              <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="onFileSelected" />
+              <input type="file" ref="fileInput" class="hidden" accept="image/jpeg,image/png,image/webp" @change="onFileSelected" />
 
               <div v-if="bgUrlInput" class="mt-4 flex justify-end">
                 <button 
@@ -248,9 +248,11 @@ const emit = defineEmits<{
 }>()
 
 const settings = useSettingsStore()
-import { uploadImageLocally } from '@/api/supabaseData'
 import { uploadApi } from '@/api/upload';
 import { deleteFileByUrl } from '@/api/cleanup'
+import { useUiStore } from '@/stores/ui'
+
+const uiStore = useUiStore()
 
 const activeTab = ref<'theme' | 'background'>('theme')
 const bgUrlInput = ref(settings.bgUrl)
@@ -286,9 +288,9 @@ const onFileSelected = async (event: Event) => {
     if (oldUrl && oldUrl !== url) {
       deleteFileByUrl(oldUrl)
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to upload image', err)
-    alert('图片选择失败，请重试')
+    uiStore.addToast('图片选择失败', 'error', err.message || '请尝试较小的图片（建议 5MB 以下）')
   } finally {
     isUploading.value = false
     target.value = ''
