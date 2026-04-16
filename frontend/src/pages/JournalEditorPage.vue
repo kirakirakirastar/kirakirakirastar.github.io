@@ -219,7 +219,7 @@ const getEditorColor = () => {
   if (color.startsWith('rgb')) {
     const rgb = color.match(/\d+/g)
     if (rgb && rgb.length >= 3) {
-      return '#' + rgb.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('')
+      return '#' + rgb.slice(0, 3).map((x: string) => parseInt(x).toString(16).padStart(2, '0')).join('')
     }
   }
   return color

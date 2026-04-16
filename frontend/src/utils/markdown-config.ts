@@ -1,4 +1,4 @@
-import { Markdown } from 'tiptap-markdown'
+import { Markdown, type MarkdownStorage } from 'tiptap-markdown'
 import type MarkdownIt from 'markdown-it'
 
 /**
@@ -11,11 +11,11 @@ declare module 'tiptap-markdown' {
 }
 
 /**
- * Advanced BBCode and Formatting Plugin for markdown-it
+ * Balanced-Tag BBCode and Formatting Plugin for markdown-it
  * 
- * Instead of global string replacement, we use a structured ruler approach 
- * to identify tags as tokens. This prevents double-parsing and self-replication
- * by decoupling BBCode handling from raw HTML handling.
+ * This version implements balanced checks to ensure [tag] is only parsed
+ * if a corresponding [/tag] exists. This prevents unclosed tags from
+ * causing "greedy" parses that duplicate content or leak formatting.
  */
 const bbcodePlugin = (md: any) => {
   const tagMap: Record<string, string> = {
@@ -26,11 +26,12 @@ const bbcodePlugin = (md: any) => {
     color: 'span',
   }
 
-  // Handle [tag] and [/tag] as tokens
+  // Handle [tag] and [/tag] as tokens with balancedness check
   md.inline.ruler.before('text', 'bbcode', (state: any, silent: boolean) => {
     const start = state.pos
     if (state.src.charCodeAt(start) !== 0x5B /* [ */) return false
 
+    // Look for [tag], [tag=value], or [/tag]
     const match = state.src.slice(start).match(/^\[(\/?)([a-z]+)(=([^\]]+))?\]/i)
     if (!match) return false
 
@@ -40,6 +41,14 @@ const bbcodePlugin = (md: any) => {
     const htmlTag = tagMap[tagName]
 
     if (!htmlTag) return false
+
+    // BALANCE CHECK: If opening, ensure there's a close tag somewhere after it
+    if (!isClose) {
+      const remaining = state.src.slice(start + match[0].length)
+      if (!remaining.toLocaleLowerCase().includes(`[/${tagName}]`)) {
+        return false // Not a balanced tag, treat as plain text
+      }
+    }
 
     if (!silent) {
       const token = state.push(isClose ? 'bbcode_close' : 'bbcode_open', htmlTag, isClose ? -1 : 1)
@@ -56,13 +65,13 @@ const bbcodePlugin = (md: any) => {
     return true
   })
 
-  // Handle ~~strike~~ specifically if markdown-it's default isn't sufficient
-  // or needs to be forced to <s>
-  const originalStrikethrough = md.renderer.rules.s_open || ((tokens: any, idx: any, options: any, env: any, self: any) => self.renderToken(tokens, idx, options))
-  md.renderer.rules.s_open = (tokens: any, idx: any, options: any, env: any, self: any) => {
-    tokens[idx].tag = 's' // Force <s> instead of <del>
-    return originalStrikethrough(tokens, idx, options, env, self)
+  // Strikethrough Renderer Rule Fix
+  // Force <s> instead of <del> for compatibility with our extensions
+  const fixRenderer = (tokens: any, idx: any, options: any, env: any, self: any) => {
+    tokens[idx].tag = 's'
+    return self.renderToken(tokens, idx, options)
   }
+  md.renderer.rules.s_open = fixRenderer
 }
 
 /**
@@ -75,12 +84,16 @@ export const createMarkdownExtension = (options: any = {}) => {
     bulletListMarker: '-',
     linkify: true,
     breaks: true,
+    // Enable clipboard and paste handling for better state sync
+    transformPastedText: true,
     ...options,
   }).extend({
     addStorage() {
+      const parentStorage = (this.parent?.() || {}) as any
       return {
-        ...this.parent?.(),
+        ...parentStorage,
         markdown: {
+          ...(parentStorage.markdown || {}),
           parse: {
             setup: (md: any) => {
               md.use(bbcodePlugin)

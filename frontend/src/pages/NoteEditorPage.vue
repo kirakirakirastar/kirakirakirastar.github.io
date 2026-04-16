@@ -164,6 +164,7 @@ const uploadAndInsertImage = async (file: File) => {
 
 const editor = useEditor({
   extensions: [
+    createMarkdownExtension(),
     StarterKit.configure({
       strike: false,
     }),
@@ -195,7 +196,6 @@ const editor = useEditor({
     Placeholder.configure({
       placeholder: '在这里写内容...',
     }),
-    createMarkdownExtension(),
   ],
   content: '',
   editorProps: {

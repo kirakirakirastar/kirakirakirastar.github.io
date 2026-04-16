@@ -25,13 +25,14 @@ declare module '@tiptap/core' {
 
 /**
  * Mask Extension (Spoiler)
- * Converts to/from <span class="mask-text">
  * 
- * inclusive: false prevents format spillage to subsequent text.
+ * spanning: false prevents the mark from crossing block boundaries, 
+ * which is critical for stable Markdown serialization in lists/tasks.
  */
 export const Mask = Mark.create({
   name: 'mask',
   inclusive: false,
+  spanning: false,
   addOptions() {
     return {
       HTMLAttributes: {
@@ -44,6 +45,7 @@ export const Mask = Mark.create({
       {
         tag: 'span',
         getAttrs: element => (element as HTMLElement).classList.contains('mask-text') && null,
+        priority: 100,
       },
     ]
   },
@@ -71,11 +73,19 @@ export const Mask = Mark.create({
 })
 
 /**
- * Use standard extensions for core features to ensure tiptap-markdown compatibility
- * We extend them to provide proper markdown serialization and fix format spillage.
+ * Hardened Underline
  */
 export const MarkdownUnderline = Underline.extend({
   inclusive: false,
+  spanning: false,
+  parseHTML() {
+    return [
+      {
+        tag: 'u',
+        priority: 100,
+      },
+    ]
+  },
   addStorage() {
     return {
       markdown: {
@@ -89,8 +99,28 @@ export const MarkdownUnderline = Underline.extend({
   },
 })
 
+/**
+ * Hardened Strike
+ */
 export const MarkdownStrike = Strike.extend({
   inclusive: false,
+  spanning: false,
+  parseHTML() {
+    return [
+      {
+        tag: 's',
+        priority: 100,
+      },
+      {
+        tag: 'del',
+        priority: 100,
+      },
+      {
+        tag: 'strike',
+        priority: 100,
+      },
+    ]
+  },
   addStorage() {
     return {
       markdown: {
@@ -104,8 +134,20 @@ export const MarkdownStrike = Strike.extend({
   },
 })
 
+/**
+ * Hardened Highlight
+ */
 export const MarkdownHighlight = Highlight.configure({ multicolor: true }).extend({
   inclusive: false,
+  spanning: false,
+  parseHTML() {
+    return [
+      {
+        tag: 'mark',
+        priority: 100,
+      },
+    ]
+  },
   addStorage() {
     return {
       markdown: {
@@ -122,6 +164,18 @@ export const MarkdownHighlight = Highlight.configure({ multicolor: true }).exten
 export const MarkdownTextStyle = TextStyle
 export const MarkdownColor = Color.extend({
   inclusive: false,
+  spanning: false,
+  parseHTML() {
+    return [
+      {
+        tag: 'span',
+        getAttrs: element => {
+          return (element as HTMLElement).style.color ? null : false
+        },
+        priority: 90,
+      },
+    ]
+  },
   addStorage() {
     return {
       markdown: {

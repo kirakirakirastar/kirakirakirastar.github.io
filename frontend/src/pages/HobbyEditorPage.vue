@@ -200,6 +200,7 @@ const uploadAndSetCover = async (file: File) => {
 
 const editor = useEditor({
   extensions: [
+    createMarkdownExtension(),
     StarterKit.configure({
       strike: false,
     }),
@@ -213,7 +214,6 @@ const editor = useEditor({
     Placeholder.configure({
       placeholder: '在这里写下你的评价与笔记...',
     }),
-    createMarkdownExtension(),
   ],
   content: '',
   onUpdate: ({ editor }) => {
