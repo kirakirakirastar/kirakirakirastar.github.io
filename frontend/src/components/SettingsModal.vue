@@ -118,11 +118,11 @@
                       </div>
                     </div>
 
-                    <!-- Resize Handles -->
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-6 -left-6 w-12 h-12 rounded-full bg-primary border-[6px] border-white shadow-2xl hover:scale-125 transition-transform cursor-nwse-resize z-40"></div>
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-6 -right-6 w-12 h-12 rounded-full bg-primary border-[6px] border-white shadow-2xl hover:scale-125 transition-transform cursor-nesw-resize z-40"></div>
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-6 -left-6 w-12 h-12 rounded-full bg-primary border-[6px] border-white shadow-2xl hover:scale-125 transition-transform cursor-nesw-resize z-40"></div>
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-6 -right-6 w-12 h-12 rounded-full bg-primary border-[6px] border-white shadow-2xl hover:scale-125 transition-transform cursor-nwse-resize z-40"></div>
+                    <!-- Handles (Optimized for Mobile) -->
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-4 -left-4 sm:-top-7 sm:-left-7 w-8 h-8 sm:w-14 sm:h-14 rounded-full bg-white border-4 sm:border-[8px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nwse-resize z-40"></div>
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-4 -right-4 sm:-top-7 sm:-right-7 w-8 h-8 sm:w-14 sm:h-14 rounded-full bg-white border-4 sm:border-[8px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nesw-resize z-40"></div>
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-4 -left-4 sm:-bottom-7 sm:-left-7 w-8 h-8 sm:w-14 sm:h-14 rounded-full bg-white border-4 sm:border-[8px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nesw-resize z-40"></div>
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-4 -right-4 sm:-bottom-7 sm:-right-7 w-8 h-8 sm:w-14 sm:h-14 rounded-full bg-white border-4 sm:border-[8px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nwse-resize z-40"></div>
                   </div>
 
                   <!-- The Full Image (Under the viewport) -->
@@ -140,17 +140,25 @@
                   </div>
                 </div>
 
-                <!-- Replace/Reset Overlay (Static on top of arena) -->
-                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-50">
-                  <button @click.stop="triggerFileSelect" class="px-5 py-2.5 bg-white dark:bg-slate-800 rounded-full text-xs font-bold text-primary shadow-2xl border border-slate-100 dark:border-white/5 flex items-center gap-2 hover:scale-105 transition-all">
+              </div>
+
+              <!-- Stable Control Bar (Outside Arena) -->
+              <div v-if="bgUrlInput" class="mt-4 flex flex-wrap items-center justify-between gap-3 px-1">
+                <div class="flex gap-2.5">
+                  <button @click.stop="triggerFileSelect" class="px-4 py-2.5 bg-primary text-white rounded-2xl text-xs font-bold transition-all flex items-center gap-2 hover:bg-primary-light shadow-lg shadow-primary/20">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     更换背景
                   </button>
-                  <button @click.stop="resetPosition" class="px-5 py-2.5 bg-white dark:bg-slate-800 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300 shadow-2xl border border-slate-100 dark:border-white/5 flex items-center gap-2 hover:scale-105 transition-all" title="重置位置与缩放">
+                  <button @click.stop="resetPosition" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 border border-slate-200 dark:border-white/5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     重置位置
                   </button>
                 </div>
+                
+                <button @click.stop="bgUrlInput = ''; applyBgUrl()" class="px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-2xl text-xs font-bold transition-all flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                  移除背景
+                </button>
               </div>
 
               <!-- Placeholder (When no image) -->
@@ -168,14 +176,6 @@
               <!-- Hidden File Input -->
               <input type="file" ref="fileInput" class="hidden" accept="image/jpeg,image/png,image/webp" @change="onFileSelected" />
 
-              <div v-if="bgUrlInput" class="mt-4 flex justify-end px-2">
-                  @click.stop="bgUrlInput = ''; applyBgUrl()" 
-                  class="text-xs text-red-500 hover:text-red-600 font-bold flex items-center gap-1.5 transition-colors"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                  移除背景
-                </button>
-              </div>
             </section>
 
             <!-- Background Detailed Controls -->
