@@ -34,6 +34,7 @@ declare module '@tiptap/core' {
     },
     link: {
       setLink: (attributes: { href: string; target?: string | null; rel?: string | null; class?: string | null }) => ReturnType,
+      toggleLink: (attributes: { href: string; target?: string | null; rel?: string | null; class?: string | null }) => ReturnType,
       unsetLink: () => ReturnType,
     },
     image: {

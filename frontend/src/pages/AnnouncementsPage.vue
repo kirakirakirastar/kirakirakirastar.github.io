@@ -92,11 +92,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useGadgetStore } from '@/stores/gadgets'
+import type { Announcement } from '@/api/types'
 import dayjs from 'dayjs'
 
 const gadgetStore = useGadgetStore()
 const newText = ref('')
-const newType = ref('info')
+const newType = ref<Announcement['type']>('info')
 const loading = ref(false)
 
 const handleCreate = async () => {

@@ -389,7 +389,7 @@ export const supabaseJournalsApi = {
   },
 
   permanentlyDelete: async (id: number) => {
-    const { data: journal } = await supabase.from('journals').select('content_html').eq('id', id).single()
+    const { data: journal } = await supabase.from('journals').select('content_html, content_md').eq('id', id).single()
     const { error } = await supabase.from('journals').delete().eq('id', id)
     if (error) throw error
     if (journal?.content_md || journal?.content_html) {
@@ -400,7 +400,7 @@ export const supabaseJournalsApi = {
   },
 
   batchPermanentlyDelete: async (ids: number[]) => {
-    const { data: journals } = await supabase.from('journals').select('content_html').in('id', ids)
+    const { data: journals } = await supabase.from('journals').select('content_html, content_md').in('id', ids)
     const { error } = await supabase.from('journals').delete().in('id', ids)
     if (error) throw error
     if (journals) {

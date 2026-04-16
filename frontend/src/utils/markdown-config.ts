@@ -37,21 +37,43 @@ const bbcodePlugin = (md: any) => {
   const findBalancedClosingTag = (source: string, from: number, tagName: string): number => {
     const tagRegex = /\[(\/)?([a-z]+)(=([^\]]+))?\]/gi
     tagRegex.lastIndex = from
-    let depth = 1
+    const stack = [tagName]
     let match: RegExpExecArray | null
 
     while ((match = tagRegex.exec(source)) !== null) {
-      if (match[2].toLowerCase() !== tagName) continue
+      const matchedTagName = match[2].toLowerCase()
+      if (!tagMap[matchedTagName]) continue
 
       if (match[1] === '/') {
-        depth--
-        if (depth === 0) return match.index
+        if (stack[stack.length - 1] !== matchedTagName) return -1
+        stack.pop()
+        if (stack.length === 0) return match.index
       } else {
-        depth++
+        stack.push(matchedTagName)
       }
     }
 
     return -1
+  }
+
+  const hasMatchingOpeningTag = (source: string, until: number, tagName: string): boolean => {
+    const tagRegex = /\[(\/)?([a-z]+)(=([^\]]+))?\]/gi
+    const stack: string[] = []
+    let match: RegExpExecArray | null
+
+    while ((match = tagRegex.exec(source)) !== null && match.index < until) {
+      const matchedTagName = match[2].toLowerCase()
+      if (!tagMap[matchedTagName]) continue
+
+      if (match[1] === '/') {
+        if (stack[stack.length - 1] !== matchedTagName) return false
+        stack.pop()
+      } else {
+        stack.push(matchedTagName)
+      }
+    }
+
+    return stack[stack.length - 1] === tagName
   }
 
   // Guard: prevent duplicate registration when parse() is called multiple times
@@ -74,7 +96,11 @@ const bbcodePlugin = (md: any) => {
 
     if (!htmlTag) return false
 
-    if (!isClose) {
+    if (isClose) {
+      if (!hasMatchingOpeningTag(state.src, start, tagName)) {
+        return false
+      }
+    } else {
       const closeTagIndex = findBalancedClosingTag(state.src, start + match[0].length, tagName)
       if (closeTagIndex === -1) {
         return false
