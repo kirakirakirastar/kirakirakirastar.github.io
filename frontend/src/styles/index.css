@@ -115,19 +115,47 @@ html, body, #app {
 .markdown-body p { @apply mb-4 leading-relaxed; }
 
 /* Lists - Restoring standard markers removed by Tailwind */
-.markdown-body ul {
-  @apply list-disc pl-8 mb-4 space-y-1;
+.markdown-body ul, 
+.ProseMirror ul {
+  list-style-type: disc !important;
+  list-style-position: inside !important; /* Forces markers INSIDE the box so they are never clipped */
+  padding-left: 1.5rem !important;
+  margin-bottom: 1rem !important;
 }
-.markdown-body ol {
-  @apply list-decimal pl-8 mb-4 space-y-1;
+.markdown-body ol, 
+.ProseMirror ol {
+  list-style-type: decimal !important;
+  list-style-position: inside !important;
+  padding-left: 1.5rem !important;
+  margin-bottom: 1rem !important;
 }
-.markdown-body li {
+.markdown-body li, 
+.ProseMirror li {
   @apply mb-1;
+  display: list-item !important;
 }
+/* Ensure markers match text color or primary color for visibility */
+.dark .ProseMirror ol::marker,
+.dark .ProseMirror ul::marker {
+  @apply text-slate-100;
+}
+.ProseMirror ol::marker,
+.ProseMirror ul::marker {
+  @apply text-slate-800;
+}
+
 .markdown-body li > ul,
-.markdown-body li > ol {
-  @apply mt-2 mb-0;
+.markdown-body li > ol,
+.ProseMirror li > ul,
+.ProseMirror li > ol {
+  @apply mt-2 mb-0 pl-10; /* Nested indentation */
 }
+
+/* Specific styling for the custom editor wrapper class */
+.markdown-editor-view {
+  @apply text-slate-800 dark:text-slate-100 leading-relaxed;
+}
+
 .markdown-body li > p {
   @apply mb-0 inline; /* Prevents double spacing in simple lists */
 }

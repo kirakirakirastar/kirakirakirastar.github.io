@@ -83,7 +83,7 @@
             <button type="button" @click="editor?.chain().focus().undo().run()" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm ml-auto">撤销</button>
             <button type="button" @click="editor?.chain().focus().redo().run()" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">重做</button>
           </div>
-          <EditorContent :editor="editor" class="prose dark:prose-invert max-w-none p-4 min-h-[200px]" />
+          <EditorContent :editor="editor" class="markdown-editor-view max-w-none p-4 min-h-[150px]" />
         </div>
       </div>
 

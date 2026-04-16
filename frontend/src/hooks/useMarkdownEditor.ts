@@ -91,7 +91,21 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
           class: 'task-list-item',
         },
       }).extend({
-        // Harden the TaskItem serialization to be 100% predictable
+        // Harden the TaskItem serialization AND parsing to move between MD-IT and Tiptap
+        parseHTML() {
+          return [
+            {
+              // Claim the standard markdown-it-task-lists HTML
+              tag: 'li.task-list-item',
+              priority: 100,
+            },
+            {
+              // Claim the native tiptap format
+              tag: 'li[data-type="taskItem"]',
+              priority: 100,
+            },
+          ]
+        },
         addStorage() {
           return {
             markdown: {
@@ -99,13 +113,6 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
                 state.write(node.attrs.checked ? '[x] ' : '[ ] ')
                 state.renderContent(node)
               },
-              parse: {
-                // The parsing is handled by the pre-rendered HTML pass, 
-                // but we keep this for dynamic updates
-                updateDOM(element: HTMLElement) {
-                  element.setAttribute('data-type', 'taskItem')
-                }
-              }
             }
           }
         }

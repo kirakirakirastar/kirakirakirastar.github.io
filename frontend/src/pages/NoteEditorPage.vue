@@ -97,7 +97,7 @@
                 </label>
               </div>
             </div>
-            <EditorContent :editor="editor" class="prose dark:prose-invert max-w-none p-4 min-h-[300px]" />
+            <EditorContent :editor="editor" class="markdown-editor-view max-w-none p-4 min-h-[150px]" />
           </div>
         </div>
 
@@ -206,7 +206,7 @@ const checkDraft = () => {
       form.value.folder_id = draft.folder_id
       form.value.is_private = draft.is_private || false
       tagsInput.value = draft.tags
-      editor.value?.commands.setContent(convertBBCodeToEditorHTML(convertLegacyHTMLToBBCode(draft.content_md)))
+      editor.value?.commands.setContent(renderMarkdownToHTML(draft.content_md))
       uiStore.addToast('草稿已还原', 'success')
     } else {
       clearDraft()

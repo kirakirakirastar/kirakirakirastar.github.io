@@ -75,7 +75,7 @@
                 <input type="file" accept="image/*" class="hidden" @change="handleImageUpload" />
               </label>
             </div>
-            <EditorContent :editor="editor" class="prose dark:prose-invert max-w-none p-4 min-h-[300px]" />
+            <EditorContent :editor="editor" class="markdown-editor-view max-w-none p-4 min-h-[150px]" />
           </div>
         </div>
 
@@ -136,8 +136,7 @@ const loadJournal = async () => {
   form.value.folder_id = data.folder_id
   form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
-  const editorHTML = renderMarkdownToHTML(data.content_md || '')
-  editor.value?.commands.setContent(editorHTML)
+  editor.value?.commands.setContent(renderMarkdownToHTML(data.content_md || ''))
   form.value.content_md = data.content_md
 }
 
