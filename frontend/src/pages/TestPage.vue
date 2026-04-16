@@ -88,11 +88,11 @@ const runDiagnostic = async (label: string, content: string) => {
 
 const startFullTest = async () => {
   testResults.value = []
-  await runDiagnostic('01. Plain Task', '- [ ] 测试1')
-  await runDiagnostic('02. Strike HTML Task', '- [ ] <s>测试1</s>')
-  await runDiagnostic('03. Strike BBCode Task', '- [ ] [s]测试1[/s]')
-  await runDiagnostic('04. Mask HTML Task', '- [ ] <span class="mask-text">测试1</span>')
-  await runDiagnostic('05. Mask BBCode Task', '- [ ] [mask]测试1[/mask]')
-  await runDiagnostic('06. Nested HTML Bold', '- [ ] <strong>测试1</strong>')
+  await runDiagnostic('01. Task List (+Strike)', '- [ ] [s]测试1[/s]')
+  await runDiagnostic('02. Bullet List (+Strike)', '- [s]测试1[/s]')
+  await runDiagnostic('03. Ordered List (+Strike)', '1. [s]测试1[/s]')
+  await runDiagnostic('04. Task List (+Mask)', '- [ ] [mask]测试1[/mask]')
+  await runDiagnostic('05. Bullet List (+Mask)', '- [mask]测试1[/mask]')
+  await runDiagnostic('06. Ordered List (+Mask)', '1. [mask]测试1[/mask]')
 }
 </script>

@@ -42,14 +42,16 @@ export const validateAndSanitizeMarkdown = (content: string): string => {
   //    Specifically targets the "TaskItem duplication" signature where 
   //    the parser appends the same text twice without a space.
   //    We use a loop to handle multiple levels of corruption (1->2->4->8)
+  // 3. Substring deduplication inside BBCode markers.
+  //    This specifically targets corruption within Lists (Task, Bullet, Ordered).
+  //    Matches: "[s]测试测试[/s]" in "- [ ] [s]测试测试[/s]" or "1. [s]A A[/s]"
   let prev = '';
   while (prev !== cleaned) {
     prev = cleaned;
-    // Matches: "[s]测试测试[/s]" -> "[s]测试[/s]"
-    // Restricted to 3+ characters to avoid false positives on short intentional repetitions like "哈哈"
-    cleaned = cleaned.replace(/(\[[a-z]+(?:=[^\]]+)?\])(.+?)(\[\/[a-z]+\])/gi, (match, open, inner, close) => {
-       const deduplicatedInner = inner.replace(/(.{3,})\1+/g, '$1');
-       return open + deduplicatedInner + close;
+    // We check if the line looks like a list item first to be safe
+    cleaned = cleaned.replace(/^([ \t]*([-*+]|\d+\.)( \[[ x]\])? .*?)(\[[a-z]+(?:=[^\]]+)?\])(.+?)(\[\/[a-z]+\])/gm, (match, prefix, bullet, task, open, inner, close) => {
+       const deduplicatedInner = inner.replace(/(.{2,})[\s\u200B]*\1+/g, '$1');
+       return prefix + open + deduplicatedInner + close;
     });
   }
 

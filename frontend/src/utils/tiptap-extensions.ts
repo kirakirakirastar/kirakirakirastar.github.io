@@ -61,8 +61,12 @@ export const Mask = Mark.create({
     return [
       {
         tag: 'span',
-        getAttrs: element => (element as HTMLElement).classList.contains('mask-text') && null,
-        priority: 100,
+        getAttrs: (element) => {
+          if (typeof element === 'string') return false
+          const el = element as HTMLElement
+          return el.classList.contains('mask-text') ? {} : false
+        },
+        priority: 1000,
       },
     ]
   },
