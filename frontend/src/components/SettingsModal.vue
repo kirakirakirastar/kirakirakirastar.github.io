@@ -90,7 +90,11 @@
             <!-- Custom Background Selection -->
             <section class="animate-fade-in-up">
               <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                <span class="w-1.5               <!-- Workspace Arena (Adaptive view ratio) -->
+                <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                自定义背景图片
+              </h3>
+              
+              <!-- Workspace Arena (Adaptive view ratio) -->
               <div v-if="bgUrlInput" class="relative bg-slate-100 dark:bg-slate-900 rounded-[2.5rem] h-[380px] sm:h-[400px] flex items-center justify-center overflow-hidden border border-slate-200 dark:border-white/5 shadow-inner">
                 <!-- Staging Arena (Scaled down) -->
                 <div class="relative w-full h-full flex items-center justify-center transform scale-[0.45] sm:scale-[0.7] transition-transform duration-500">
