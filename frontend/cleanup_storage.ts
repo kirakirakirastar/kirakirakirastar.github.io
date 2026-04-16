@@ -52,7 +52,8 @@ function extractUrls(text: string | null, set: Set<string>) {
 async function cleanupBucket(bucketName: string, activeUrls: Set<string>) {
   console.log(`--- 正在审计存储桶: ${bucketName} ---`)
   
-  const { data: files, error } = await supabase.storage.from(bucketName).list('', { recursive: true })
+  const { data, error } = await supabase.storage.from(bucketName).listV2({ prefix: '' })
+  const files = data?.objects
   if (error) {
     console.error(`列出 ${bucketName} 文件失败:`, error)
     return

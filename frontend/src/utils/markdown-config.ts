@@ -1,4 +1,15 @@
 import { Markdown } from 'tiptap-markdown'
+import type MarkdownIt from 'markdown-it'
+
+/**
+ * Augment the MarkdownStorage interface to include markdownit, 
+ * which is present at runtime but missing from the library's type definitions.
+ */
+declare module 'tiptap-markdown' {
+  interface MarkdownStorage {
+    markdownit: MarkdownIt
+  }
+}
 
 /**
  * Robust BBCode-to-HTML and Strike conversion plugin for markdown-it
@@ -11,12 +22,13 @@ const bbcodePlugin = (md: any) => {
       let content = token.content
 
       // Pre-process common markers to HTML tags for stability
-      content = content.replace(/\[u\]([\s\S]*?)\[\/u\]/gi, '<u>$1</u>')
-      content = content.replace(/\[s\]([\s\S]*?)\[\/s\]/gi, '<s>$1</s>')
+      // We handle potential escaping (e.g. \[u\]) by matching an optional backslash
+      content = content.replace(/\\?\[u\\?\]([\s\S]*?)\\?\[\/u\\?\]/gi, '<u>$1</u>')
+      content = content.replace(/\\?\[s\\?\]([\s\S]*?)\\?\[\/s\\?\]/gi, '<s>$1</s>')
       content = content.replace(/~~(?!\s)([\s\S]*?)(?<!\s)~~/g, '<s>$1</s>')
-      content = content.replace(/\[mark\]([\s\S]*?)\[\/mark\]/gi, '<mark>$1</mark>')
-      content = content.replace(/\[mask\]([\s\S]*?)\[\/mask\]/gi, '<span class="mask-text">$1</span>')
-      content = content.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/gi, '<span style="color: $1">$2</span>')
+      content = content.replace(/\\?\[mark\\?\]([\s\S]*?)\\?\[\/mark\\?\]/gi, '<mark>$1</mark>')
+      content = content.replace(/\\?\[mask\\?\]([\s\S]*?)\\?\[\/mask\\?\]/gi, '<span class="mask-text">$1</span>')
+      content = content.replace(/\\?\[color=([^\]]+)\\?\]([\s\S]*?)\\?\[\/color\\?\]/gi, '<span style="color: $1">$2</span>')
 
       token.content = content
     })
@@ -34,47 +46,46 @@ export const createMarkdownExtension = (options: any = {}) => {
     bulletListMarker: '-',
     linkify: true,
     breaks: true,
-    transformPastedText: true,
-    transformCopiedText: true,
     ...options,
-    markdownit: {
-      setup: (md: any) => {
-        md.use(bbcodePlugin)
-        if (options.markdownit?.setup) {
-            options.markdownit.setup(md)
-        }
-      }
-    },
-    // EXPLICIT SERIALIZERS to ensure HTML tags are always used for these marks
+    // Explicitly override serializers here as well 
+    // (some versions of tiptap-markdown use this directly)
     serializer: {
-      strike: (state: any, mark: any) => {
-        state.write('<s>')
-        state.renderContent(mark)
-        state.write('</s>')
-      },
-      underline: (state: any, mark: any) => {
-        state.write('<u>')
-        state.renderContent(mark)
-        state.write('</u>')
-      },
-      highlight: (state: any, mark: any) => {
-        state.write('<mark>')
-        state.renderContent(mark)
-        state.write('</mark>')
-      },
-      mask: (state: any, mark: any) => {
-        state.write('<span class="mask-text">')
-        state.renderContent(mark)
-        state.write('</span>')
-      },
-      textStyle: (state: any, mark: any) => {
-        if (mark.attrs.color) {
-          state.write(`<span style="color: ${mark.attrs.color}">`)
+        strike: (state: any, mark: any) => {
+          state.write('<s>')
+          state.renderContent(mark)
+          state.write('</s>')
+        },
+        underline: (state: any, mark: any) => {
+          state.write('<u>')
+          state.renderContent(mark)
+          state.write('</u>')
+        },
+        highlight: (state: any, mark: any) => {
+          state.write('<mark>')
+          state.renderContent(mark)
+          state.write('</mark>')
+        },
+        mask: (state: any, mark: any) => {
+          state.write('<span class="mask-text">')
           state.renderContent(mark)
           state.write('</span>')
-        } else {
-          state.renderContent(mark)
+        },
+        textStyle: (state: any, mark: any) => {
+          if (mark.attrs.color) {
+            state.write(`<span style="color: ${mark.attrs.color}">`)
+            state.renderContent(mark)
+            state.write('</span>')
+          } else {
+            state.renderContent(mark)
+          }
         }
+    }
+  }).extend({
+    // Use onBeforeCreate to ensure markdown-it is configured before any content parsing happens
+    onBeforeCreate() {
+      const md = this.storage.markdownit
+      if (md) {
+        md.use(bbcodePlugin)
       }
     }
   })

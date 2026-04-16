@@ -144,7 +144,9 @@ const uploadAndInsertImage = async (file: File) => {
 
 const editor = useEditor({
   extensions: [
-    StarterKit,
+    StarterKit.configure({
+      strike: false,
+    }),
     MarkdownUnderline,
     MarkdownHighlight,
     MarkdownColor,
