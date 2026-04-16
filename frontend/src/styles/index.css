@@ -66,6 +66,9 @@ html, body, #app {
 /* 内容样式 - Premium Markdown System */
 .markdown-body {
   @apply text-slate-800 dark:text-slate-200 max-w-none;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: normal; /* Better than break-all for readability, but handles long words */
   font-size: 16px;
   line-height: 1.8;
   counter-reset: h1; /* Reset H1 counter at the root */

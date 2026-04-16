@@ -12,7 +12,22 @@ export const convertLegacyHTMLToBBCode = (markdown: string): string => {
     .replace(/<span[^>]*style=["']color:\s*([^;"']+)["'][^>]*>([\s\S]*?)<\/span>/gi, '[color=$1]$2[/color]')
 };
 
+const deduplicateRepeatedFormattedText = (markdown: string): string => {
+  if (!markdown) return markdown;
+  // This helps clean up cases where the serializer might have outputted 
+  // duplicate formatted segments due to extension conflicts or spanning issues.
+  // It handles bold (**), underline ([u]), and mask ([mask])
+  return markdown
+    .replace(/(\*\*[^*]+\*\*) \1/g, '$1') // Space separated duplicates
+    .replace(/(\*\*[^*]+\*\*)(\1)+/g, '$1') // Consecutive duplicates
+    .replace(/(\[u\].+?\[\/u\]) \1/g, '$1')
+    .replace(/(\[u\].+?\[\/u\])(\1)+/g, '$1')
+    .replace(/(\[mask\].+?\[\/mask\]) \1/g, '$1')
+    .replace(/(\[mask\].+?\[\/mask\])(\1)+/g, '$1');
+};
+
 export const validateAndSanitizeMarkdown = (content: string): string => {
   if (!content) return content;
-  return convertLegacyHTMLToBBCode(content);
+  const converted = convertLegacyHTMLToBBCode(content);
+  return deduplicateRepeatedFormattedText(converted);
 };

@@ -56,7 +56,7 @@
       </div>
 
       <!-- Content -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8 overflow-hidden break-words">
         <div class="markdown-body" v-html="renderedContent" @click="handleCopyCode"></div>
       </div>
       <!-- Scroll to Top Button -->

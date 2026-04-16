@@ -48,8 +48,8 @@ declare module '@tiptap/core' {
  */
 export const Mask = Mark.create({
   name: 'mask',
-  inclusive: false,
-  spanning: false,
+  inclusive: true,
+  spanning: true,
   addOptions() {
     return {
       HTMLAttributes: {
@@ -99,7 +99,7 @@ export const Mask = Mark.create({
  */
 export const MarkdownUnderline = Underline.extend({
   inclusive: true,
-  spanning: false,
+  spanning: true,
   parseHTML() {
     return [
       {
@@ -126,12 +126,9 @@ export const MarkdownUnderline = Underline.extend({
   },
 })
 
-/**
- * Hardened Strike
- */
 export const MarkdownStrike = Strike.extend({
-  inclusive: false,
-  spanning: false,
+  inclusive: true,
+  spanning: true,
   parseHTML() {
     return [
       {
@@ -155,6 +152,12 @@ export const MarkdownStrike = Strike.extend({
           open: '[s]',
           close: '[/s]',
         },
+        parse: {
+          setup: (md: any) => {},
+          getAttrs: (tok: any) => {
+            if (tok.type === 'strike_open') return {}
+          }
+        }
       },
     }
   },
@@ -164,8 +167,8 @@ export const MarkdownStrike = Strike.extend({
  * Hardened Highlight
  */
 export const MarkdownHighlight = Highlight.configure({ multicolor: true }).extend({
-  inclusive: false,
-  spanning: false,
+  inclusive: true,
+  spanning: true,
   parseHTML() {
     return [
       {
@@ -229,8 +232,8 @@ export const MarkdownTextStyle = TextStyle.extend({
 // is effectively dead code since Color is an Extension, not a Mark.
 // The actual serialization is handled by MarkdownTextStyle above.
 export const MarkdownColor = Color.extend({
-  inclusive: false,
-  spanning: false,
+  inclusive: true,
+  spanning: true,
 })
 
 

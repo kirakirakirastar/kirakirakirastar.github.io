@@ -71,7 +71,13 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
   const editor = useEditor({
     extensions: [
       createMarkdownExtension(),
-      StarterKit.configure({ strike: false }),
+      StarterKit.configure({ 
+        history: true,
+        textStyle: false, // Prevent conflict with MarkdownTextStyle
+        strike: false,    // Prevent conflict with MarkdownStrike
+        bold: true,
+        italic: true
+      }),
       MarkdownTextStyle,
       MarkdownUnderline,
       MarkdownHighlight,
