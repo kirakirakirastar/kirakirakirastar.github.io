@@ -40,6 +40,10 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
   // 3. Consecutive task list items (redundant serialization)
   cleaned = cleaned.replace(/(- \[ [x ] \] .+?)\n\1/g, '$1');
 
+  // 4. Task list specific hybrid duplication fix
+  // Matches: - [ ] word**word** -> - [ ] **word**
+  cleaned = cleaned.replace(/(- \[ [x ] \] )([^ \n*\[\]]{2,})\*\*\2\*\*/g, '$1**$2**');
+
   return cleaned;
 };
 
