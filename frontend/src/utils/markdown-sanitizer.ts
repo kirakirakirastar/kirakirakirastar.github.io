@@ -53,10 +53,14 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
     .replace(/(\[color=[^\]]+\].+?\[\/color\])(\1)+/g, '$1');
 
   // 2. Hybrid duplicates: Plain text followed by its formatted equivalent (or vice versa)
-  cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\*\*\1\*\*/g, '**$1**');
-  cleaned = cleaned.replace(/\*\*([^ \n*\[\]]{2,})\*\*\1/g, '**$1**');
-  cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\[u\]\1\[\/u\]/g, '[u]$1[/u]');
-  cleaned = cleaned.replace(/\[u\]([^ \n*\[\]]{2,})\[\/u\]\1/g, '[u]$1[/u]');
+  cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\s*\*\*\1\*\*/g, '**$1**');
+  cleaned = cleaned.replace(/\*\*([^ \n*\[\]]{2,})\*\*\s*\1/g, '**$1**');
+  cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\s*\[u\]\1\[\/u\]/g, '[u]$1[/u]');
+  cleaned = cleaned.replace(/\[u\]([^ \n*\[\]]{2,})\[\/u\]\s*\1/g, '[u]$1[/u]');
+  cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\s*\[mask\]\1\[\/mask\]/g, '[mask]$1[/mask]');
+  cleaned = cleaned.replace(/\[mask\]([^ \n*\[\]]{2,})\[\/mask\]\s*\1/g, '[mask]$1[/mask]');
+  cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\s*\[mark\]\1\[\/mark\]/g, '[mark]$1[/mask]');
+  cleaned = cleaned.replace(/\[mark\]([^ \n*\[\]]{2,})\[\/mark\]\s*\1/g, '[mark]$1[/mask]');
 
   // 3. Task list item content duplicated on next line as plain paragraph
   // Matches: "- [ ] content\ncontent" or "- [x] content\ncontent"
@@ -69,14 +73,21 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
   // 5. Double-check generic Markdown bold/italic
   cleaned = cleaned.replace(/(\*\*[^*]+\*\*)\s?\1+/g, '$1');
 
-  // 6. Collapse repeated space-separated tokens anywhere in content.
-  //    This fixes corrupted DB rows like: "[mask]X X X X[/mask]" → "[mask]X[/mask]"
-  //    Apply iteratively to handle 4→2→1 chains.
+  // 6. Collapse repeated space-separated tokens INSIDE BBCode tags.
+  //    This fixes corrupted DB rows like: "[mask]测试内容 测试内容[/mask]" → "[mask]测试内容[/mask]"
   let prev = '';
   while (prev !== cleaned) {
     prev = cleaned;
-    // Collapse identical adjacent non-whitespace tokens: "foo foo" → "foo"
-    cleaned = cleaned.replace(/(\S+) \1/g, '$1');
+    // Target content inside any BBCode tags to avoid [mask] binding to the text token
+    cleaned = cleaned.replace(/(\[[a-z]+(?:=[^\]]+)?\])(.+?)(\[\/[a-z]+\])/gi, (match, openTag, inner, closeTag) => {
+       let innerPrev = '';
+       let innerClean = inner;
+       while (innerPrev !== innerClean) {
+          innerPrev = innerClean;
+          innerClean = innerClean.replace(/(\S+)\s+\1/g, '$1');
+       }
+       return openTag + innerClean + closeTag;
+    });
   }
 
   return cleaned;
