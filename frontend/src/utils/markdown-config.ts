@@ -26,6 +26,10 @@ const bbcodePlugin = (md: any) => {
     color: 'span',
   }
 
+  // Guard: prevent duplicate registration when parse() is called multiple times
+  // markdown-it's Ruler.before() does NOT deduplicate by name, so we must check manually.
+  if ((md.inline.ruler as any).__find__('bbcode') !== -1) return
+
   // Handle [tag] and [/tag] as tokens with balancedness check
   md.inline.ruler.before('text', 'bbcode', (state: any, silent: boolean) => {
     const start = state.pos
