@@ -140,7 +140,7 @@ const bbcodePlugin = (md: any) => {
  */
 export const createMarkdownExtension = (options: any = {}) => {
   return Markdown.configure({
-    html: true,
+    html: false,
     tightLists: true,
     bulletListMarker: '-',
     linkify: true,

@@ -14,16 +14,33 @@ export const convertLegacyHTMLToBBCode = (markdown: string): string => {
 
 const deduplicateRepeatedFormattedText = (markdown: string): string => {
   if (!markdown) return markdown;
-  // This helps clean up cases where the serializer might have outputted 
-  // duplicate formatted segments due to extension conflicts or spanning issues.
-  // It handles bold (**), underline ([u]), and mask ([mask])
-  return markdown
-    .replace(/(\*\*[^*]+\*\*) \1/g, '$1') // Space separated duplicates
-    .replace(/(\*\*[^*]+\*\*)(\1)+/g, '$1') // Consecutive duplicates
+  
+  // 1. Consecutive identical formatted segments (BBCode/Markdown)
+  let cleaned = markdown
+    .replace(/(\*\*[^*]+\*\*) \1/g, '$1')
+    .replace(/(\*\*[^*]+\*\*)(\1)+/g, '$1')
     .replace(/(\[u\].+?\[\/u\]) \1/g, '$1')
     .replace(/(\[u\].+?\[\/u\])(\1)+/g, '$1')
     .replace(/(\[mask\].+?\[\/mask\]) \1/g, '$1')
-    .replace(/(\[mask\].+?\[\/mask\])(\1)+/g, '$1');
+    .replace(/(\[mask\].+?\[\/mask\])(\1)+/g, '$1')
+    .replace(/(\[color=[^\]]+\].+?\[\/color\]) \1/g, '$1')
+    .replace(/(\[color=[^\]]+\].+?\[\/color\])(\1)+/g, '$1');
+
+  // 2. Hybrid duplicates: Plain text followed by its formatted equivalent (or vice versa)
+  // This specifically targets the "tiptap fallback" duplication
+  // Matches: word**word** -> **word**
+  cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\*\*\1\*\*/g, '**$1**');
+  // Matches: **word**word -> **word**
+  cleaned = cleaned.replace(/\*\*([^ \n*\[\]]{2,})\*\*\1/g, '**$1**');
+  // Matches: word[u]word[/u] -> [u]word[/u]
+  cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\[u\]\1\[\/u\]/g, '[u]$1[/u]');
+  // Matches: [u]word[/u]word -> [u]word[/u]
+  cleaned = cleaned.replace(/\[u\]([^ \n*\[\]]{2,})\[\/u\]\1/g, '[u]$1[/u]');
+
+  // 3. Consecutive task list items (redundant serialization)
+  cleaned = cleaned.replace(/(- \[ [x ] \] .+?)\n\1/g, '$1');
+
+  return cleaned;
 };
 
 export const validateAndSanitizeMarkdown = (content: string): string => {

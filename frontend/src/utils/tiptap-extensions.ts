@@ -133,15 +133,15 @@ export const MarkdownStrike = Strike.extend({
     return [
       {
         tag: 's',
-        priority: 100,
+        priority: 200,
       },
       {
         tag: 'del',
-        priority: 100,
+        priority: 200,
       },
       {
         tag: 'strike',
-        priority: 100,
+        priority: 200,
       },
     ]
   },
