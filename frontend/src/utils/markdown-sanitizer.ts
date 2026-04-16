@@ -69,6 +69,16 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
   // 5. Double-check generic Markdown bold/italic
   cleaned = cleaned.replace(/(\*\*[^*]+\*\*)\s?\1+/g, '$1');
 
+  // 6. Collapse repeated space-separated tokens anywhere in content.
+  //    This fixes corrupted DB rows like: "[mask]X X X X[/mask]" → "[mask]X[/mask]"
+  //    Apply iteratively to handle 4→2→1 chains.
+  let prev = '';
+  while (prev !== cleaned) {
+    prev = cleaned;
+    // Collapse identical adjacent non-whitespace tokens: "foo foo" → "foo"
+    cleaned = cleaned.replace(/(\S+) \1/g, '$1');
+  }
+
   return cleaned;
 };
 

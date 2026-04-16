@@ -159,19 +159,10 @@ const loadNote = async () => {
   form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
 
-  // === LOAD DEBUG ===
-  const raw = data.content_md || ''
-  console.error('[LOAD-DEBUG] 1. RAW from DB:', JSON.stringify(raw))
-  const step1 = convertLegacyHTMLToBBCode(raw)
-  console.error('[LOAD-DEBUG] 2. After convertLegacyHTMLToBBCode:', JSON.stringify(step1))
-  const step2 = convertBBCodeToEditorHTML(step1)
-  console.error('[LOAD-DEBUG] 3. After convertBBCodeToEditorHTML (passed to setContent):', JSON.stringify(step2))
-  editor.value?.commands.setContent(step2)
-  setTimeout(() => {
-    console.error('[LOAD-DEBUG] 4. Editor JSON after setContent:', JSON.stringify(editor.value?.getJSON(), null, 2))
-    console.error('[LOAD-DEBUG] 5. getMarkdown() after setContent:', JSON.stringify(editor.value?.storage.markdown.getMarkdown()))
-  }, 300)
-  // ==================
+  // Sanitize first (fixes old corrupted DB data), then pre-convert BBCode → HTML
+  // so tiptap-markdown's html:true mode can pass the HTML through without conflicts.
+  const cleaned = validateAndSanitizeMarkdown(convertLegacyHTMLToBBCode(data.content_md || ''))
+  editor.value?.commands.setContent(convertBBCodeToEditorHTML(cleaned))
 }
 
 const loadFolders = async () => {

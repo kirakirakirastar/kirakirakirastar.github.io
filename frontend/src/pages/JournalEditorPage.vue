@@ -136,7 +136,8 @@ const loadJournal = async () => {
   form.value.folder_id = data.folder_id
   form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
-  editor.value?.commands.setContent(convertBBCodeToEditorHTML(convertLegacyHTMLToBBCode(data.content_md || '')))
+  const cleaned = validateAndSanitizeMarkdown(convertLegacyHTMLToBBCode(data.content_md || ''))
+  editor.value?.commands.setContent(convertBBCodeToEditorHTML(cleaned))
 }
 
 const loadFolders = async () => {

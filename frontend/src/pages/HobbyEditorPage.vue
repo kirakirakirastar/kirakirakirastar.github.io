@@ -163,7 +163,8 @@ const loadHobby = async () => {
     is_private: data.is_private || false,
   }
   tagsInput.value = data.tags.map(t => t.name).join(', ')
-  editor.value?.commands.setContent(convertBBCodeToEditorHTML(convertLegacyHTMLToBBCode(data.review || '')))
+  const cleaned = validateAndSanitizeMarkdown(convertLegacyHTMLToBBCode(data.review || ''))
+  editor.value?.commands.setContent(convertBBCodeToEditorHTML(cleaned))
 }
 
 const loadFolders = async () => {
