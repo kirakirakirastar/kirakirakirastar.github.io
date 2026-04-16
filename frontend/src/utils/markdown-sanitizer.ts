@@ -64,7 +64,6 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
 
   // 3. Collapse repeated tokens INSIDE BBCode tags aggressively.
   //    This catches cases like "[s]测试测试[/s]" or "[mask]测试 测试[/mask]"
-  //    Matches any repeating substring, even with invisible chars like ZWSP (\u200B) or missing spaces.
   let prev = '';
   while (prev !== cleaned) {
     prev = cleaned;
@@ -73,11 +72,16 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
        let innerClean = inner;
        while (innerPrev !== innerClean) {
           innerPrev = innerClean;
-          // Matches a string followed by itself (with zero or more spaces/ZWSP in between)
-          innerClean = innerClean.replace(/(.{2,})[\s\u200B]*\1+/g, '$1');
+          // Use a non-greedy backreference check to find repeated substrings of length >= 2
+          // This handles "测试1测试1" as well as "测试1 测试1"
+          innerClean = innerClean.replace(/(.{2,})?[\s\u200B]*\1+/g, (m, g1) => g1 || m);
        }
        return openTag + innerClean + closeTag;
     });
+  }
+  
+  if (cleaned !== markdown) {
+    console.warn('[SANITIZER] Cleaned up duplicates in content.');
   }
 
   // 4. Universal BBCode/Markdown tags consecutive duplication fix
