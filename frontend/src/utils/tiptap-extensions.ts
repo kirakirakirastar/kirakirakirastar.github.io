@@ -26,9 +26,12 @@ declare module '@tiptap/core' {
 /**
  * Mask Extension (Spoiler)
  * Converts to/from <span class="mask-text">
+ * 
+ * inclusive: false prevents format spillage to subsequent text.
  */
 export const Mask = Mark.create({
   name: 'mask',
+  inclusive: false,
   addOptions() {
     return {
       HTMLAttributes: {
@@ -69,9 +72,10 @@ export const Mask = Mark.create({
 
 /**
  * Use standard extensions for core features to ensure tiptap-markdown compatibility
- * We extend them to provide proper markdown serialization
+ * We extend them to provide proper markdown serialization and fix format spillage.
  */
 export const MarkdownUnderline = Underline.extend({
+  inclusive: false,
   addStorage() {
     return {
       markdown: {
@@ -86,6 +90,7 @@ export const MarkdownUnderline = Underline.extend({
 })
 
 export const MarkdownStrike = Strike.extend({
+  inclusive: false,
   addStorage() {
     return {
       markdown: {
@@ -100,6 +105,7 @@ export const MarkdownStrike = Strike.extend({
 })
 
 export const MarkdownHighlight = Highlight.configure({ multicolor: true }).extend({
+  inclusive: false,
   addStorage() {
     return {
       markdown: {
@@ -115,6 +121,7 @@ export const MarkdownHighlight = Highlight.configure({ multicolor: true }).exten
 
 export const MarkdownTextStyle = TextStyle
 export const MarkdownColor = Color.extend({
+  inclusive: false,
   addStorage() {
     return {
       markdown: {
