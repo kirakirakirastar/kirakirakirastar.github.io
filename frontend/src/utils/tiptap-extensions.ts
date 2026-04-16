@@ -79,8 +79,8 @@ export const Mask = Mark.create({
     return {
       markdown: {
         serialize: {
-          open: '<span class="mask-text">',
-          close: '</span>',
+          open: '[mask]',
+          close: '[/mask]',
           mixable: true,
         },
       },
@@ -106,8 +106,8 @@ export const MarkdownUnderline = Underline.extend({
     return {
       markdown: {
         serialize: {
-          open: '<u>',
-          close: '</u>',
+          open: '[u]',
+          close: '[/u]',
           mixable: true,
         },
       },
@@ -141,8 +141,8 @@ export const MarkdownStrike = Strike.extend({
     return {
       markdown: {
         serialize: {
-          open: '<s>',
-          close: '</s>',
+          open: '[s]',
+          close: '[/s]',
           mixable: true,
         },
       },
@@ -168,8 +168,8 @@ export const MarkdownHighlight = Highlight.configure({ multicolor: true }).exten
     return {
       markdown: {
         serialize: {
-          open: '<mark>',
-          close: '</mark>',
+          open: '[mark]',
+          close: '[/mark]',
           mixable: true,
         },
       },
@@ -192,11 +192,17 @@ export const MarkdownTextStyle = TextStyle.extend({
             // Build style attribute, converting any rgb() to hex for html input compatibility
             const color = mark.attrs.color ? forceHex(mark.attrs.color) : null
             if (!color) return ''
-            return `<span style="color: ${color}">`
+            return `[color=${color}]`
           },
-          close: '</span>',
+          close: '[/color]',
           mixable: true,
         },
+        parse: {
+          setup: (md: any) => {},
+          getAttrs: (tok: any) => {
+            return { color: tok.attrGet('color') }
+          }
+        }
       },
     }
   },
