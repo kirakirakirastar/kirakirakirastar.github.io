@@ -147,9 +147,11 @@ const editor = useEditor({
     StarterKit.configure({
       strike: false,
     }),
+    MarkdownTextStyle,
     MarkdownUnderline,
     MarkdownHighlight,
     MarkdownColor,
+    MarkdownStrike,
     Typography,
     TaskList,
     TaskItem.configure({

@@ -203,9 +203,11 @@ const editor = useEditor({
     StarterKit.configure({
       strike: false,
     }),
+    MarkdownTextStyle,
     MarkdownUnderline,
     MarkdownHighlight,
     MarkdownColor,
+    MarkdownStrike,
     Mask,
     BangumiShortcuts,
     Placeholder.configure({
