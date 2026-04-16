@@ -109,7 +109,8 @@ const bbcodePlugin = (md: any) => {
 
     if (!silent) {
       const tokenType = isClose ? `${markName}_close` : `${markName}_open`
-      const token = state.push(tokenType, htmlTag, isClose ? -1 : 1)
+      // Use the markName as the tag to ensure tiptap-markdown matches it correctly to the extension
+      const token = state.push(tokenType, tagName, isClose ? -1 : 1)
 
       if (!isClose) {
         if (tagName === 'mask') {
@@ -127,12 +128,15 @@ const bbcodePlugin = (md: any) => {
   // Legacy HTML is now processed via regex before it even reaches markdown-it
   // See convertLegacyHTMLToBBCode
 
-  // Strikethrough Renderer Rule Fix
-  const fixRenderer = (tokens: any, idx: any, options: any, env: any, self: any) => {
+  // Strikethrough Renderer Rule Fix (Ensures <s> tag used for strike-through)
+  md.renderer.rules.strike_open = (tokens: any, idx: any, options: any, env: any, self: any) => {
     tokens[idx].tag = 's'
     return self.renderToken(tokens, idx, options)
   }
-  md.renderer.rules.s_open = fixRenderer
+  md.renderer.rules.strike_close = (tokens: any, idx: any, options: any, env: any, self: any) => {
+    tokens[idx].tag = 's'
+    return self.renderToken(tokens, idx, options)
+  }
 }
 
 /**

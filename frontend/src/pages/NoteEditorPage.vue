@@ -159,10 +159,11 @@ const loadNote = async () => {
   form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
 
-  // Final Pass: sanitize and set into editor.
-  const cleaned = validateAndSanitizeMarkdown(convertLegacyHTMLToBBCode(data.content_md || ''))
+  // Single-Pass Loading: sanitize, pre-convert legacy HTML, and set directly.
+  // We rely on the editor's internal parser for the final truth.
+  const cleaned = validateAndSanitizeMarkdown(data.content_md || '')
   editor.value?.commands.setContent(cleaned)
-  form.value.content_md = data.content_md // Keep raw MD in form for now
+  form.value.content_md = data.content_md 
 }
 
 const loadFolders = async () => {
