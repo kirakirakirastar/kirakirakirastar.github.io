@@ -219,7 +219,11 @@ const saveNote = async () => {
   saving.value = true
   try {
     const currentMarkdown = editor.value?.storage.markdown.getMarkdown() || form.value.content_md
+    // === DIAGNOSTIC LOG: REMOVE AFTER BUG IS FIXED ===
+    console.error('[MD-DEBUG] RAW getMarkdown() output:', JSON.stringify(currentMarkdown))
     const sanitizedMarkdown = validateAndSanitizeMarkdown(currentMarkdown)
+    console.error('[MD-DEBUG] AFTER sanitize:', JSON.stringify(sanitizedMarkdown))
+    // ===================================================
 
     const payload = {
       ...form.value,
