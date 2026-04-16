@@ -87,8 +87,6 @@ export async function compressImage(file: File, options: CompressOptions = {}): 
         );
       };
       img.onerror = () => reject(new Error('图片加载失败'));
-    };
-    reader.onerror = () => reject(new Error('读取文件失败'));
   });
 }
 
