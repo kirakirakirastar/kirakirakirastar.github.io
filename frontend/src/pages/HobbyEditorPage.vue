@@ -120,11 +120,8 @@ import { uploadApi } from '@/api/upload'
 import { deleteFileByUrl } from '@/api/cleanup'
 import { useUiStore } from '@/stores/ui'
 import { validateAndSanitizeMarkdown } from '@/utils/markdown-sanitizer'
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import { createMarkdownExtension } from '@/utils/markdown-config.ts'
-import Placeholder from '@tiptap/extension-placeholder'
-import { MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, BangumiShortcuts, Mask, MarkdownStrike } from '@/utils/tiptap-extensions.ts'
+import { EditorContent } from '@tiptap/vue-3'
+import { useMarkdownEditor } from '@/hooks/useMarkdownEditor'
 import type { Hobby } from '@/api/types'
 
 const uiStore = useUiStore()
@@ -147,8 +144,7 @@ const form = ref({
   is_private: false,
 })
 
-// Debounce timer for markdown serialization in onUpdate
-let _markdownSyncTimer: ReturnType<typeof setTimeout> | null = null
+
 
 const imageUrl = computed(() => resolveAssetUrl(form.value.cover_url))
 
@@ -202,33 +198,17 @@ const uploadAndSetCover = async (file: File) => {
   }
 }
 
-const editor = useEditor({
-  extensions: [
-    createMarkdownExtension(),
-    StarterKit.configure({
-      strike: false,
-    }),
-    MarkdownTextStyle,
-    MarkdownUnderline,
-    MarkdownHighlight,
-    MarkdownColor,
-    MarkdownStrike,
-    Mask,
-    BangumiShortcuts,
-    Placeholder.configure({
-      placeholder: '在这里写下你的评价与笔记...',
-    }),
-  ],
-  content: '',
-  onUpdate: ({ editor }) => {
-    if (_markdownSyncTimer) clearTimeout(_markdownSyncTimer)
-    _markdownSyncTimer = setTimeout(() => {
-      form.value.review = editor.storage.markdown.getMarkdown()
-    }, 400)
+const { editor } = useMarkdownEditor({
+  placeholder: '在这里写下你的评价与笔记...',
+  onUpdate: (markdown) => {
+    form.value.review = markdown
   },
+  isPrivate: computed(() => form.value.is_private),
+  imageBucket: 'hobbies-covers'
 })
 
 const handlePaste = (event: ClipboardEvent) => {
+  if (event.defaultPrevented) return
   const items = event.clipboardData?.items
   if (!items) return
 

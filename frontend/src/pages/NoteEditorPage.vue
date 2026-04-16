@@ -115,20 +115,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Image from '@tiptap/extension-image'
-import Placeholder from '@tiptap/extension-placeholder'
-import { Typography } from '@tiptap/extension-typography'
-import { TaskList } from '@tiptap/extension-task-list'
-import { TaskItem } from '@tiptap/extension-task-item'
-import { Table } from '@tiptap/extension-table'
-import { TableRow } from '@tiptap/extension-table-row'
-import { TableCell } from '@tiptap/extension-table-cell'
-import { TableHeader } from '@tiptap/extension-table-header'
-import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, MarkdownStrike } from '@/utils/tiptap-extensions.ts'
-import { createMarkdownExtension } from '@/utils/markdown-config.ts'
-import { Link } from '@tiptap/extension-link'
+import { EditorContent } from '@tiptap/vue-3'
+import { useMarkdownEditor } from '@/hooks/useMarkdownEditor'
 import { renderMarkdown } from '@/utils/markdown'
 import { notesApi } from '@/api/notes'
 import { supabaseFoldersApi } from '@/api/supabaseData'
@@ -152,106 +140,14 @@ const form = ref({
   is_private: false,
 })
 
-// Debounce timer for markdown serialization in onUpdate
-let _markdownSyncTimer: ReturnType<typeof setTimeout> | null = null
-
-const uploadAndInsertImage = async (file: File) => {
-  if (!editor.value) return
-  try {
-    const result = await uploadApi.image(file, form.value.is_private, 'notes-images')
-    editor.value.chain().focus().setImage({ src: resolveAssetUrl(result.url), alt: result.original_name }).run()
-  } catch (error) {
-    console.error('上传图片失败:', error)
-    uiStore.addToast('上传图片失败', 'error')
-  }
-}
-
-const editor = useEditor({
-  extensions: [
-    createMarkdownExtension(),
-    StarterKit.configure({
-      strike: false,
-    }),
-    MarkdownTextStyle,
-    MarkdownUnderline,
-    MarkdownHighlight,
-    MarkdownColor,
-    MarkdownStrike,
-    Typography,
-    TaskList,
-    TaskItem.configure({
-      nested: true,
-    }),
-    Table.configure({
-      resizable: true,
-    }),
-    TableRow,
-    TableHeader,
-    TableCell,
-    Link.configure({
-      openOnClick: false,
-    }),
-    Mask,
-    BangumiShortcuts,
-    Image.configure({
-      inline: true,
-      allowBase64: true,
-    }),
-    Placeholder.configure({
-      placeholder: '在这里写内容...',
-    }),
-  ],
-  content: '',
-  editorProps: {
-    handlePaste(view, event) {
-      const items = Array.from(event.clipboardData?.items || [])
-      const imageItems = items.filter(item => item.type.startsWith('image'))
-
-      if (imageItems.length > 0) {
-        event.preventDefault()
-        imageItems.forEach(item => {
-          const file = item.getAsFile()
-          if (file) uploadAndInsertImage(file)
-        })
-        return true
-      }
-      return false
-    },
-    handleDrop(view, event, slice, moved) {
-      if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
-        const files = Array.from(event.dataTransfer.files)
-        const imageFiles = files.filter(file => file.type.startsWith('image'))
-
-        if (imageFiles.length > 0) {
-          event.preventDefault()
-          imageFiles.forEach(file => uploadAndInsertImage(file))
-          return true
-        }
-      }
-      return false
-    },
+const { editor, getEditorColor, handleImageUpload } = useMarkdownEditor({
+  placeholder: '在这里写内容...',
+  onUpdate: (markdown) => {
+    form.value.content_md = markdown
   },
-  onUpdate: ({ editor }) => {
-    // Debounce: getMarkdown() serializes the entire document tree on every keystroke.
-    // Delay sync to avoid input lag on large documents.
-    if (_markdownSyncTimer) clearTimeout(_markdownSyncTimer)
-    _markdownSyncTimer = setTimeout(() => {
-      form.value.content_md = editor.storage.markdown.getMarkdown()
-    }, 400)
-  },
+  isPrivate: computed(() => form.value.is_private),
+  imageBucket: 'notes-images'
 })
-
-const getEditorColor = () => {
-  const color = editor.value?.getAttributes('textStyle').color
-  if (!color) return '#000000'
-  if (color.startsWith('rgb')) {
-    const rgb = color.match(/\d+/g)
-    if (rgb && rgb.length >= 3) {
-      return '#' + rgb.slice(0, 3).map((x: string) => parseInt(x).toString(16).padStart(2, '0')).join('')
-    }
-  }
-  return color
-}
 
 const loadNote = async () => {
   if (!isEdit.value) return
@@ -318,12 +214,6 @@ watch([() => form.value.title, () => form.value.summary, () => form.value.conten
   saveDraft()
 }, { deep: true })
 
-const handleImageUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  uploadAndInsertImage(file)
-}
 
 const saveNote = async () => {
   saving.value = true
