@@ -73,8 +73,8 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
   // 5. Double-check generic Markdown bold/italic
   cleaned = cleaned.replace(/(\*\*[^*]+\*\*)\s?\1+/g, '$1');
 
-  // 6. Collapse repeated space-separated tokens INSIDE BBCode tags.
-  //    This fixes corrupted DB rows like: "[mask]测试内容 测试内容[/mask]" → "[mask]测试内容[/mask]"
+  // 6. Collapse repeated tokens INSIDE BBCode tags aggressively.
+  //    Matches any repeating substring of length >= 2, even with invisible chars like ZWSP (\u200B) or missing spaces.
   let prev = '';
   while (prev !== cleaned) {
     prev = cleaned;
@@ -84,7 +84,7 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
        let innerClean = inner;
        while (innerPrev !== innerClean) {
           innerPrev = innerClean;
-          innerClean = innerClean.replace(/(\S+)\s+\1/g, '$1');
+          innerClean = innerClean.replace(/(.{2,})[\s\u200B\u200C\u200D\uFEFF]*\1+/g, '$1');
        }
        return openTag + innerClean + closeTag;
     });
