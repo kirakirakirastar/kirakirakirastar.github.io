@@ -72,11 +72,8 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
     extensions: [
       createMarkdownExtension(),
       StarterKit.configure({ 
-        history: true,
         textStyle: false, // Prevent conflict with MarkdownTextStyle
         strike: false,    // Prevent conflict with MarkdownStrike
-        bold: true,
-        italic: true
       }),
       MarkdownTextStyle,
       MarkdownUnderline,
