@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden" 
+  <div class="fixed top-0 left-0 w-full h-[100vh] h-[100lvh] pointer-events-none -z-10 overflow-hidden" 
        style="will-change: opacity; transform: translateZ(0);" 
        :style="{ opacity: 'var(--live-bg-opacity, 0.5)' }">
     <img 

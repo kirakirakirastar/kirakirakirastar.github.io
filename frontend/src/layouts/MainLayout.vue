@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col font-sans transition-colors duration-500 relative overflow-hidden text-slate-900 dark:text-slate-100">
+  <div class="min-h-[100vh] min-h-[100dvh] flex flex-col font-sans transition-colors duration-500 relative overflow-hidden text-slate-900 dark:text-slate-100">
     <!-- Base Theme Background Layer (Lowest) -->
     <div class="fixed inset-0 -z-20 bg-theme-bg dark:bg-theme-bg-dark"></div>
     
