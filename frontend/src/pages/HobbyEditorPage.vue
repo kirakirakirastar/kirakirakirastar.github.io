@@ -165,6 +165,14 @@ const loadHobby = async () => {
   tagsInput.value = data.tags.map(t => t.name).join(', ')
   const cleaned = validateAndSanitizeMarkdown(convertLegacyHTMLToBBCode(data.review || ''))
   editor.value?.commands.setContent(convertBBCodeToEditorHTML(cleaned))
+  const serialized = editor.value?.storage.markdown.getMarkdown() || ''
+  const recleaned = validateAndSanitizeMarkdown(serialized)
+  if (recleaned !== serialized) {
+    editor.value?.commands.setContent(convertBBCodeToEditorHTML(recleaned))
+    form.value.review = recleaned
+  } else {
+    form.value.review = serialized
+  }
 }
 
 const loadFolders = async () => {

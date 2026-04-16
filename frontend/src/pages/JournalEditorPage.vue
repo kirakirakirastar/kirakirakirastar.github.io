@@ -138,6 +138,14 @@ const loadJournal = async () => {
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
   const cleaned = validateAndSanitizeMarkdown(convertLegacyHTMLToBBCode(data.content_md || ''))
   editor.value?.commands.setContent(convertBBCodeToEditorHTML(cleaned))
+  const serialized = editor.value?.storage.markdown.getMarkdown() || ''
+  const recleaned = validateAndSanitizeMarkdown(serialized)
+  if (recleaned !== serialized) {
+    editor.value?.commands.setContent(convertBBCodeToEditorHTML(recleaned))
+    form.value.content_md = recleaned
+  } else {
+    form.value.content_md = serialized
+  }
 }
 
 const loadFolders = async () => {

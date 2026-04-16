@@ -159,10 +159,21 @@ const loadNote = async () => {
   form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
 
-  // Sanitize first (fixes old corrupted DB data), then pre-convert BBCode → HTML
-  // so tiptap-markdown's html:true mode can pass the HTML through without conflicts.
+  // Pass 1: sanitize DB data, pre-convert BBCode → HTML, set into editor
   const cleaned = validateAndSanitizeMarkdown(convertLegacyHTMLToBBCode(data.content_md || ''))
   editor.value?.commands.setContent(convertBBCodeToEditorHTML(cleaned))
+
+  // Pass 2: read back what the editor serializes after setContent.
+  // The tiptap-markdown/task-list pipeline can re-introduce duplicates even from
+  // a clean input. If it does, catch and fix immediately.
+  const serialized = editor.value?.storage.markdown.getMarkdown() || ''
+  const recleaned = validateAndSanitizeMarkdown(serialized)
+  if (recleaned !== serialized) {
+    editor.value?.commands.setContent(convertBBCodeToEditorHTML(recleaned))
+    form.value.content_md = recleaned
+  } else {
+    form.value.content_md = serialized
+  }
 }
 
 const loadFolders = async () => {
