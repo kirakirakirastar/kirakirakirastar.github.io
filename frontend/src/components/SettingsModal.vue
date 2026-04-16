@@ -94,99 +94,81 @@
                 自定义背景图片
               </h3>
               
-              <div class="relative bg-slate-100 dark:bg-slate-900 rounded-[2.5rem] p-8 overflow-hidden">
-                <div 
-                  ref="previewContainer"
-                  class="relative z-20 aspect-video rounded-3xl border-4 border-primary shadow-2xl flex flex-col items-center justify-center gap-3 select-none transition-shadow group"
-                  :class="[bgUrlInput ? 'cursor-move ring-4 ring-white/50 dark:ring-black/30' : 'cursor-pointer border-dashed border-slate-300 dark:border-white/10']"
-                  @mousedown="startDrag"
-                  @touchstart="startDrag"
-                  @click="!bgUrlInput && triggerFileSelect()"
-                >
-                  <!-- Safe Area Grid (Shown on interaction) -->
+              <!-- Workspace Arena (Zoomed out view to show full overflow) -->
+              <div v-if="bgUrlInput" class="relative bg-slate-100 dark:bg-slate-900 rounded-[2.5rem] h-[360px] flex items-center justify-center overflow-hidden border border-slate-200 dark:border-white/5 shadow-inner">
+                <!-- Direct Manipulation Area (Everything inside is visually scaled down) -->
+                <div class="relative w-full h-full flex items-center justify-center transform scale-[0.6] sm:scale-[0.7] transition-transform duration-500">
+                  
+                  <!-- Viewport (The Fixed 16:9 Frame) -->
                   <div 
-                    class="absolute inset-0 pointer-events-none transition-opacity duration-300 grid grid-cols-3 grid-rows-3"
-                    :class="[isDragging || isResizing ? 'opacity-40' : 'opacity-0']"
+                    ref="previewContainer"
+                    class="relative z-30 w-[800px] aspect-video rounded-[3rem] border-8 border-primary shadow-[0_0_0_1000px_rgba(15,23,42,0.6)] cursor-move select-none"
+                    @mousedown="startDrag"
+                    @touchstart="startDrag"
                   >
-                    <div v-for="i in 9" :key="i" class="border-[0.5px] border-white/50 dark:border-white/30"></div>
-                    <!-- Center Crosshair -->
-                    <div class="absolute inset-0 flex items-center justify-center">
-                      <div class="w-4 h-[1px] bg-primary"></div>
-                      <div class="h-4 w-[1px] bg-primary"></div>
-                    </div>
-                  </div>
-
-                  <!-- Content Placeholder -->
-                  <div v-if="!bgUrlInput || isUploading" class="relative z-10 flex flex-col items-center gap-2 text-slate-500 group-hover:text-primary transition-colors duration-300">
-                    <div v-if="isUploading" class="flex flex-col items-center gap-2">
-                      <svg class="w-10 h-10 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span class="text-sm font-medium">正在读取图片...</span>
-                    </div>
-                    <template v-else>
-                      <div class="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-md shadow-sm group-hover:scale-110 transition-transform duration-500">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
+                    <!-- Composition Grid -->
+                    <div 
+                      class="absolute inset-0 pointer-events-none transition-opacity duration-300 grid grid-cols-3 grid-rows-3"
+                      :class="[isDragging || isResizing ? 'opacity-40' : 'opacity-0']"
+                    >
+                      <div v-for="i in 9" :key="i" class="border-[1px] border-white/40"></div>
+                      <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="w-8 h-[1px] bg-primary"></div>
+                        <div class="h-8 w-[1px] bg-primary"></div>
                       </div>
-                      <span class="text-sm font-bold mt-1">上传本地背景</span>
-                    </template>
+                    </div>
+
+                    <!-- Resize Handles -->
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-6 -left-6 w-12 h-12 rounded-full bg-primary border-[6px] border-white shadow-2xl hover:scale-125 transition-transform cursor-nwse-resize z-40"></div>
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-6 -right-6 w-12 h-12 rounded-full bg-primary border-[6px] border-white shadow-2xl hover:scale-125 transition-transform cursor-nesw-resize z-40"></div>
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-6 -left-6 w-12 h-12 rounded-full bg-primary border-[6px] border-white shadow-2xl hover:scale-125 transition-transform cursor-nesw-resize z-40"></div>
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-6 -right-6 w-12 h-12 rounded-full bg-primary border-[6px] border-white shadow-2xl hover:scale-125 transition-transform cursor-nwse-resize z-40"></div>
                   </div>
 
-                  <!-- Corner Handles -->
-                  <template v-if="bgUrlInput">
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-3 -left-3 w-6 h-6 rounded-full bg-primary border-4 border-white shadow-xl hover:scale-125 transition-transform cursor-nwse-resize z-30"></div>
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-3 -right-3 w-6 h-6 rounded-full bg-primary border-4 border-white shadow-xl hover:scale-125 transition-transform cursor-nesw-resize z-30"></div>
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-3 -left-3 w-6 h-6 rounded-full bg-primary border-4 border-white shadow-xl hover:scale-125 transition-transform cursor-nesw-resize z-30"></div>
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-3 -right-3 w-6 h-6 rounded-full bg-primary border-4 border-white shadow-xl hover:scale-125 transition-transform cursor-nwse-resize z-30"></div>
-                  </template>
-                </div>
-
-                <!-- Cine-Mask and Image (Under the Viewport) -->
-                <div v-if="bgUrlInput" class="absolute inset-0 pointer-events-none">
-                  <!-- The Image -->
-                  <img 
-                    :src="bgUrlInput" 
-                    class="absolute inset-0 w-full h-full transition-all duration-300"
-                    :class="[bgFitInput === 'cover' ? 'object-cover' : 'object-contain']"
-                    :style="{
-                      transform: `scale(${Number(bgScaleInput)/100}) translate(${Number(bgPosXInput) - 50}%, ${Number(bgPosYInput) - 50}%)`,
-                      objectPosition: 'center'
-                    }"
-                    style="will-change: transform;"
-                  />
-                  <!-- Dimming Mask for Overflow -->
-                  <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] z-10 transition-opacity" :class="[isDragging || isResizing ? 'opacity-20' : 'opacity-100']">
-                    <!-- Cutout Hole (matches the viewport position) -->
-                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-4rem)] aspect-video rounded-3xl bg-black" style="mix-blend-mode: destination-out;"></div>
+                  <!-- The Full Image (Under the viewport) -->
+                  <div class="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+                    <img 
+                      :src="bgUrlInput" 
+                      class="max-w-none max-h-none transition-all duration-300"
+                      :style="{
+                        width: '800px', // Base width matches viewport
+                        height: 'auto',
+                        transform: `scale(${Number(bgScaleInput)/100}) translate(${Number(bgPosXInput) - 50}%, ${Number(bgPosYInput) - 50}%)`,
+                        willChange: 'transform'
+                      }"
+                    />
                   </div>
                 </div>
 
-                <div v-if="bgUrlInput" class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-40">
-                  <button 
-                    @click.stop="triggerFileSelect"
-                    class="px-4 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold text-primary shadow-xl flex items-center gap-2 hover:scale-105 transition-all"
-                  >
+                <!-- Replace/Reset Overlay (Static on top of arena) -->
+                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-50">
+                  <button @click.stop="triggerFileSelect" class="px-5 py-2.5 bg-white dark:bg-slate-800 rounded-full text-xs font-bold text-primary shadow-2xl border border-slate-100 dark:border-white/5 flex items-center gap-2 hover:scale-105 transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    更换图片
+                    更换背景
                   </button>
-                  <button 
-                    @click.stop="resetPosition"
-                    class="px-4 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300 shadow-xl flex items-center gap-2 hover:scale-105 transition-all"
-                    title="重置位置与缩放"
-                  >
+                  <button @click.stop="resetPosition" class="px-5 py-2.5 bg-white dark:bg-slate-800 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300 shadow-2xl border border-slate-100 dark:border-white/5 flex items-center gap-2 hover:scale-105 transition-all" title="重置位置与缩放">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     重置位置
                   </button>
                 </div>
               </div>
 
+              <!-- Placeholder (When no image) -->
+              <div v-if="!bgUrlInput" @click="triggerFileSelect" class="aspect-video rounded-3xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-primary transition-all bg-slate-50 dark:bg-slate-900/30 flex flex-col items-center justify-center gap-3 cursor-pointer">
+                <div v-if="isUploading" class="flex flex-col items-center gap-2">
+                  <svg class="w-10 h-10 animate-spin text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  <span class="text-sm font-medium text-slate-500">正在读取图片...</span>
+                </div>
+                <template v-else>
+                  <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 shadow-sm transition-transform"><svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>
+                  <span class="text-sm font-bold text-slate-500">上传本地背景图片</span>
+                </template>
+              </div>
+
               <!-- Hidden File Input -->
               <input type="file" ref="fileInput" class="hidden" accept="image/jpeg,image/png,image/webp" @change="onFileSelected" />
 
               <div v-if="bgUrlInput" class="mt-4 flex justify-end px-2">
-                <button 
                   @click.stop="bgUrlInput = ''; applyBgUrl()" 
                   class="text-xs text-red-500 hover:text-red-600 font-bold flex items-center gap-1.5 transition-colors"
                 >
@@ -366,13 +348,14 @@ const onDragging = (e: MouseEvent | TouchEvent) => {
   
   const rect = previewContainer.value.getBoundingClientRect()
   const pxSize = rect.width
-  const pySize = rect.height
   
   // Convert pixels to percentage change
-  // Note: bgScale affects how much a pixel shift moves the image
-  const sensitivity = 100 / pxSize
-  bgPosXInput.value = dragStart.startPos.x + (dx * sensitivity)
-  bgPosYInput.value = dragStart.startPos.y + (dy * sensitivity)
+  // We account for the internal fixed width of 800px used in the template
+  const visualScale = pxSize / 800
+  const sensitivity = 100 / (800 * visualScale)
+  
+  bgPosXInput.value = dragStart.startPos.x + (dx / visualScale) / 8
+  bgPosYInput.value = dragStart.startPos.y + (dy / visualScale) / 4.5
   
   applyBgParams()
 }
