@@ -135,6 +135,7 @@ import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 import { useUiStore } from '@/stores/ui'
+import { validateAndSanitizeMarkdown } from '@/utils/markdown-sanitizer'
 
 const uiStore = useUiStore()
 const route = useRoute()
@@ -319,8 +320,12 @@ const handleImageUpload = async (event: Event) => {
 const saveNote = async () => {
   saving.value = true
   try {
+    const currentMarkdown = editor.value?.storage.markdown.getMarkdown() || form.value.content_md
+    const sanitizedMarkdown = validateAndSanitizeMarkdown(currentMarkdown, 'NoteEditor')
+    
     const payload = {
       ...form.value,
+      content_md: sanitizedMarkdown,
       tags: tagsInput.value.split(',').map(t => t.trim()).filter(Boolean),
     }
     if (isEdit.value) {

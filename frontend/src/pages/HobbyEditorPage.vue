@@ -119,6 +119,7 @@ import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 import { deleteFileByUrl } from '@/api/cleanup'
 import { useUiStore } from '@/stores/ui'
+import { validateAndSanitizeMarkdown } from '@/utils/markdown-sanitizer'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { createMarkdownExtension } from '@/utils/markdown-config.ts'
@@ -245,7 +246,14 @@ const saveHobby = async () => {
       .map(t => t.trim())
       .filter(Boolean)
     
-    const payload = { ...form.value, tags }
+    const currentMarkdown = editor.value?.storage.markdown.getMarkdown() || form.value.review
+    const sanitizedMarkdown = validateAndSanitizeMarkdown(currentMarkdown, 'HobbyEditor')
+    
+    const payload = { 
+      ...form.value, 
+      review: sanitizedMarkdown,
+      tags 
+    }
 
     if (isEdit.value) {
       await hobbiesApi.update(Number(route.params.id), payload)
