@@ -9,6 +9,17 @@ import { extractStoragePaths, deleteStorageFiles, deleteFileByUrl } from './clea
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isSameOrAfter)
 
+/**
+ * Performance helper: reads auth state from local storage (no network request).
+ * getUser() makes a server-side JWT validation request every call — avoid it in API methods.
+ * Security is enforced by Supabase RLS policies at the DB level.
+ */
+const getCurrentUser = async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.user ?? null
+}
+
+
 const includesKeyword = (values: Array<string | undefined>, keyword?: string) => {
   if (!keyword) return true
   const normalizedKeyword = keyword.trim().toLowerCase()
