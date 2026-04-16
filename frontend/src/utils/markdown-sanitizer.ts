@@ -1,6 +1,6 @@
 /**
- * Detects and removes duplication artifacts in Markdown content.
- * Also logs diagnostic info if duplication is found.
+ * Converts legacy HTML formatting tags to BBCode equivalents.
+ * Used when loading old notes that may have been saved with raw HTML marks.
  */
 export const convertLegacyHTMLToBBCode = (markdown: string): string => {
   if (!markdown) return markdown;
@@ -8,13 +8,39 @@ export const convertLegacyHTMLToBBCode = (markdown: string): string => {
     .replace(/<u[^>]*>([\s\S]*?)<\/u>/gi, '[u]$1[/u]')
     .replace(/<s[^>]*>([\s\S]*?)<\/s>/gi, '[s]$1[/s]')
     .replace(/<mark[^>]*>([\s\S]*?)<\/mark>/gi, '[mark]$1[/mark]')
-    .replace(/<span[^>]*class=["'][^"']*mask-text[^"']*["'][^>]*>([\s\S]*?)<\/span>/gi, '[mask]$1[/mask]')
-    .replace(/<span[^>]*style=["']color:\s*([^;"']+)["'][^>]*>([\s\S]*?)<\/span>/gi, '[color=$1]$2[/color]')
+    .replace(/<span[^>]*class=['"][^'"]*mask-text[^'"]*['"][^>]*>([\s\S]*?)<\/span>/gi, '[mask]$1[/mask]')
+    .replace(/<span[^>]*style=['"]color:\s*([^;'"]+)['"][^>]*>([\s\S]*?)<\/span>/gi, '[color=$1]$2[/color]');
+};
+
+/**
+ * Pre-converts BBCode tags to HTML BEFORE passing content to editor.setContent().
+ *
+ * WHY: tiptap-markdown's bbcodePlugin (inline.ruler) conflicts with
+ * markdown-it-task-lists when both process inline tokens simultaneously.
+ * Within task list items, this causes BBCode to appear as BOTH a parsed mark
+ * AND as literal text — causing visible duplication in the editor.
+ *
+ * By pre-converting [mask]→<span class="mask-text"> before calling setContent,
+ * tiptap-markdown sees plain HTML (not BBCode). With html:true, markdown-it
+ * passes the HTML through unchanged, and ProseMirror's parseHTML rules on each
+ * extension (Mask, Underline, etc.) create the correct marks with no conflict.
+ */
+export const convertBBCodeToEditorHTML = (markdown: string): string => {
+  if (!markdown) return markdown;
+  return markdown
+    .replace(/\[b\]([\s\S]*?)\[\/b\]/gi, '<strong>$1</strong>')
+    .replace(/\[i\]([\s\S]*?)\[\/i\]/gi, '<em>$1</em>')
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi, '<u>$1</u>')
+    .replace(/\[s\]([\s\S]*?)\[\/s\]/gi, '<s>$1</s>')
+    .replace(/\[mark\]([\s\S]*?)\[\/mark\]/gi, '<mark>$1</mark>')
+    .replace(/\[mask\]([\s\S]*?)\[\/mask\]/gi, '<span class="mask-text">$1</span>')
+    .replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/gi, '<span style="color: $1">$2</span>')
+    .replace(/\[size=(\d+)\]([\s\S]*?)\[\/size\]/gi, '<span style="font-size: $1px">$2</span>');
 };
 
 const deduplicateRepeatedFormattedText = (markdown: string): string => {
   if (!markdown) return markdown;
-  
+
   // 1. Consecutive identical formatted segments (BBCode/Markdown)
   let cleaned = markdown
     .replace(/(\*\*[^*]+\*\*) \1/g, '$1')
@@ -27,28 +53,20 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
     .replace(/(\[color=[^\]]+\].+?\[\/color\])(\1)+/g, '$1');
 
   // 2. Hybrid duplicates: Plain text followed by its formatted equivalent (or vice versa)
-  // This specifically targets the "tiptap fallback" duplication
-  // Matches: word**word** -> **word**
   cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\*\*\1\*\*/g, '**$1**');
-  // Matches: **word**word -> **word**
   cleaned = cleaned.replace(/\*\*([^ \n*\[\]]{2,})\*\*\1/g, '**$1**');
-  // Matches: word[u]word[/u] -> [u]word[/u]
   cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\[u\]\1\[\/u\]/g, '[u]$1[/u]');
-  // Matches: [u]word[/u]word -> [u]word[/u]
   cleaned = cleaned.replace(/\[u\]([^ \n*\[\]]{2,})\[\/u\]\1/g, '[u]$1[/u]');
 
-  // 3. Consecutive task list items (redundant serialization)
-  cleaned = cleaned.replace(/(- \[ [x ] \] .+?)\n\1/g, '$1');
+  // 3. Task list item content duplicated on next line as plain paragraph
+  // Matches: "- [ ] content\ncontent" or "- [x] content\ncontent"
+  cleaned = cleaned.replace(/^(- \[[ x]\] )(.+)\n\2\n/gm, '$1$2\n');
+  cleaned = cleaned.replace(/^(- \[[ x]\] )(.+)\n\2$/gm, '$1$2');
 
-  // 4. Task list specific hybrid duplication fix
-  // Matches: - [ ] word**word** -> - [ ] **word**
-  cleaned = cleaned.replace(/(- \[ [x ] \] )([^ \n*\[\]]{2,})\*\*\2\*\*/g, '$1**$2**');
-
-  // 5. Universal BBCode/Markdown tags consecutive duplication fix
-  // Matches: [tag]content[/tag][tag]content[/tag] -> [tag]content[/tag]
+  // 4. Universal BBCode/Markdown tags consecutive duplication fix
   cleaned = cleaned.replace(/(\[([a-z]+)(?:=[^\]]*)?\][\s\S]*?\[\/\2\])\s?\1+/gi, '$1');
-  
-  // 6. Double-check generic Markdown bold/italic
+
+  // 5. Double-check generic Markdown bold/italic
   cleaned = cleaned.replace(/(\*\*[^*]+\*\*)\s?\1+/g, '$1');
 
   return cleaned;
