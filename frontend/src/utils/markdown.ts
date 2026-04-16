@@ -73,40 +73,10 @@ export const createMarkdownRenderer = () => {
     .use(sup)
     .use(katex, { throwOnError: false, errorColor: ' #cc0000' })
 
-  // BBCode Plugin
-  md.core.ruler.after('block', 'bbcode', (state) => {
-    const tokens = state.tokens
-    for (let i = 0; i < tokens.length; i++) {
-      if (tokens[i].type !== 'inline') continue
-      let content = tokens[i].content
-
-      // [b]...[/b] -> **...** (let MD handle it) or just <strong>
-      content = content.replace(/\[b\]([\s\S]*?)\[\/b\]/gi, '<strong>$1</strong>')
-      content = content.replace(/\[i\]([\s\S]*?)\[\/i\]/gi, '<em>$1</em>')
-      content = content.replace(/\[u\]([\s\S]*?)\[\/u\]/gi, '<u>$1</u>')
-      content = content.replace(/\[s\]([\s\S]*?)\[\/s\]/gi, '<s>$1</s>')
-      
-      // [mask]...[/mask]
-      content = content.replace(/\[mask\]([\s\S]*?)\[\/mask\]/gi, '<span class="mask-text">$1</span>')
-      
-      // [color=red]...[/color]
-      content = content.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/gi, '<span style="color: $1">$2</span>')
-      
-      // [size=14]...[/size]
-      content = content.replace(/\[size=(\d+)\]([\s\S]*?)\[\/size\]/gi, '<span style="font-size: $1px">$2</span>')
-      
-      // [url=http://...]text[/url]
-      content = content.replace(/\[url=([^\]]+)\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>')
-      // [url]http://...[/url]
-      content = content.replace(/\[url\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>')
-      
-      // [img]http://...[/img]
-      content = content.replace(/\[img\]([\s\S]*?)\[\/img\]/gi, '<img src="$1" alt="image" />')
-
-      tokens[i].content = content
-    }
-    return true
-  })
+  // Remove the core.ruler bbcode plugin - it caused duplication in task list items
+  // because it modified token.content between the block and inline passes,
+  // conflicting with markdown-it-task-lists which also processes inline tokens.
+  // BBCode is now handled as a post-processing step on the final HTML string.
 
   // Custom containers (e.g., ::: info)
   const containers = ['info', 'warning', 'danger', 'success', 'tip', 'note']
@@ -130,8 +100,30 @@ export const createMarkdownRenderer = () => {
 // Global instance for simple usage
 export const md = createMarkdownRenderer()
 
+/**
+ * Post-process rendered HTML to convert BBCode tags to HTML.
+ * This runs AFTER markdown-it and all its plugins (including task-lists),
+ * so there is no interference with token-level processing.
+ */
+const applyBBCode = (html: string): string => {
+  if (!html) return html
+  return html
+    .replace(/\[b\]([\s\S]*?)\[\/b\]/gi, '<strong>$1</strong>')
+    .replace(/\[i\]([\s\S]*?)\[\/i\]/gi, '<em>$1</em>')
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi, '<u>$1</u>')
+    .replace(/\[s\]([\s\S]*?)\[\/s\]/gi, '<s>$1</s>')
+    .replace(/\[mask\]([\s\S]*?)\[\/mask\]/gi, '<span class="mask-text">$1</span>')
+    .replace(/\[mark\]([\s\S]*?)\[\/mark\]/gi, '<mark>$1</mark>')
+    .replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/gi, '<span style="color: $1">$2</span>')
+    .replace(/\[size=(\d+)\]([\s\S]*?)\[\/size\]/gi, '<span style="font-size: $1px">$2</span>')
+    .replace(/\[url=([^\]]+)\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>')
+    .replace(/\[url\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/\[img\]([\s\S]*?)\[\/img\]/gi, '<img src="$1" alt="image" />')
+}
+
 export const renderMarkdown = (content: string) => {
   if (!content) return ''
-  return md.render(content)
+  const html = md.render(content)
+  return applyBBCode(html)
 }
 
