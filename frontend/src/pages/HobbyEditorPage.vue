@@ -119,7 +119,7 @@ import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 import { deleteFileByUrl } from '@/api/cleanup'
 import { useUiStore } from '@/stores/ui'
-import { validateAndSanitizeMarkdown } from '@/utils/markdown-sanitizer'
+import { validateAndSanitizeMarkdown, convertLegacyHTMLToBBCode } from '@/utils/markdown-sanitizer'
 import { EditorContent } from '@tiptap/vue-3'
 import { useMarkdownEditor } from '@/hooks/useMarkdownEditor'
 import type { Hobby } from '@/api/types'
@@ -163,7 +163,7 @@ const loadHobby = async () => {
     is_private: data.is_private || false,
   }
   tagsInput.value = data.tags.map(t => t.name).join(', ')
-  editor.value?.commands.setContent(data.review || '')
+  editor.value?.commands.setContent(convertLegacyHTMLToBBCode(data.review || ''))
 }
 
 const loadFolders = async () => {

@@ -123,7 +123,7 @@ import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 import { useUiStore } from '@/stores/ui'
-import { validateAndSanitizeMarkdown } from '@/utils/markdown-sanitizer'
+import { validateAndSanitizeMarkdown, convertLegacyHTMLToBBCode } from '@/utils/markdown-sanitizer'
 
 const uiStore = useUiStore()
 const route = useRoute()
@@ -159,7 +159,7 @@ const loadNote = async () => {
   form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
 
-  editor.value?.commands.setContent(data.content_md || '')
+  editor.value?.commands.setContent(convertLegacyHTMLToBBCode(data.content_md || ''))
 }
 
 const loadFolders = async () => {
@@ -202,7 +202,7 @@ const checkDraft = () => {
       form.value.folder_id = draft.folder_id
       form.value.is_private = draft.is_private || false
       tagsInput.value = draft.tags
-      editor.value?.commands.setContent(draft.content_md)
+      editor.value?.commands.setContent(convertLegacyHTMLToBBCode(draft.content_md))
       uiStore.addToast('草稿已还原', 'success')
     } else {
       clearDraft()

@@ -85,62 +85,8 @@ const bbcodePlugin = (md: any) => {
     return true
   })
 
-  // Handle legacy HTML formatting tags (<u>, <s>, <mark>, <span class="mask-text">) natively to avoid tiptap-markdown duplication bug!
-  md.inline.ruler.before('html_inline', 'legacy_html_marks', (state: any, silent: boolean) => {
-    const start = state.pos
-    if (state.src.charCodeAt(start) !== 0x3C /* < */) return false
-    
-    // Look for closing tags </u>, </s>, </mark>, </span>
-    const closeMatch = state.src.slice(start).match(/^<\/(u|s|mark|span)>/i)
-    if (closeMatch) {
-      if (!silent) {
-        const tag = closeMatch[1].toLowerCase()
-        let markName = ''
-        if (tag === 'u') markName = 'underline'
-        else if (tag === 's') markName = 'strike'
-        else if (tag === 'mark') markName = 'highlight'
-        else if (tag === 'span') markName = 'mask' // We assume </span> closes mask safely
-        
-        if (markName) {
-          state.push(`${markName}_close`, tag, -1)
-        }
-      }
-      state.pos += closeMatch[0].length
-      return true
-    }
-
-    // Look for opening tags
-    const openMatch = state.src.slice(start).match(/^<(u|s|mark|span(?:\s+class="mask-text"|\s+style="color:\s*([^;"]+)")?)>/i)
-    if (openMatch) {
-      if (!silent) {
-        const fullTag = openMatch[1].toLowerCase()
-        let markName = ''
-        const attrs: string[][] = []
-
-        if (fullTag.startsWith('u')) markName = 'underline'
-        else if (fullTag.startsWith('s')) { if (!fullTag.startsWith('span')) markName = 'strike' }
-        else if (fullTag.startsWith('mark')) markName = 'highlight'
-        else if (fullTag.startsWith('span')) {
-           if (fullTag.includes('mask-text')) markName = 'mask'
-           else if (openMatch[2]) {
-             markName = 'textStyle'
-             attrs.push(['color', openMatch[2]])
-           }
-        }
-
-        if (markName) {
-          const token = state.push(`${markName}_open`, fullTag.split(' ')[0], 1)
-          if (attrs.length) token.attrs = attrs
-        } else {
-           // If we matched span but no known mark, just let html_inline handle it
-           return false
-        }
-      }
-      state.pos += openMatch[0].length
-      return true
-    }
-    return false
-  })
+  // Legacy HTML is now processed via regex before it even reaches markdown-it
+  // See convertLegacyHTMLToBBCode
 
   // Strikethrough Renderer Rule Fix
   const fixRenderer = (tokens: any, idx: any, options: any, env: any, self: any) => {
