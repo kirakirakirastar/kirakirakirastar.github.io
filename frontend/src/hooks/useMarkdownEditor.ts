@@ -18,8 +18,6 @@ import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Typography } from '@tiptap/extension-typography'
-import { TaskList } from '@tiptap/extension-task-list'
-import { TaskItem } from '@tiptap/extension-task-item'
 import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
 import { TableCell } from '@tiptap/extension-table-cell'
@@ -73,9 +71,6 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
       createMarkdownExtension(),
       StarterKit.configure({
         strike: false,
-        bulletList: false,
-        orderedList: false,
-        listItem: false,
       }),
       MarkdownTextStyle,
       MarkdownUnderline,
@@ -83,8 +78,6 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
       MarkdownColor,
       MarkdownStrike,
       Typography,
-      TaskList,
-      TaskItem.configure({ nested: true }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,

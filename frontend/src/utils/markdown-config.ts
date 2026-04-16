@@ -155,22 +155,6 @@ export const createMarkdownExtension = (options: any = {}) => {
         ...parentStorage,
         markdown: {
           ...(parentStorage.markdown || {}),
-          serialize: {
-            ...(parentStorage.markdown?.serialize || {}),
-            nodes: {
-              ...(parentStorage.markdown?.serialize?.nodes || {}),
-              // Force correct task list serialization to prevent double-processing of children
-              taskItem: (state: any, node: any) => {
-                state.write(node.attrs.checked ? '[x] ' : '[ ] ')
-                node.forEach((child: any, _: any, index: number) => {
-                  state.render(child, node, index)
-                })
-              },
-              taskList: (state: any, node: any) => {
-                state.renderList(node, '  ', () => '- ')
-              },
-            }
-          },
           parse: {
             setup: (md: any) => {
               md.use(bbcodePlugin)
