@@ -90,48 +90,49 @@
             <!-- Custom Background Selection -->
             <section class="animate-fade-in-up">
               <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                自定义背景图片
-              </h3>
-              
-              <!-- Workspace Arena (Zoomed out view to show full overflow) -->
-              <div v-if="bgUrlInput" class="relative bg-slate-100 dark:bg-slate-900 rounded-[2.5rem] h-[360px] flex items-center justify-center overflow-hidden border border-slate-200 dark:border-white/5 shadow-inner">
-                <!-- Direct Manipulation Area (Everything inside is visually scaled down) -->
-                <div class="relative w-full h-full flex items-center justify-center transform scale-[0.6] sm:scale-[0.7] transition-transform duration-500">
+                <span class="w-1.5               <!-- Workspace Arena (Adaptive view ratio) -->
+              <div v-if="bgUrlInput" class="relative bg-slate-100 dark:bg-slate-900 rounded-[2.5rem] h-[380px] sm:h-[400px] flex items-center justify-center overflow-hidden border border-slate-200 dark:border-white/5 shadow-inner">
+                <!-- Staging Arena (Scaled down) -->
+                <div class="relative w-full h-full flex items-center justify-center transform scale-[0.45] sm:scale-[0.7] transition-transform duration-500">
                   
-                  <!-- Viewport (The Fixed 16:9 Frame) -->
+                  <!-- Orientation Label -->
+                  <div class="absolute -top-[120px] left-1/2 -translate-x-1/2 px-4 py-2 bg-slate-800/80 backdrop-blur-md rounded-full text-white text-[18px] font-bold whitespace-nowrap z-50">
+                    {{ viewRatio === 'portrait' ? '📱 手机端全屏取景 (9:16)' : '💻 电脑端横屏取景 (16:9)' }}
+                  </div>
+
+                  <!-- Viewport (Dynamic Ratio) -->
                   <div 
                     ref="previewContainer"
-                    class="relative z-30 w-[800px] aspect-video rounded-[3rem] border-8 border-primary shadow-[0_0_0_1000px_rgba(15,23,42,0.6)] cursor-move select-none"
+                    class="relative z-30 ring-8 ring-primary shadow-[0_0_0_3000px_rgba(15,23,42,0.65)] cursor-move select-none transition-all duration-500"
+                    :class="[
+                      viewRatio === 'portrait' ? 'w-[450px] aspect-[9/16] rounded-[4rem]' : 'w-[800px] aspect-video rounded-[3rem]'
+                    ]"
                     @mousedown="startDrag"
                     @touchstart="startDrag"
                   >
-                    <!-- Composition Grid -->
-                    <div 
-                      class="absolute inset-0 pointer-events-none transition-opacity duration-300 grid grid-cols-3 grid-rows-3"
-                      :class="[isDragging || isResizing ? 'opacity-40' : 'opacity-0']"
-                    >
-                      <div v-for="i in 9" :key="i" class="border-[1px] border-white/40"></div>
+                    <!-- Grid -->
+                    <div class="absolute inset-0 pointer-events-none transition-opacity duration-300 grid grid-cols-3 grid-rows-3" :class="[isDragging || isResizing ? 'opacity-40' : 'opacity-0']">
+                      <div v-for="i in 9" :key="i" class="border-[1.5px] border-white/40"></div>
                       <div class="absolute inset-0 flex items-center justify-center">
                         <div class="w-8 h-[1px] bg-primary"></div>
                         <div class="h-8 w-[1px] bg-primary"></div>
                       </div>
                     </div>
 
-                    <!-- Handles (Optimized for Mobile) -->
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-4 -left-4 sm:-top-7 sm:-left-7 w-8 h-8 sm:w-14 sm:h-14 rounded-full bg-white border-4 sm:border-[8px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nwse-resize z-40"></div>
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-4 -right-4 sm:-top-7 sm:-right-7 w-8 h-8 sm:w-14 sm:h-14 rounded-full bg-white border-4 sm:border-[8px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nesw-resize z-40"></div>
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-4 -left-4 sm:-bottom-7 sm:-left-7 w-8 h-8 sm:w-14 sm:h-14 rounded-full bg-white border-4 sm:border-[8px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nesw-resize z-40"></div>
-                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-4 -right-4 sm:-bottom-7 sm:-right-7 w-8 h-8 sm:w-14 sm:h-14 rounded-full bg-white border-4 sm:border-[8px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nwse-resize z-40"></div>
+                    <!-- Enhanced Handles -->
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-10 -left-10 w-20 h-20 rounded-full bg-white border-[12px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nwse-resize z-40"></div>
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -top-10 -right-10 w-20 h-20 rounded-full bg-white border-[12px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nesw-resize z-40"></div>
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-10 -left-10 w-20 h-20 rounded-full bg-white border-[12px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nesw-resize z-40"></div>
+                    <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute -bottom-10 -right-10 w-20 h-20 rounded-full bg-white border-[12px] border-primary shadow-2xl hover:scale-110 active:scale-125 transition-transform cursor-nwse-resize z-40"></div>
                   </div>
 
-                  <!-- The Full Image (Under the viewport) -->
+                  <!-- Image Arena -->
                   <div class="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
                     <img 
                       :src="bgUrlInput" 
                       class="max-w-none max-h-none transition-all duration-300"
                       :style="{
-                        width: '800px', // Base width matches viewport
+                        width: viewRatio === 'portrait' ? '450px' : '800px',
                         height: 'auto',
                         transform: `scale(${Number(bgScaleInput)/100}) translate(${Number(bgPosXInput) - 50}%, ${Number(bgPosYInput) - 50}%)`,
                         willChange: 'transform'
@@ -139,7 +140,6 @@
                     />
                   </div>
                 </div>
-
               </div>
 
               <!-- Stable Control Bar (Outside Arena) -->
@@ -303,6 +303,8 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const previewContainer = ref<HTMLElement | null>(null)
 const isUploading = ref(false)
 
+const viewRatio = ref(window.innerWidth < window.innerHeight ? 'portrait' : 'landscape')
+
 // Manipulation State
 const isDragging = ref(false)
 const isResizing = ref(false)
@@ -347,15 +349,11 @@ const onDragging = (e: MouseEvent | TouchEvent) => {
   const dy = point.clientY - dragStart.y
   
   const rect = previewContainer.value.getBoundingClientRect()
-  const pxSize = rect.width
+  const baseWidth = viewRatio.value === 'portrait' ? 450 : 800
+  const visualScale = rect.width / baseWidth
   
-  // Convert pixels to percentage change
-  // We account for the internal fixed width of 800px used in the template
-  const visualScale = pxSize / 800
-  const sensitivity = 100 / (800 * visualScale)
-  
-  bgPosXInput.value = dragStart.startPos.x + (dx / visualScale) / 8
-  bgPosYInput.value = dragStart.startPos.y + (dy / visualScale) / 4.5
+  bgPosXInput.value = dragStart.startPos.x + (dx / visualScale) / (baseWidth / 100)
+  bgPosYInput.value = dragStart.startPos.y + (dy / visualScale) / (baseWidth / 100 * (rect.height / rect.width))
   
   applyBgParams()
 }
