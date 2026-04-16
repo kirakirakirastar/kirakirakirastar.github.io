@@ -37,6 +37,7 @@ const routes = [
       { path: 'hobbies/:id', component: HobbyDetailPage, meta: { title: '条目详情' } },
       { path: 'hobbies/:id/edit', component: HobbyEditorPage, meta: { requiresAuth: true, title: '编辑爱好' } },
       { path: 'trash', component: TrashPage, meta: { requiresAuth: true, title: '回收站' } },
+      { path: 'test', component: () => import('@/pages/TestPage.vue'), meta: { title: '测试' } },
     ]
   }
 ]

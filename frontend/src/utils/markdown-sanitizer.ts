@@ -62,18 +62,29 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
   cleaned = cleaned.replace(/([^ \n*\[\]]{2,})\s*\[mark\]\1\[\/mark\]/g, '[mark]$1[/mask]');
   cleaned = cleaned.replace(/\[mark\]([^ \n*\[\]]{2,})\[\/mark\]\s*\1/g, '[mark]$1[/mask]');
 
-  // 3. Task list item content duplicated on next line as plain paragraph
-  // Matches: "- [ ] content\ncontent" or "- [x] content\ncontent"
-  cleaned = cleaned.replace(/^(- \[[ x]\] )(.+)\n\2\n/gm, '$1$2\n');
-  cleaned = cleaned.replace(/^(- \[[ x]\] )(.+)\n\2$/gm, '$1$2');
+  // 3. Collapse repeated tokens INSIDE BBCode tags aggressively.
+  //    This catches cases like "[s]测试测试[/s]" or "[mask]测试 测试[/mask]"
+  //    Matches any repeating substring, even with invisible chars like ZWSP (\u200B) or missing spaces.
+  let prev = '';
+  while (prev !== cleaned) {
+    prev = cleaned;
+    cleaned = cleaned.replace(/(\[[a-z]+(?:=[^\]]+)?\])(.+?)(\[\/[a-z]+\])/gi, (match, openTag, inner, closeTag) => {
+       let innerPrev = '';
+       let innerClean = inner;
+       while (innerPrev !== innerClean) {
+          innerPrev = innerClean;
+          // Matches a string followed by itself (with zero or more spaces/ZWSP in between)
+          innerClean = innerClean.replace(/(.{2,})[\s\u200B]*\1+/g, '$1');
+       }
+       return openTag + innerClean + closeTag;
+    });
+  }
 
   // 4. Universal BBCode/Markdown tags consecutive duplication fix
   cleaned = cleaned.replace(/(\[([a-z]+)(?:=[^\]]*)?\][\s\S]*?\[\/\2\])\s?\1+/gi, '$1');
 
   // 5. Double-check generic Markdown bold/italic
   cleaned = cleaned.replace(/(\*\*[^*]+\*\*)\s?\1+/g, '$1');
-
-  // (Removed aggressive internal BBCode token deduplicator to allow intended repetitive text like "测试测试测试")
 
   return cleaned;
 };
