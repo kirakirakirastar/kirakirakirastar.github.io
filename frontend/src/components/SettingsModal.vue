@@ -95,14 +95,18 @@
               </h3>
               
               <div 
-                @click="triggerFileSelect"
-                class="relative group cursor-pointer overflow-hidden rounded-3xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-primary dark:hover:border-primary transition-all duration-500 bg-slate-50 dark:bg-slate-900/30 aspect-video flex flex-col items-center justify-center gap-3"
+                ref="previewContainer"
+                class="relative group overflow-hidden rounded-3xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-primary dark:hover:border-primary transition-all duration-500 bg-slate-50 dark:bg-slate-900/30 aspect-video flex flex-col items-center justify-center gap-3 select-none"
+                :class="[bgUrlInput ? 'cursor-move' : 'cursor-pointer']"
+                @mousedown="startDrag"
+                @touchstart="startDrag"
+                @click="!bgUrlInput && triggerFileSelect()"
               >
-                <!-- Preview or Placeholder -->
+                <!-- Preview Image -->
                 <img 
                   v-if="bgUrlInput" 
                   :src="bgUrlInput" 
-                  class="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-40 transition-all duration-500"
+                  class="absolute inset-0 w-full h-full opacity-60 transition-all duration-300 pointer-events-none"
                   :class="[bgFitInput === 'cover' ? 'object-cover' : 'object-contain']"
                   :style="{
                     transform: `scale(${Number(bgScaleInput)/100}) translate(${Number(bgPosXInput) - 50}%, ${Number(bgPosYInput) - 50}%)`,
@@ -111,7 +115,25 @@
                   style="will-change: transform;"
                 />
                 
-                <div class="relative z-10 flex flex-col items-center gap-2 text-slate-500 group-hover:text-primary transition-colors duration-300">
+                <!-- Interaction Overlay Elements -->
+                <template v-if="bgUrlInput">
+                  <!-- Corner Handles -->
+                  <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute top-4 left-4 w-4 h-4 rounded-full bg-white border-2 border-primary shadow-sm hover:scale-125 transition-transform cursor-nwse-resize z-20"></div>
+                  <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute top-4 right-4 w-4 h-4 rounded-full bg-white border-2 border-primary shadow-sm hover:scale-125 transition-transform cursor-nesw-resize z-20"></div>
+                  <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute bottom-4 left-4 w-4 h-4 rounded-full bg-white border-2 border-primary shadow-sm hover:scale-125 transition-transform cursor-nesw-resize z-20"></div>
+                  <div @mousedown.stop="startResize" @touchstart.stop="startResize" class="absolute bottom-4 right-4 w-4 h-4 rounded-full bg-white border-2 border-primary shadow-sm hover:scale-125 transition-transform cursor-nwse-resize z-20"></div>
+                  
+                  <!-- Replace Button (Floating) -->
+                  <button 
+                    @click.stop="triggerFileSelect"
+                    class="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-full text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 shadow-sm z-10"
+                  >
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    点击此区域拖拽，或点击这里更换
+                  </button>
+                </template>
+
+                <div v-if="!bgUrlInput || isUploading" class="relative z-10 flex flex-col items-center gap-2 text-slate-500 group-hover:text-primary transition-colors duration-300">
                   <div v-if="isUploading" class="flex flex-col items-center gap-2">
                     <svg class="w-10 h-10 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -124,7 +146,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                       </svg>
                     </div>
-                    <span class="text-sm font-bold mt-1">{{ bgUrlInput ? '更换图片' : '上传本地背景' }}</span>
+                    <span class="text-sm font-bold mt-1">上传本地背景</span>
                   </template>
                 </div>
               </div>
@@ -265,7 +287,90 @@ const bgPosYInput = ref(settings.bgPosY)
 const bgFitInput = ref(settings.bgFit)
 
 const fileInput = ref<HTMLInputElement | null>(null)
+const previewContainer = ref<HTMLElement | null>(null)
 const isUploading = ref(false)
+
+// Manipulation State
+const isDragging = ref(false)
+const isResizing = ref(false)
+const dragStart = { x: 0, y: 0, startPos: { x: 0, y: 0 }, startScale: 0 }
+
+const startDrag = (e: MouseEvent | TouchEvent) => {
+  if (!bgUrlInput.value) return
+  isDragging.value = true
+  const point = 'touches' in e ? e.touches[0] : e
+  dragStart.x = point.clientX
+  dragStart.y = point.clientY
+  dragStart.startPos.x = bgPosXInput.value
+  dragStart.startPos.y = bgPosYInput.value
+  
+  window.addEventListener('mousemove', onDragging)
+  window.addEventListener('mouseup', endDrag)
+  window.addEventListener('touchmove', onDragging, { passive: false })
+  window.addEventListener('touchend', endDrag)
+}
+
+const startResize = (e: MouseEvent | TouchEvent) => {
+  if (!bgUrlInput.value) return
+  e.stopPropagation()
+  isResizing.value = true
+  const point = 'touches' in e ? e.touches[0] : e
+  dragStart.x = point.clientX
+  dragStart.y = point.clientY
+  dragStart.startScale = bgScaleInput.value
+  
+  window.addEventListener('mousemove', onResizing)
+  window.addEventListener('mouseup', endDrag)
+  window.addEventListener('touchmove', onResizing, { passive: false })
+  window.addEventListener('touchend', endDrag)
+}
+
+const onDragging = (e: MouseEvent | TouchEvent) => {
+  if (!isDragging.value || !previewContainer.value) return
+  if ('preventDefault' in e) e.preventDefault()
+  
+  const point = 'touches' in e ? e.touches[0] : e
+  const dx = point.clientX - dragStart.x
+  const dy = point.clientY - dragStart.y
+  
+  const rect = previewContainer.value.getBoundingClientRect()
+  const pxSize = rect.width
+  const pySize = rect.height
+  
+  // Convert pixels to percentage change
+  // Note: bgScale affects how much a pixel shift moves the image
+  const sensitivity = 100 / pxSize
+  bgPosXInput.value = dragStart.startPos.x + (dx * sensitivity)
+  bgPosYInput.value = dragStart.startPos.y + (dy * sensitivity)
+  
+  applyBgParams()
+}
+
+const onResizing = (e: MouseEvent | TouchEvent) => {
+  if (!isResizing.value) return
+  if ('preventDefault' in e) e.preventDefault()
+  
+  const point = 'touches' in e ? e.touches[0] : e
+  const dy = dragStart.y - point.clientY // Upwards = larger
+  const dx = point.clientX - dragStart.x // Rightwards = larger
+  
+  // Use the larger delta to drive scale
+  const delta = Math.abs(dx) > Math.abs(dy) ? dx : dy
+  bgScaleInput.value = Math.max(10, Math.min(400, dragStart.startScale + delta))
+  
+  applyBgParams()
+}
+
+const endDrag = () => {
+  isDragging.value = false
+  isResizing.value = false
+  window.removeEventListener('mousemove', onDragging)
+  window.removeEventListener('mouseup', endDrag)
+  window.removeEventListener('mousemove', onResizing)
+  window.removeEventListener('touchmove', onDragging)
+  window.removeEventListener('touchend', endDrag)
+  window.removeEventListener('touchmove', onResizing)
+}
 
 const triggerFileSelect = () => {
   fileInput.value?.click()
