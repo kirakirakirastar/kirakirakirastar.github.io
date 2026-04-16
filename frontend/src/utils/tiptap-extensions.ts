@@ -81,7 +81,7 @@ export const Mask = Mark.create({
         serialize: {
           open: '<span class="mask-text">',
           close: '</span>',
-          expelEnclosingWhitespace: true,
+          mixable: true,
         },
       },
     }
@@ -108,7 +108,7 @@ export const MarkdownUnderline = Underline.extend({
         serialize: {
           open: '<u>',
           close: '</u>',
-          expelEnclosingWhitespace: true,
+          mixable: true,
         },
       },
     }
@@ -143,7 +143,7 @@ export const MarkdownStrike = Strike.extend({
         serialize: {
           open: '<s>',
           close: '</s>',
-          expelEnclosingWhitespace: true,
+          mixable: true,
         },
       },
     }
@@ -170,45 +170,46 @@ export const MarkdownHighlight = Highlight.configure({ multicolor: true }).exten
         serialize: {
           open: '<mark>',
           close: '</mark>',
-          expelEnclosingWhitespace: true,
+          mixable: true,
         },
       },
     }
   },
 })
 
-export const MarkdownTextStyle = TextStyle
-export const MarkdownColor = Color.extend({
-  inclusive: false,
-  spanning: false,
-  parseHTML() {
-    return [
-      {
-        tag: 'span',
-        getAttrs: element => {
-          return (element as HTMLElement).style.color ? null : false
-        },
-        priority: 90,
-      },
-    ]
-  },
+/**
+ * Hardened TextStyle with proper markdown color serialization.
+ * This is the actual Mark that holds `attrs.color` (set by the Color extension).
+ * Color (Extension type) is FILTERED OUT by tiptap-markdown's serializer
+ * (.filter(extension.type === 'mark')), so we MUST handle color serialization here.
+ */
+export const MarkdownTextStyle = TextStyle.extend({
   addStorage() {
     return {
       markdown: {
         serialize: {
           open(_state: any, mark: any) {
-            // FORCE conversion to HEX during serialization to ensure final 
-            // Markdown output is always normalized and browser-acceptable.
-            const hexColor = forceHex(mark.attrs.color)
-            return `<span style="color: ${hexColor}">`
+            // Build style attribute, converting any rgb() to hex for html input compatibility
+            const color = mark.attrs.color ? forceHex(mark.attrs.color) : null
+            if (!color) return ''
+            return `<span style="color: ${color}">`
           },
           close: '</span>',
-          expelEnclosingWhitespace: true,
+          mixable: true,
         },
       },
     }
   },
 })
+
+// MarkdownColor is kept for its commands (setColor/unsetColor) but its addStorage
+// is effectively dead code since Color is an Extension, not a Mark.
+// The actual serialization is handled by MarkdownTextStyle above.
+export const MarkdownColor = Color.extend({
+  inclusive: false,
+  spanning: false,
+})
+
 
 /**
  * Bangumi Shortcuts
