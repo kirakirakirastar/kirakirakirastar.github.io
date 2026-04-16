@@ -1,5 +1,6 @@
 import { Markdown, type MarkdownStorage } from 'tiptap-markdown'
 import type MarkdownIt from 'markdown-it'
+import taskListPlugin from 'markdown-it-task-lists'
 
 /**
  * Augment the MarkdownStorage interface to include markdownit
@@ -17,7 +18,7 @@ declare module 'tiptap-markdown' {
  * if a corresponding [/tag] exists. This prevents unclosed tags from
  * causing "greedy" parses that duplicate content or leak formatting.
  */
-const bbcodePlugin = (md: any) => {
+export const bbcodePlugin = (md: any) => {
   const tagMap: Record<string, string> = {
     u: 'u',
     s: 's',
@@ -81,6 +82,7 @@ const bbcodePlugin = (md: any) => {
 
   // Handle [tag] and [/tag] as tokens with balancedness check
   md.inline.ruler.before('text', 'bbcode', (state: any, silent: boolean) => {
+    // console.log('[BBCODE-DEBUG] checking at pos:', state.pos, 'char:', state.src[state.pos])
     const start = state.pos
     if (state.src.charCodeAt(start) !== 0x5B /* [ */) return false
 
@@ -161,6 +163,7 @@ export const createMarkdownExtension = (options: any = {}) => {
           ...(parentStorage.markdown || {}),
           parse: {
             setup: (md: any) => {
+              md.use(taskListPlugin, { label: true })
               md.use(bbcodePlugin)
             }
           }

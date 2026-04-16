@@ -101,7 +101,7 @@ import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 import { useUiStore } from '@/stores/ui'
-import { validateAndSanitizeMarkdown, convertLegacyHTMLToBBCode } from '@/utils/markdown-sanitizer'
+import { validateAndSanitizeMarkdown, convertLegacyHTMLToBBCode, renderMarkdownToHTML } from '@/utils/markdown-sanitizer'
 
 const uiStore = useUiStore()
 const route = useRoute()
@@ -136,8 +136,8 @@ const loadJournal = async () => {
   form.value.folder_id = data.folder_id
   form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
-  const cleaned = validateAndSanitizeMarkdown(data.content_md || '')
-  editor.value?.commands.setContent(cleaned)
+  const editorHTML = renderMarkdownToHTML(data.content_md || '')
+  editor.value?.commands.setContent(editorHTML)
   form.value.content_md = data.content_md
 }
 

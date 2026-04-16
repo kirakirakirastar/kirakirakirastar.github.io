@@ -123,7 +123,7 @@ import { supabaseFoldersApi } from '@/api/supabaseData'
 import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 import { useUiStore } from '@/stores/ui'
-import { validateAndSanitizeMarkdown, convertLegacyHTMLToBBCode } from '@/utils/markdown-sanitizer'
+import { validateAndSanitizeMarkdown, convertLegacyHTMLToBBCode, renderMarkdownToHTML } from '@/utils/markdown-sanitizer'
 
 const uiStore = useUiStore()
 const route = useRoute()
@@ -159,10 +159,10 @@ const loadNote = async () => {
   form.value.is_private = data.is_private || false
   tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
 
-  // Single-Pass Loading: sanitize, pre-convert legacy HTML, and set directly.
-  // We rely on the editor's internal parser for the final truth.
-  const cleaned = validateAndSanitizeMarkdown(data.content_md || '')
-  editor.value?.commands.setContent(cleaned)
+  // Single-Pass Loading (Phase 2): Render to perfect HTML before setting.
+  // This bypasses tiptap-markdown's parsing quirks for complex list structures.
+  const editorHTML = renderMarkdownToHTML(data.content_md || '')
+  editor.value?.commands.setContent(editorHTML)
   form.value.content_md = data.content_md 
 }
 

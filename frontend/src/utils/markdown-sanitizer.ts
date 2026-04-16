@@ -1,9 +1,25 @@
+import MarkdownIt from 'markdown-it'
+import taskListPlugin from 'markdown-it-task-lists'
+import { bbcodePlugin } from './markdown-config'
+
 /**
- * Markdown Sanitizer - Rewritten for Stability
- * 
- * Provides idempotent cleaning for legacy HTML, BBCode normalization,
- * and detection of corruption-induced content duplication.
+ * Markdown Sanitizer - Rewritten for Stability (Phase 2)
  */
+
+// Centralized Markdown-It instance for pre-rendering
+const md = new MarkdownIt({
+  html: true,
+  breaks: true,
+  linkify: true,
+  typographer: true,
+})
+  .use(taskListPlugin, { label: true })
+  .use(bbcodePlugin)
+
+// Ensure strike-through uses <s>
+md.renderer.rules.strike_open = () => '<s>'
+md.renderer.rules.strike_close = () => '</s>'
+
 
 /**
  * Converts legacy HTML formatting tags to BBCode equivalents.
@@ -56,4 +72,19 @@ export const validateAndSanitizeMarkdown = (content: string): string => {
   }
 
   return cleaned;
+};
+
+/**
+ * Industrial-grade Markdown to HTML renderer.
+ * Used for pre-loading content into the editor to ensure perfect stability.
+ */
+export const renderMarkdownToHTML = (markdown: string): string => {
+  if (!markdown) return '';
+  
+  // 1. Sanitize the markdown draft first
+  const sanitized = validateAndSanitizeMarkdown(markdown);
+  
+  // 2. Render to plain HTML using the standalone parser
+  // This ensures Tiptap starts in a perfectly clean, processed state.
+  return md.render(sanitized);
 };

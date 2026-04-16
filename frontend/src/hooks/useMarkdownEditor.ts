@@ -90,6 +90,25 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
         HTMLAttributes: {
           class: 'task-list-item',
         },
+      }).extend({
+        // Harden the TaskItem serialization to be 100% predictable
+        addStorage() {
+          return {
+            markdown: {
+              serialize(state: any, node: any) {
+                state.write(node.attrs.checked ? '[x] ' : '[ ] ')
+                state.renderContent(node)
+              },
+              parse: {
+                // The parsing is handled by the pre-rendered HTML pass, 
+                // but we keep this for dynamic updates
+                updateDOM(element: HTMLElement) {
+                  element.setAttribute('data-type', 'taskItem')
+                }
+              }
+            }
+          }
+        }
       }),
       Table.configure({ resizable: true }),
       TableRow,

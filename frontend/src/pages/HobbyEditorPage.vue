@@ -119,7 +119,7 @@ import { resolveAssetUrl } from '@/api/http'
 import { uploadApi } from '@/api/upload'
 import { deleteFileByUrl } from '@/api/cleanup'
 import { useUiStore } from '@/stores/ui'
-import { validateAndSanitizeMarkdown, convertLegacyHTMLToBBCode } from '@/utils/markdown-sanitizer'
+import { validateAndSanitizeMarkdown, convertLegacyHTMLToBBCode, renderMarkdownToHTML } from '@/utils/markdown-sanitizer'
 import { EditorContent } from '@tiptap/vue-3'
 import { useMarkdownEditor } from '@/hooks/useMarkdownEditor'
 import type { Hobby } from '@/api/types'
@@ -163,8 +163,8 @@ const loadHobby = async () => {
     is_private: data.is_private || false,
   }
   tagsInput.value = data.tags.map(t => t.name).join(', ')
-  const cleaned = validateAndSanitizeMarkdown(data.review || '')
-  editor.value?.commands.setContent(cleaned)
+  const editorHTML = renderMarkdownToHTML(data.review || '')
+  editor.value?.commands.setContent(editorHTML)
   form.value.review = data.review
 }
 
