@@ -163,15 +163,23 @@
                   </div>
                 </div>
 
-                <!-- Replace Button (Floating) -->
-                <button 
-                  v-if="bgUrlInput"
-                  @click.stop="triggerFileSelect"
-                  class="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold text-primary shadow-xl z-40 flex items-center gap-2 hover:scale-105 transition-all"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                  更换背景图片
-                </button>
+                <div v-if="bgUrlInput" class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-40">
+                  <button 
+                    @click.stop="triggerFileSelect"
+                    class="px-4 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold text-primary shadow-xl flex items-center gap-2 hover:scale-105 transition-all"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    更换图片
+                  </button>
+                  <button 
+                    @click.stop="resetPosition"
+                    class="px-4 py-2 bg-white dark:bg-slate-800 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300 shadow-xl flex items-center gap-2 hover:scale-105 transition-all"
+                    title="重置位置与缩放"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    重置位置
+                  </button>
+                </div>
               </div>
 
               <!-- Hidden File Input -->
@@ -500,6 +508,14 @@ const scheduleSave = useDebounceFn(() => {
 const applyBgParams = () => {
   syncCssVars()   // Instant Visual Sync (Native CSS Variable)
   scheduleSave()  // Debounced Pinia Sync (Reactivity System)
+}
+
+const resetPosition = () => {
+  bgScaleInput.value = 100
+  bgPosXInput.value = 50
+  bgPosYInput.value = 50
+  bgFitInput.value = 'cover'
+  applyBgParams()
 }
 
 const resetBackground = () => {
