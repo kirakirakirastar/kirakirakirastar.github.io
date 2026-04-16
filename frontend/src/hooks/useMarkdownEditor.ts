@@ -71,7 +71,9 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
   const editor = useEditor({
     extensions: [
       createMarkdownExtension(),
-      StarterKit.configure(),
+      StarterKit.configure({
+        strike: false,
+      }),
       MarkdownTextStyle,
       MarkdownUnderline,
       MarkdownHighlight,
