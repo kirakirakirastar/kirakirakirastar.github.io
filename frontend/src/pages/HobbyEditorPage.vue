@@ -147,6 +147,9 @@ const form = ref({
   is_private: false,
 })
 
+// Debounce timer for markdown serialization in onUpdate
+let _markdownSyncTimer: ReturnType<typeof setTimeout> | null = null
+
 const imageUrl = computed(() => resolveAssetUrl(form.value.cover_url))
 
 const loadHobby = async () => {
@@ -218,7 +221,10 @@ const editor = useEditor({
   ],
   content: '',
   onUpdate: ({ editor }) => {
-    form.value.review = editor.storage.markdown.getMarkdown()
+    if (_markdownSyncTimer) clearTimeout(_markdownSyncTimer)
+    _markdownSyncTimer = setTimeout(() => {
+      form.value.review = editor.storage.markdown.getMarkdown()
+    }, 400)
   },
 })
 

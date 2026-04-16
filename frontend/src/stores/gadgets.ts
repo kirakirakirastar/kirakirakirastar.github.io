@@ -442,5 +442,10 @@ export const useGadgetStore = defineStore('gadgets', () => {
     canCheckin, doCheckin, updateCheckinRecord, fetchCheckinHistory, addAnnouncement, removeAnnouncement
   }
 }, {
-  persist: true
+  persist: {
+    // Only persist the lightweight checkin state (a few fields).
+    // todos / checkinHistory / announcements are always fetched fresh from the server.
+    // Persisting them wastes localStorage space and causes stale data flashes on page load.
+    paths: ['checkin']
+  }
 })

@@ -126,12 +126,13 @@ const folders = ref<any[]>([])
 const form = ref({
   title: '',
   excerpt: '',
-  content_html: '',
   content_md: '',
-  content_json: '{}',
   folder_id: null as number | null,
   is_private: false,
 })
+
+// Debounce timer for markdown serialization in onUpdate
+let _markdownSyncTimer: ReturnType<typeof setTimeout> | null = null
 
 const uploadAndInsertImage = async (file: File) => {
   if (!editor.value) return
@@ -210,7 +211,10 @@ const editor = useEditor({
     },
   },
   onUpdate: ({ editor }) => {
-    form.value.content_md = editor.storage.markdown.getMarkdown()
+    if (_markdownSyncTimer) clearTimeout(_markdownSyncTimer)
+    _markdownSyncTimer = setTimeout(() => {
+      form.value.content_md = editor.storage.markdown.getMarkdown()
+    }, 400)
   },
 })
 

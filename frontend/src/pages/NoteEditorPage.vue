@@ -152,6 +152,9 @@ const form = ref({
   is_private: false,
 })
 
+// Debounce timer for markdown serialization in onUpdate
+let _markdownSyncTimer: ReturnType<typeof setTimeout> | null = null
+
 const uploadAndInsertImage = async (file: File) => {
   if (!editor.value) return
   try {
@@ -229,7 +232,12 @@ const editor = useEditor({
     },
   },
   onUpdate: ({ editor }) => {
-    form.value.content_md = editor.storage.markdown.getMarkdown()
+    // Debounce: getMarkdown() serializes the entire document tree on every keystroke.
+    // Delay sync to avoid input lag on large documents.
+    if (_markdownSyncTimer) clearTimeout(_markdownSyncTimer)
+    _markdownSyncTimer = setTimeout(() => {
+      form.value.content_md = editor.storage.markdown.getMarkdown()
+    }, 400)
   },
 })
 
