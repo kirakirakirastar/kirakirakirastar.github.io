@@ -128,7 +128,6 @@ import { TableCell } from '@tiptap/extension-table-cell'
 import { TableHeader } from '@tiptap/extension-table-header'
 import { Mask, BangumiShortcuts, MarkdownUnderline, MarkdownColor, MarkdownTextStyle, MarkdownHighlight, MarkdownStrike } from '@/utils/tiptap-extensions.ts'
 import { createMarkdownExtension } from '@/utils/markdown-config.ts'
-import { runMarkdownDiagnosis } from '@/utils/markdown-diagnostic'
 import { Link } from '@tiptap/extension-link'
 import { renderMarkdown } from '@/utils/markdown'
 import { notesApi } from '@/api/notes'
@@ -338,10 +337,6 @@ onMounted(async () => {
   }
   await loadFolders()
 
-  // Run Markdown logic diagnosis to verify the fix
-  if (editor.value) {
-    runMarkdownDiagnosis(editor.value)
-  }
 })
 
 onBeforeUnmount(() => {
