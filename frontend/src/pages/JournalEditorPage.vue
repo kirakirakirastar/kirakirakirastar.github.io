@@ -66,6 +66,7 @@
               <input 
                 type="color" 
                 class="w-8 h-8 p-0 border-none bg-transparent cursor-pointer"
+                :value="getEditorColor()"
                 @input="(e) => editor?.chain().focus().setColor((e.target as HTMLInputElement).value).run()"
               />
 
@@ -211,6 +212,19 @@ const editor = useEditor({
     form.value.content_md = editor.storage.markdown.getMarkdown()
   },
 })
+
+const getEditorColor = () => {
+  const color = editor.value?.getAttributes('textStyle').color
+  if (!color) return '#000000'
+  if (color.startsWith('rgb')) {
+    const rgb = color.match(/\d+/g)
+    if (rgb && rgb.length >= 3) {
+      return '#' + rgb.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('')
+    }
+  }
+  return color
+}
+
 const loadJournal = async () => {
   if (!isEdit.value) return
   const data = await journalsApi.get(Number(route.params.id))

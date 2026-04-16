@@ -232,6 +232,18 @@ const editor = useEditor({
   },
 })
 
+const getEditorColor = () => {
+  const color = editor.value?.getAttributes('textStyle').color
+  if (!color) return '#000000'
+  if (color.startsWith('rgb')) {
+    const rgb = color.match(/\d+/g)
+    if (rgb && rgb.length >= 3) {
+      return '#' + rgb.slice(0, 3).map((x: string) => parseInt(x).toString(16).padStart(2, '0')).join('')
+    }
+  }
+  return color
+}
+
 const loadNote = async () => {
   if (!isEdit.value) return
   const data = await notesApi.get(Number(route.params.id))
