@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+﻿import { supabase } from './supabase'
 import type { Note, Journal, Hobby, Todo, Folder, DashboardData, ActivityMap, ActivityDay, Tag, Announcement } from './types'
 import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
@@ -8,17 +8,6 @@ import { extractStoragePaths, deleteStorageFiles, deleteFileByUrl } from './clea
 
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isSameOrAfter)
-
-/**
- * Performance helper: reads auth state from local storage (no network request).
- * getUser() makes a server-side JWT validation request every call — avoid it in API methods.
- * Security is enforced by Supabase RLS policies at the DB level.
- */
-const getCurrentUser = async () => {
-  const { data: { session } } = await supabase.auth.getSession()
-  return session?.user ?? null
-}
-
 
 const includesKeyword = (values: Array<string | undefined>, keyword?: string) => {
   if (!keyword) return true
@@ -71,8 +60,8 @@ const normalizeTags = (tagsRaw: any) => {
 export const supabaseNotesApi = {
   list: async (params?: any): Promise<Note[]> => {
     let query = supabase.from('notes').select('*')
-    
-     if (params?.keyword) {
+
+    if (params?.keyword) {
       const kw = `%${params.keyword}%`
       query = query.or(`title.ilike.${kw},summary.ilike.${kw},content_md.ilike.${kw}`)
     }
@@ -81,7 +70,7 @@ export const supabaseNotesApi = {
     query = query.is('deleted_at', null)
 
     // Privacy filter
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       query = query.eq('is_private', false)
     } else {
@@ -119,7 +108,7 @@ export const supabaseNotesApi = {
 
     const { data, error } = await query.order('created_at', { ascending: false })
     if (error) throw error
-    
+
     return (data || []).map((n: any) => ({ ...n, tags: normalizeTags(n.tags) }))
   },
 
@@ -139,9 +128,9 @@ export const supabaseNotesApi = {
 
   get: async (id: number): Promise<Note> => {
     let query = supabase.from('notes').select('*').eq('id', id).is('deleted_at', null)
-    
+
     // Privacy protection: Ensure guests can't see private notes even if they have the ID
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       query = query.eq('is_private', false)
     }
@@ -196,11 +185,11 @@ export const supabaseNotesApi = {
   permanentlyDelete: async (id: number) => {
     // 1. 获取内容以便提取图片
     const { data: note } = await supabase.from('notes').select('content_md').eq('id', id).single()
-    
+
     // 2. 执行数据库物理删除
     const { error } = await supabase.from('notes').delete().eq('id', id)
     if (error) throw error
-    
+
     // 3. 异步清理云端图片
     if (note?.content_md) {
       const paths = extractStoragePaths(note.content_md)
@@ -234,12 +223,12 @@ export const supabaseNotesApi = {
 
   tags: async (): Promise<Tag[]> => {
     // Check auth for privacy filtering
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     const isOwner = !!user
 
     // Optimized: Attempt to use RPC first
     try {
-      const { data, error } = await supabase.rpc('get_tag_cloud', { 
+      const { data, error } = await supabase.rpc('get_tag_cloud', {
         table_name: 'notes',
         public_only: !isOwner // Assuming RPC might support this, or it will be filtered at DB level by RLS
       })
@@ -280,7 +269,7 @@ export const supabaseJournalsApi = {
     query = query.is('deleted_at', null)
 
     // Privacy filter
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       query = query.eq('is_private', false)
     }
@@ -335,9 +324,9 @@ export const supabaseJournalsApi = {
 
   get: async (id: number): Promise<Journal> => {
     let query = supabase.from('journals').select('*').eq('id', id).is('deleted_at', null)
-    
+
     // Privacy protection
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       query = query.eq('is_private', false)
     }
@@ -389,22 +378,22 @@ export const supabaseJournalsApi = {
   },
 
   permanentlyDelete: async (id: number) => {
-    const { data: journal } = await supabase.from('journals').select('content_html, content_md').eq('id', id).single()
+    const { data: journal } = await supabase.from('journals').select('content_html').eq('id', id).single()
     const { error } = await supabase.from('journals').delete().eq('id', id)
     if (error) throw error
-    if (journal?.content_md || journal?.content_html) {
-      const paths = extractStoragePaths(journal.content_md || journal.content_html || '')
+    if (journal?.content_html || journal?.content_html) {
+      const paths = extractStoragePaths(journal.content_html || journal.content_html || '')
       deleteStorageFiles(paths)
     }
     return true
   },
 
   batchPermanentlyDelete: async (ids: number[]) => {
-    const { data: journals } = await supabase.from('journals').select('content_html, content_md').in('id', ids)
+    const { data: journals } = await supabase.from('journals').select('content_html').in('id', ids)
     const { error } = await supabase.from('journals').delete().in('id', ids)
     if (error) throw error
     if (journals) {
-      const allPaths = journals.flatMap(j => extractStoragePaths(j.content_md || j.content_html || ''))
+      const allPaths = journals.flatMap(j => extractStoragePaths(j.content_html || j.content_html || ''))
       deleteStorageFiles(allPaths)
     }
     return true
@@ -421,9 +410,9 @@ export const supabaseJournalsApi = {
     if (error) throw error
     return buildArchives(data || [])
   },
-  
+
   tags: async () => {
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     const isOwner = !!user
 
     let query = supabase.from('journals').select('tags, is_private')
@@ -447,14 +436,14 @@ export const supabaseJournalsApi = {
 export const supabaseHobbiesApi = {
   list: async (params?: any): Promise<Hobby[]> => {
     let query = supabase.from('hobbies').select('*').order('updated_at', { ascending: false })
-    
+
     // 逻辑删除过滤
     query = query.is('deleted_at', null)
     if (params?.type) query = query.eq('type', params.type)
     if (params?.status) query = query.eq('status', params.status)
 
     // Privacy filter
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       query = query.eq('is_private', false)
     }
@@ -500,9 +489,9 @@ export const supabaseHobbiesApi = {
 
   get: async (id: number): Promise<Hobby> => {
     let query = supabase.from('hobbies').select('*').eq('id', id)
-    
+
     // Privacy protection
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       query = query.eq('is_private', false)
     }
@@ -583,11 +572,11 @@ export const supabaseHobbiesApi = {
   },
 
   tags: async (): Promise<Tag[]> => {
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     const isOwner = !!user
 
     try {
-      const { data, error } = await supabase.rpc('get_tag_cloud', { 
+      const { data, error } = await supabase.rpc('get_tag_cloud', {
         table_name: 'hobbies',
         public_only: !isOwner
       })
@@ -619,7 +608,7 @@ export const supabaseHobbiesApi = {
     const { data, error } = await supabase.from('hobbies').select('status, rating')
     if (error) throw error
     const hobbies = data || []
-    
+
     const rated = hobbies.filter((item: any) => typeof item.rating === 'number' && item.rating !== null)
     const avgRating = rated.length
       ? rated.reduce((sum: number, item: any) => sum + Number(item.rating), 0) / rated.length
@@ -644,12 +633,12 @@ export const supabaseDashboardApi = {
     const monthStartStr = monthStart.toISOString()
 
     // 1. 核心统计：利用 RPC 一次性获取所有维度数据（由于是单用户，is_owner 传 true 以包含私有项计数）
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     const isOwner = !!user
 
     let stats: any = null
     try {
-      const { data, error } = await supabase.rpc('get_combined_stats', { 
+      const { data, error } = await supabase.rpc('get_combined_stats', {
         start_date: monthStartStr,
         is_owner: isOwner
       })
@@ -691,13 +680,13 @@ export const supabaseDashboardApi = {
   },
 
   activities: async (): Promise<ActivityMap> => {
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     const isOwner = !!user
 
     // 1. 高性能聚合：利用 RPC 在服务端完成跨表日期统计
     try {
-      const { data, error } = await supabase.rpc('get_daily_activities', { 
-        is_owner: isOwner 
+      const { data, error } = await supabase.rpc('get_daily_activities', {
+        is_owner: isOwner
       })
       if (!error && data) {
         const activityMap: ActivityMap = {}
@@ -707,7 +696,7 @@ export const supabaseDashboardApi = {
             journals: Number(row.journal_count),
             hobbies: Number(row.hobby_count),
             todos: Number(row.todo_count),
-            checkins: 0, 
+            checkins: 0,
             schedules: Number(row.schedule_count),
             total: Number(row.note_count) + Number(row.journal_count) + Number(row.hobby_count) + Number(row.todo_count) + Number(row.schedule_count),
             notes_list: row.note_titles || [],
@@ -725,75 +714,75 @@ export const supabaseDashboardApi = {
             .eq('status', 'pending')
 
           if (pendingTodos) {
-             const futureLimit = dayjs().add(6, 'month')
-             pendingTodos.forEach(todo => {
-                if (isOwner === false && todo.is_private) return;
-                
-                // Boundary: Only recurrence_until (Series Deadline) stops the simulation.
-                const seriesLimit = todo.recurrence_until || null
-                
-                const unit = todo.recurrence === 'weekly' ? 'week' 
-                           : todo.recurrence === 'monthly' ? 'month' 
-                           : 'day'
-                
-                // Reference point for simulation logic
-                const refDate = todo.due_date || todo.start_date || todo.created_at
-                let current = dayjs(refDate)
-                
-                // 1. Fill current instance duration (start_date to due_date)
-                // If only start_date exists, map just that day
-                // If only due_date exists, map just that day
-                // If both exist, map the range
-                const rangeStart = todo.start_date || todo.due_date || todo.created_at
-                const rangeEnd = todo.due_date || todo.start_date || todo.created_at
-                
-                if (rangeStart && rangeEnd) {
-                   let d = dayjs(rangeStart)
-                   const end = dayjs(rangeEnd)
-                   while (d.isSameOrBefore(end)) {
-                      const dStr = d.format('YYYY-MM-DD')
-                      if (d.isSameOrAfter(dayjs(), 'day')) {
-                        if (!activityMap[dStr]) {
-                            activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
-                        }
-                        activityMap[dStr].schedules++
-                        activityMap[dStr].total++
-                        if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
-                        if (!activityMap[dStr].schedules_list.includes(todo.text)) {
-                          activityMap[dStr].schedules_list.push(todo.text)
-                        }
-                      }
-                      d = d.add(1, 'day')
-                   }
-                }
+            const futureLimit = dayjs().add(6, 'month')
+            pendingTodos.forEach(todo => {
+              if (isOwner === false && todo.is_private) return;
 
-                // 2. Simulate future occurrences (only for recurring)
-                if (todo.recurrence && todo.recurrence !== 'none') {
-                   // Start simulation from NEXT occurrence after the reference point
-                   current = current.add(1, unit as dayjs.ManipulateType)
-                   
-                   while(current.isBefore(futureLimit)) {
-                      // If current date exceeds the series limit, stop simulation
-                      if (seriesLimit && current.isAfter(dayjs(seriesLimit))) {
-                         break
-                      }
-                      
-                      const dStr = current.format('YYYY-MM-DD')
-                      if (!activityMap[dStr]) {
-                          activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
-                      }
-                      
-                      if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
-                      if (!activityMap[dStr].schedules_list.includes(todo.text)) {
-                        activityMap[dStr].schedules++
-                        activityMap[dStr].total++
-                        activityMap[dStr].schedules_list.push(todo.text)
-                      }
-                      
-                      current = current.add(1, unit as dayjs.ManipulateType)
-                   }
+              // Boundary: Only recurrence_until (Series Deadline) stops the simulation.
+              const seriesLimit = todo.recurrence_until || null
+
+              const unit = todo.recurrence === 'weekly' ? 'week'
+                : todo.recurrence === 'monthly' ? 'month'
+                  : 'day'
+
+              // Reference point for simulation logic
+              const refDate = todo.due_date || todo.start_date || todo.created_at
+              let current = dayjs(refDate)
+
+              // 1. Fill current instance duration (start_date to due_date)
+              // If only start_date exists, map just that day
+              // If only due_date exists, map just that day
+              // If both exist, map the range
+              const rangeStart = todo.start_date || todo.due_date || todo.created_at
+              const rangeEnd = todo.due_date || todo.start_date || todo.created_at
+
+              if (rangeStart && rangeEnd) {
+                let d = dayjs(rangeStart)
+                const end = dayjs(rangeEnd)
+                while (d.isSameOrBefore(end)) {
+                  const dStr = d.format('YYYY-MM-DD')
+                  if (d.isSameOrAfter(dayjs(), 'day')) {
+                    if (!activityMap[dStr]) {
+                      activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
+                    }
+                    activityMap[dStr].schedules++
+                    activityMap[dStr].total++
+                    if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
+                    if (!activityMap[dStr].schedules_list.includes(todo.text)) {
+                      activityMap[dStr].schedules_list.push(todo.text)
+                    }
+                  }
+                  d = d.add(1, 'day')
                 }
-             })
+              }
+
+              // 2. Simulate future occurrences (only for recurring)
+              if (todo.recurrence && todo.recurrence !== 'none') {
+                // Start simulation from NEXT occurrence after the reference point
+                current = current.add(1, unit as dayjs.ManipulateType)
+
+                while (current.isBefore(futureLimit)) {
+                  // If current date exceeds the series limit, stop simulation
+                  if (seriesLimit && current.isAfter(dayjs(seriesLimit))) {
+                    break
+                  }
+
+                  const dStr = current.format('YYYY-MM-DD')
+                  if (!activityMap[dStr]) {
+                    activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
+                  }
+
+                  if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
+                  if (!activityMap[dStr].schedules_list.includes(todo.text)) {
+                    activityMap[dStr].schedules++
+                    activityMap[dStr].total++
+                    activityMap[dStr].schedules_list.push(todo.text)
+                  }
+
+                  current = current.add(1, unit as dayjs.ManipulateType)
+                }
+              }
+            })
           }
         } catch (e) {
           console.error('Failed to simulate future recurrences', e)
@@ -831,9 +820,9 @@ export const supabaseTodosApi = {
     return data || []
   },
   create: async (text: string, payloadUpdates?: any) => {
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
-    
+
     const payload = {
       text,
       user_id: user.id,
@@ -844,7 +833,7 @@ export const supabaseTodosApi = {
       recurrence_until: payloadUpdates?.recurrence_until || null,
       is_private: payloadUpdates?.is_private || false
     }
-    
+
     const { data, error } = await supabase.from('todos').insert(payload).select().single()
     if (error) throw error
     return data
@@ -924,7 +913,7 @@ export const supabaseAnnouncementsApi = {
     return data || []
   },
   create: async (text: string, type: Announcement['type'] = 'info'): Promise<Announcement> => {
-    const user = await getCurrentUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
     const { data, error } = await supabase.from('announcements').insert({ text, type, user_id: user.id }).select().single()
     if (error) throw error
@@ -938,14 +927,14 @@ export const supabaseAnnouncementsApi = {
 }
 
 export const uploadImageToSupabase = async (file: File, isPrivate: boolean = false, bucket: string = 'images') => {
-  const user = await getCurrentUser()
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('只有登录用户可以上传图片')
 
   try {
     // 1. 智能压缩：平衡画质与带宽
     const optimizedBlob = await compressImage(file)
-    const uploadFile = optimizedBlob instanceof Blob 
-      ? new File([optimizedBlob], file.name, { type: optimizedBlob.type }) 
+    const uploadFile = optimizedBlob instanceof Blob
+      ? new File([optimizedBlob], file.name, { type: optimizedBlob.type })
       : optimizedBlob
 
     // 2. 准备上传
@@ -968,7 +957,7 @@ export const uploadImageToSupabase = async (file: File, isPrivate: boolean = fal
     return { url: publicUrl, original_name: file.name }
   } catch (error: any) {
     console.warn('云端上传失败，正在降级为数据库存储 (Base64):', error.message || error)
-    
+
     // 4. 降级方案：转化为 Base64 直接存入数据库字段
     // 这保证了即使存储桶满了，用户依然可以正常保存笔记
     const base64 = await fileToBase64(file)
@@ -985,7 +974,7 @@ export const supabaseFoldersApi = {
         .select('*')
         .eq('type', type)
         .order('created_at', { ascending: true })
-      
+
       if (error) throw error
       return data || []
     } catch (err: any) {
@@ -996,15 +985,15 @@ export const supabaseFoldersApi = {
 
   create: async (name: string, type: 'note' | 'journal' | 'hobby'): Promise<Folder> => {
     try {
-      const user = await getCurrentUser()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('请先登录后再创建文件夹')
-      
+
       const { data, error } = await supabase
         .from('folders')
         .insert({ name, type, user_id: user.id })
         .select()
         .single()
-      
+
       if (error) throw error
       if (!data) throw new Error('创建失败：未返回数据')
       return data
@@ -1022,7 +1011,7 @@ export const supabaseFoldersApi = {
         .eq('id', id)
         .select()
         .single()
-      
+
       if (error) throw error
       if (!data) throw new Error('更新失败：找不到该文件夹')
       return data
@@ -1046,7 +1035,7 @@ export const supabaseFoldersApi = {
         .from('folders')
         .delete()
         .eq('id', id)
-      
+
       if (error) throw error
       return true
     } catch (err: any) {

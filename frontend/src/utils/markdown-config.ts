@@ -115,7 +115,7 @@ const bbcodePlugin = (md: any) => {
         if (tagName === 'mask') {
           token.attrs = [['class', 'mask-text']]
         } else if (tagName === 'color' && attrValue) {
-          token.attrs = [['style', `color: ${attrValue}`]]
+          token.attrs = [['color', attrValue]]
         }
       }
     }
@@ -145,8 +145,8 @@ export const createMarkdownExtension = (options: any = {}) => {
     bulletListMarker: '-',
     linkify: true,
     breaks: true,
-    // Enable clipboard and paste handling for better state sync
-    transformPastedText: true,
+    // Disable transformPastedText to prevent double-conversion loops in older tiptap-markdown versions
+    transformPastedText: false,
     ...options,
   }).extend({
     addStorage() {

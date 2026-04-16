@@ -83,6 +83,12 @@ export const Mask = Mark.create({
           open: '[mask]',
           close: '[/mask]',
         },
+        parse: {
+          setup: (md: any) => {},
+          getAttrs: (tok: any) => {
+            if (tok.type === 'mask_open') return {}
+          }
+        }
       },
     }
   },
@@ -92,7 +98,7 @@ export const Mask = Mark.create({
  * Hardened Underline
  */
 export const MarkdownUnderline = Underline.extend({
-  inclusive: false,
+  inclusive: true,
   spanning: false,
   parseHTML() {
     return [
@@ -109,6 +115,12 @@ export const MarkdownUnderline = Underline.extend({
           open: '[u]',
           close: '[/u]',
         },
+        parse: {
+          setup: (md: any) => {},
+          getAttrs: (tok: any) => {
+            if (tok.type === 'underline_open') return {}
+          }
+        }
       },
     }
   },
@@ -169,6 +181,12 @@ export const MarkdownHighlight = Highlight.configure({ multicolor: true }).exten
           open: '[mark]',
           close: '[/mark]',
         },
+        parse: {
+          setup: (md: any) => {},
+          getAttrs: (tok: any) => {
+            if (tok.type === 'highlight_open') return {}
+          }
+        }
       },
     }
   },
@@ -186,17 +204,20 @@ export const MarkdownTextStyle = TextStyle.extend({
       markdown: {
         serialize: {
           open(_state: any, mark: any) {
-            // Build style attribute, converting any rgb() to hex for html input compatibility
             const color = mark.attrs.color ? forceHex(mark.attrs.color) : null
-            if (!color) return ''
-            return `[color=${color}]`
+            return color ? `[color=${color}]` : ''
           },
-          close: '[/color]',
+          close(_state: any, mark: any) {
+            const color = mark.attrs.color ? forceHex(mark.attrs.color) : null
+            return color ? '[/color]' : ''
+          },
         },
         parse: {
           setup: (md: any) => {},
           getAttrs: (tok: any) => {
-            return { color: tok.attrGet('color') }
+            // Check for both direct color attribute and style attribute
+            const color = tok.attrGet('color') || tok.attrGet('style')?.match(/color:\s*([^;]+)/)?.[1]
+            return color ? { color: forceHex(color) } : {}
           }
         }
       },
