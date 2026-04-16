@@ -18,6 +18,8 @@ import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Typography } from '@tiptap/extension-typography'
+import { TaskList } from '@tiptap/extension-task-list'
+import { TaskItem } from '@tiptap/extension-task-item'
 import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
 import { TableCell } from '@tiptap/extension-table-cell'
@@ -78,6 +80,37 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
       MarkdownColor,
       MarkdownStrike,
       Typography,
+      // TaskList and TaskItem must be extended with custom markdown storage.
+      // tiptap-markdown's internal TaskItem$1 uses state.renderContent which
+      // re-processes the paragraph child, causing double output of content.
+      // Using renderInline ensures content is emitted exactly once.
+      TaskList.extend({
+        addStorage() {
+          return {
+            markdown: {
+              serialize(state: any, node: any) {
+                state.renderList(node, '', () => '- ')
+              },
+            },
+          }
+        },
+      }),
+      TaskItem.configure({ nested: true }).extend({
+        addStorage() {
+          return {
+            markdown: {
+              serialize(state: any, node: any) {
+                state.write(node.attrs.checked ? '[x] ' : '[ ] ')
+                const paragraph = node.firstChild
+                if (paragraph) {
+                  state.renderInline(paragraph)
+                }
+                state.closeBlock(node)
+              },
+            },
+          }
+        },
+      }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
