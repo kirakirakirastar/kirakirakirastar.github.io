@@ -38,6 +38,9 @@ const bbcodePlugin = (md: any) => {
 
 /**
  * Centralized Markdown Extension Factory
+ * 
+ * NOTE: We avoid using onBeforeCreate() override here because it breaks 
+ * the base Markdown extension's internal initialization logic.
  */
 export const createMarkdownExtension = (options: any = {}) => {
   return Markdown.configure({
@@ -47,45 +50,18 @@ export const createMarkdownExtension = (options: any = {}) => {
     linkify: true,
     breaks: true,
     ...options,
-    // Explicitly override serializers here as well 
-    // (some versions of tiptap-markdown use this directly)
-    serializer: {
-        strike: (state: any, mark: any) => {
-          state.write('<s>')
-          state.renderContent(mark)
-          state.write('</s>')
-        },
-        underline: (state: any, mark: any) => {
-          state.write('<u>')
-          state.renderContent(mark)
-          state.write('</u>')
-        },
-        highlight: (state: any, mark: any) => {
-          state.write('<mark>')
-          state.renderContent(mark)
-          state.write('</mark>')
-        },
-        mask: (state: any, mark: any) => {
-          state.write('<span class="mask-text">')
-          state.renderContent(mark)
-          state.write('</span>')
-        },
-        textStyle: (state: any, mark: any) => {
-          if (mark.attrs.color) {
-            state.write(`<span style="color: ${mark.attrs.color}">`)
-            state.renderContent(mark)
-            state.write('</span>')
-          } else {
-            state.renderContent(mark)
+  }).extend({
+    addStorage() {
+      return {
+        ...this.parent?.(),
+        markdown: {
+          parse: {
+            // This hook is called by tiptap-markdown to configure the markdown-it instance
+            setup: (md: any) => {
+              md.use(bbcodePlugin)
+            }
           }
         }
-    }
-  }).extend({
-    // Use onBeforeCreate to ensure markdown-it is configured before any content parsing happens
-    onBeforeCreate() {
-      const md = this.storage.markdownit
-      if (md) {
-        md.use(bbcodePlugin)
       }
     }
   })

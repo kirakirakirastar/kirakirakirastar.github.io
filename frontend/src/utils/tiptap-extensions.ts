@@ -54,17 +54,81 @@ export const Mask = Mark.create({
       },
     }
   },
+  addStorage() {
+    return {
+      markdown: {
+        serialize: {
+          open: '<span class="mask-text">',
+          close: '</span>',
+          expelEnclosingWhitespace: true,
+        },
+      },
+    }
+  },
 })
 
 /**
  * Use standard extensions for core features to ensure tiptap-markdown compatibility
- * We name them clearly but they keep their internal 'name' for Tiptap
+ * We extend them to provide proper markdown serialization
  */
-export const MarkdownUnderline = Underline
-export const MarkdownStrike = Strike
-export const MarkdownHighlight = Highlight.configure({ multicolor: true })
+export const MarkdownUnderline = Underline.extend({
+  addStorage() {
+    return {
+      markdown: {
+        serialize: {
+          open: '<u>',
+          close: '</u>',
+          expelEnclosingWhitespace: true,
+        },
+      },
+    }
+  },
+})
+
+export const MarkdownStrike = Strike.extend({
+  addStorage() {
+    return {
+      markdown: {
+        serialize: {
+          open: '<s>',
+          close: '</s>',
+          expelEnclosingWhitespace: true,
+        },
+      },
+    }
+  },
+})
+
+export const MarkdownHighlight = Highlight.configure({ multicolor: true }).extend({
+  addStorage() {
+    return {
+      markdown: {
+        serialize: {
+          open: '<mark>',
+          close: '</mark>',
+          expelEnclosingWhitespace: true,
+        },
+      },
+    }
+  },
+})
+
 export const MarkdownTextStyle = TextStyle
-export const MarkdownColor = Color
+export const MarkdownColor = Color.extend({
+  addStorage() {
+    return {
+      markdown: {
+        serialize: {
+          open(state, mark) {
+            return `<span style="color: ${mark.attrs.color}">`
+          },
+          close: '</span>',
+          expelEnclosingWhitespace: true,
+        },
+      },
+    }
+  },
+})
 
 /**
  * Bangumi Shortcuts
