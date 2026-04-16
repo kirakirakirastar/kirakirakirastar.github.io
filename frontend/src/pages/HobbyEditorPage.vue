@@ -249,6 +249,11 @@ const saveHobby = async () => {
     const currentMarkdown = editor.value?.storage.markdown.getMarkdown() || form.value.review
     const sanitizedMarkdown = validateAndSanitizeMarkdown(currentMarkdown, 'HobbyEditor')
     
+    // Sync back to editor if replication was detected and cleaned
+    if (sanitizedMarkdown !== currentMarkdown && editor.value) {
+      editor.value.commands.setContent(sanitizedMarkdown, false)
+    }
+
     const payload = { 
       ...form.value, 
       review: sanitizedMarkdown,

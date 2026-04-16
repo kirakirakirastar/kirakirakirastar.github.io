@@ -6,6 +6,25 @@ import TextStyle from '@tiptap/extension-text-style'
 import Color from '@tiptap/extension-color'
 
 /**
+ * Helper to force color output to HEX format, ensuring browser compatibility
+ * and preventing "The specified value 'rgb(...)' does not conform to the required format" errors.
+ */
+const forceHex = (color?: string): string => {
+  if (!color) return '#000000'
+  if (!color.startsWith('rgb')) return color
+  
+  const rgb = color.match(/\d+/g)
+  if (rgb && rgb.length >= 3) {
+    const hex = '#' + rgb.slice(0, 3).map(x => {
+      const val = parseInt(x).toString(16)
+      return val.length === 1 ? '0' + val : val
+    }).join('')
+    return hex
+  }
+  return color
+}
+
+/**
  * TypeScript Module Augmentation
  */
 declare module '@tiptap/core' {
@@ -25,9 +44,6 @@ declare module '@tiptap/core' {
 
 /**
  * Mask Extension (Spoiler)
- * 
- * spanning: false prevents the mark from crossing block boundaries, 
- * which is critical for stable Markdown serialization in lists/tasks.
  */
 export const Mask = Mark.create({
   name: 'mask',
@@ -180,8 +196,11 @@ export const MarkdownColor = Color.extend({
     return {
       markdown: {
         serialize: {
-          open(state, mark) {
-            return `<span style="color: ${mark.attrs.color}">`
+          open(_state: any, mark: any) {
+            // FORCE conversion to HEX during serialization to ensure final 
+            // Markdown output is always normalized and browser-acceptable.
+            const hexColor = forceHex(mark.attrs.color)
+            return `<span style="color: ${hexColor}">`
           },
           close: '</span>',
           expelEnclosingWhitespace: true,

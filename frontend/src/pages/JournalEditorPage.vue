@@ -259,6 +259,11 @@ const saveJournal = async () => {
     const currentMarkdown = editor.value?.storage.markdown.getMarkdown() || form.value.content_md
     const sanitizedMarkdown = validateAndSanitizeMarkdown(currentMarkdown, 'JournalEditor')
 
+    // Sync back to editor if replication was detected and cleaned
+    if (sanitizedMarkdown !== currentMarkdown && editor.value) {
+      editor.value.commands.setContent(sanitizedMarkdown, false)
+    }
+
     const payload = {
       ...form.value,
       content_md: sanitizedMarkdown,
