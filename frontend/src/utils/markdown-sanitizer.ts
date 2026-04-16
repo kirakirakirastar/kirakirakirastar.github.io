@@ -44,6 +44,13 @@ const deduplicateRepeatedFormattedText = (markdown: string): string => {
   // Matches: - [ ] word**word** -> - [ ] **word**
   cleaned = cleaned.replace(/(- \[ [x ] \] )([^ \n*\[\]]{2,})\*\*\2\*\*/g, '$1**$2**');
 
+  // 5. Universal BBCode/Markdown tags consecutive duplication fix
+  // Matches: [tag]content[/tag][tag]content[/tag] -> [tag]content[/tag]
+  cleaned = cleaned.replace(/(\[([a-z]+)(?:=[^\]]*)?\][\s\S]*?\[\/\2\])\s?\1+/gi, '$1');
+  
+  // 6. Double-check generic Markdown bold/italic
+  cleaned = cleaned.replace(/(\*\*[^*]+\*\*)\s?\1+/g, '$1');
+
   return cleaned;
 };
 

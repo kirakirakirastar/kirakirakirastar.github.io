@@ -73,6 +73,9 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
       createMarkdownExtension(),
       StarterKit.configure({
         strike: false,
+        bulletList: false,
+        orderedList: false,
+        listItem: false,
       }),
       MarkdownTextStyle,
       MarkdownUnderline,

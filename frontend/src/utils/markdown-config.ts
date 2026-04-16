@@ -162,7 +162,9 @@ export const createMarkdownExtension = (options: any = {}) => {
               // Force correct task list serialization to prevent double-processing of children
               taskItem: (state: any, node: any) => {
                 state.write(node.attrs.checked ? '[x] ' : '[ ] ')
-                state.renderContent(node)
+                node.forEach((child: any, _: any, index: number) => {
+                  state.render(child, node, index)
+                })
               },
               taskList: (state: any, node: any) => {
                 state.renderList(node, '  ', () => '- ')
