@@ -34,6 +34,26 @@ const bbcodePlugin = (md: any) => {
     color: 'textStyle',
   }
 
+  const findBalancedClosingTag = (source: string, from: number, tagName: string): number => {
+    const tagRegex = /\[(\/)?([a-z]+)(=([^\]]+))?\]/gi
+    tagRegex.lastIndex = from
+    let depth = 1
+    let match: RegExpExecArray | null
+
+    while ((match = tagRegex.exec(source)) !== null) {
+      if (match[2].toLowerCase() !== tagName) continue
+
+      if (match[1] === '/') {
+        depth--
+        if (depth === 0) return match.index
+      } else {
+        depth++
+      }
+    }
+
+    return -1
+  }
+
   // Guard: prevent duplicate registration when parse() is called multiple times
   if ((md.inline.ruler as any).__find__('bbcode') !== -1) return
 
@@ -54,29 +74,22 @@ const bbcodePlugin = (md: any) => {
 
     if (!htmlTag) return false
 
-    // BALANCE CHECK: If opening, ensure there's a close tag somewhere after it
     if (!isClose) {
-      const remaining = state.src.slice(start + match[0].length)
-      if (!remaining.toLocaleLowerCase().includes(`[/${tagName}]`)) {
-        return false // Not a balanced tag, treat as plain text
+      const closeTagIndex = findBalancedClosingTag(state.src, start + match[0].length, tagName)
+      if (closeTagIndex === -1) {
+        return false
       }
     }
 
     if (!silent) {
-      if (markName) {
-        const tokenType = isClose ? `${markName}_close` : `${markName}_open`
-        const token = state.push(tokenType, htmlTag, isClose ? -1 : 1)
-        if (!isClose && tagName === 'color' && attrValue) {
-          token.attrs = [['color', attrValue]]
-        }
-      } else {
-        const token = state.push(isClose ? 'bbcode_close' : 'bbcode_open', htmlTag, isClose ? -1 : 1)
-        if (!isClose) {
-          if (tagName === 'mask') {
-            token.attrs = [['class', 'mask-text']]
-          } else if (tagName === 'color' && attrValue) {
-            token.attrs = [['style', `color: ${attrValue}`]]
-          }
+      const tokenType = isClose ? `${markName}_close` : `${markName}_open`
+      const token = state.push(tokenType, htmlTag, isClose ? -1 : 1)
+
+      if (!isClose) {
+        if (tagName === 'mask') {
+          token.attrs = [['class', 'mask-text']]
+        } else if (tagName === 'color' && attrValue) {
+          token.attrs = [['style', `color: ${attrValue}`]]
         }
       }
     }

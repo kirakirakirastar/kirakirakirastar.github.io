@@ -81,7 +81,6 @@ export const Mask = Mark.create({
         serialize: {
           open: '[mask]',
           close: '[/mask]',
-          mixable: true,
         },
       },
     }
@@ -108,7 +107,6 @@ export const MarkdownUnderline = Underline.extend({
         serialize: {
           open: '[u]',
           close: '[/u]',
-          mixable: true,
         },
       },
     }
@@ -143,7 +141,6 @@ export const MarkdownStrike = Strike.extend({
         serialize: {
           open: '[s]',
           close: '[/s]',
-          mixable: true,
         },
       },
     }
@@ -170,7 +167,6 @@ export const MarkdownHighlight = Highlight.configure({ multicolor: true }).exten
         serialize: {
           open: '[mark]',
           close: '[/mark]',
-          mixable: true,
         },
       },
     }
@@ -195,7 +191,6 @@ export const MarkdownTextStyle = TextStyle.extend({
             return `[color=${color}]`
           },
           close: '[/color]',
-          mixable: true,
         },
         parse: {
           setup: (md: any) => {},
