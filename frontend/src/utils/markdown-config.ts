@@ -2,8 +2,7 @@ import { Markdown } from 'tiptap-markdown'
 import type MarkdownIt from 'markdown-it'
 
 /**
- * Augment the MarkdownStorage interface to include markdownit, 
- * which is present at runtime but missing from the library's type definitions.
+ * Augment the MarkdownStorage interface to include markdownit
  */
 declare module 'tiptap-markdown' {
   interface MarkdownStorage {
@@ -12,34 +11,58 @@ declare module 'tiptap-markdown' {
 }
 
 /**
- * Robust BBCode-to-HTML and Strike conversion plugin for markdown-it
+ * Advanced BBCode and Formatting Plugin for markdown-it
  * 
- * Refined to prevent double-processing and self-replication by performing 
- * checks before replacement and using specific BBCode patterns.
+ * Instead of global string replacement, we use a structured ruler approach 
+ * to identify tags as tokens. This prevents double-parsing and self-replication
+ * by decoupling BBCode handling from raw HTML handling.
  */
 const bbcodePlugin = (md: any) => {
-  md.core.ruler.after('block', 'bbcode_to_html', (state: any) => {
-    state.tokens.forEach((token: any) => {
-      if (token.type !== 'inline') return
-      
-      let content = token.content
+  const tagMap: Record<string, string> = {
+    u: 'u',
+    s: 's',
+    mark: 'mark',
+    mask: 'span',
+    color: 'span',
+  }
 
-      // Performance and stability: Only process if BBCode-like markers or ~~ are present.
-      // This avoids interference with already-serialized HTML tags like <u> or <s>.
-      if (content.includes('[') || content.includes('~~')) {
-        // We handle potential escaping (e.g. \[u\]) by matching an optional backslash
-        content = content.replace(/\\?\[u\\?\]([\s\S]*?)\\?\[\/u\\?\]/gi, '<u>$1</u>')
-        content = content.replace(/\\?\[s\\?\]([\s\S]*?)\\?\[\/s\\?\]/gi, '<s>$1</s>')
-        content = content.replace(/~~(?!\s)([\s\S]*?)(?<!\s)~~/g, '<s>$1</s>')
-        content = content.replace(/\\?\[mark\\?\]([\s\S]*?)\\?\[\/mark\\?\]/gi, '<mark>$1</mark>')
-        content = content.replace(/\\?\[mask\\?\]([\s\S]*?)\\?\[\/mask\\?\]/gi, '<span class="mask-text">$1</span>')
-        content = content.replace(/\\?\[color=([^\]]+)\\?\]([\s\S]*?)\\?\[\/color\\?\]/gi, '<span style="color: $1">$2</span>')
+  // Handle [tag] and [/tag] as tokens
+  md.inline.ruler.before('text', 'bbcode', (state: any, silent: boolean) => {
+    const start = state.pos
+    if (state.src.charCodeAt(start) !== 0x5B /* [ */) return false
 
-        token.content = content
+    const match = state.src.slice(start).match(/^\[(\/?)([a-z]+)(=([^\]]+))?\]/i)
+    if (!match) return false
+
+    const isClose = match[1] === '/'
+    const tagName = match[2].toLowerCase()
+    const attrValue = match[4]
+    const htmlTag = tagMap[tagName]
+
+    if (!htmlTag) return false
+
+    if (!silent) {
+      const token = state.push(isClose ? 'bbcode_close' : 'bbcode_open', htmlTag, isClose ? -1 : 1)
+      if (!isClose) {
+        if (tagName === 'mask') {
+          token.attrs = [['class', 'mask-text']]
+        } else if (tagName === 'color' && attrValue) {
+          token.attrs = [['style', `color: ${attrValue}`]]
+        }
       }
-    })
+    }
+
+    state.pos += match[0].length
     return true
   })
+
+  // Handle ~~strike~~ specifically if markdown-it's default isn't sufficient
+  // or needs to be forced to <s>
+  const originalStrikethrough = md.renderer.rules.s_open || ((tokens: any, idx: any, options: any, env: any, self: any) => self.renderToken(tokens, idx, options))
+  md.renderer.rules.s_open = (tokens: any, idx: any, options: any, env: any, self: any) => {
+    tokens[idx].tag = 's' // Force <s> instead of <del>
+    return originalStrikethrough(tokens, idx, options, env, self)
+  }
 }
 
 /**
@@ -59,7 +82,6 @@ export const createMarkdownExtension = (options: any = {}) => {
         ...this.parent?.(),
         markdown: {
           parse: {
-            // This hook is called by tiptap-markdown to configure the markdown-it instance
             setup: (md: any) => {
               md.use(bbcodePlugin)
             }
