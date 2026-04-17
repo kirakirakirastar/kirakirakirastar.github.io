@@ -3,8 +3,6 @@
 > **极致美学与生产力的统一。**  
 > 这是一个基于 Vue 3 + Supabase 构建的沉浸式个人知识库与生活追踪系统，旨在提供最顶级的文本编辑体验与视觉享受。
 
-![Dashboard Preview](https://raw.githubusercontent.com/kirakirastar/kirakirastar.github.io/main/frontend/public/og-image.png)
-
 ---
 
 ## 🎨 核心特性：美学第一 (Aesthetics First)
@@ -106,6 +104,3 @@ npm run dev
 
 ---
 
-## 📄 License
-
-MIT © [Kirakirastar](https://github.com/kirakirastar)
