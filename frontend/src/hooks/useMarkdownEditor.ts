@@ -73,7 +73,6 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
       createMarkdownExtension(),
       StarterKit.configure({
         strike: false,
-        textStyle: false, // EXPLICITLY DISABLE to allow MarkdownTextStyle to take control
       }),
       MarkdownTextStyle,
       MarkdownUnderline,
@@ -166,8 +165,6 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
       if (_markdownSyncTimer) clearTimeout(_markdownSyncTimer)
       _markdownSyncTimer = setTimeout(() => {
         const markdown = editor.storage.markdown.getMarkdown()
-        // Log generated markdown for debugging color persistence
-        console.log('[EDITOR] Generated Markdown:', markdown)
         onUpdate(markdown)
       }, 400)
     },
