@@ -831,7 +831,9 @@ export const supabaseTodosApi = {
       due_date: payloadUpdates?.due_date || null,
       recurrence: payloadUpdates?.recurrence || 'none',
       recurrence_until: payloadUpdates?.recurrence_until || null,
-      is_private: payloadUpdates?.is_private || false
+      is_private: payloadUpdates?.is_private || false,
+      status: payloadUpdates?.status || 'pending',
+      completed: payloadUpdates?.status === 'completed'
     }
 
     const { data, error } = await supabase.from('todos').insert(payload).select().single()

@@ -246,7 +246,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
       const updated = await todosApi.updateStatus(id, status)
       
       if ((status === 'completed' || status === 'failed') && todo.recurrence && todo.recurrence !== 'none') {
-        handleRecurrence(todo)
+        await handleRecurrence(todo)
       }
 
       // Sync with exact server data
@@ -260,56 +260,71 @@ export const useGadgetStore = defineStore('gadgets', () => {
     }
   }
 
-  const handleRecurrence = (todo: Todo) => {
-    let nextStartDate: string | null = null
-    let nextDueDate: string | null = null
-    const now = dayjs().startOf('day')
+  const handleRecurrence = async (todo: Todo) => {
+    if (!todo.recurrence || todo.recurrence === 'none') return
 
-    // Determine the interval unit
+    const now = dayjs().startOf('day')
     let unit: dayjs.ManipulateType = 'day'
     if (todo.recurrence === 'weekly') unit = 'week'
     else if (todo.recurrence === 'monthly') unit = 'month'
 
-    // Calculate next dates by sliding the current range
-    if (todo.start_date) {
-      nextStartDate = dayjs(todo.start_date).add(1, unit).format('YYYY-MM-DD')
-    } else {
-      nextStartDate = now.add(1, unit).format('YYYY-MM-DD')
-    }
+    // Determine the original duration to maintain it in future instances
+    const start = dayjs(todo.start_date || todo.created_at)
+    const due = dayjs(todo.due_date || todo.start_date || todo.created_at)
+    const durationDays = due.diff(start, 'day')
 
-    if (todo.due_date) {
-      nextDueDate = dayjs(todo.due_date).add(1, unit).format('YYYY-MM-DD')
-    } else {
-      nextDueDate = now.add(1, unit).format('YYYY-MM-DD')
-    }
+    let nextStart = start.add(1, unit)
+    let nextDue = nextStart.add(durationDays, 'day')
 
-    if (nextDueDate) {
-      // Priority boundary: Task Deadline (due_date) is the absolute limit.
-      // If recurrence_until is set, it cannot exceed the due_date.
-      // Boundary: Only recurrence_until (Series Deadline) stops the creation of new instances.
-      const seriesLimit = todo.recurrence_until || null
-      
-      if (seriesLimit && dayjs(nextDueDate).isAfter(dayjs(seriesLimit))) {
-        return
+    let iterations = 0
+    const maxIterations = 31 // Limit catch-up to 1 month to prevent infinite loops
+
+    while (iterations < maxIterations) {
+      iterations++
+
+      // Series boundary check
+      if (todo.recurrence_until && nextDue.isAfter(dayjs(todo.recurrence_until))) {
+        break
       }
 
-      // Deduplication: Check if we already have a pending task with the same text and next date
+      // Deduplication: Don't create if an instance with same text and due_date already exists
       const exists = todos.value.some(t => 
-        t.status === 'pending' && 
         t.text === todo.text && 
-        t.due_date === nextDueDate
+        dayjs(t.due_date).isSame(nextDue, 'day')
       )
-      
+
       if (!exists) {
-        addTodo(todo.text, {
+        // Determine status: If the next instance's window has already passed, create it as failed
+        // A window is passed if its next iteration would have already started
+        const followingWindowStarts = nextStart.add(1, unit).startOf('day')
+        const isHistorical = followingWindowStarts.isSameOrBefore(now)
+        const finalDueDatePassed = nextDue.isBefore(now)
+
+        // As per user request: "If a day is missed, it should be failed"
+        // So any instance whose period is in the past gets created as failed.
+        const newStatus = (isHistorical || finalDueDatePassed) ? 'failed' : 'pending'
+
+        await addTodo(todo.text, {
           priority: todo.priority,
-          start_date: nextStartDate,
-          due_date: nextDueDate,
+          start_date: nextStart.format('YYYY-MM-DD'),
+          due_date: nextDue.format('YYYY-MM-DD'),
           recurrence: todo.recurrence,
           recurrence_until: todo.recurrence_until,
-          is_private: todo.is_private
+          is_private: todo.is_private,
+          status: newStatus
         })
+
+        // If we just created the current/future pending task, we can stop
+        if (newStatus === 'pending') break
+      } else {
+        // If it already exists, check if it's the current one. If so, stop.
+        const instance = todos.value.find(t => t.text === todo.text && dayjs(t.due_date).isSame(nextDue, 'day'))
+        if (instance && instance.status === 'pending') break
       }
+
+      // Move to next potential window
+      nextStart = nextStart.add(1, unit)
+      nextDue = nextStart.add(durationDays, 'day')
     }
   }
 
