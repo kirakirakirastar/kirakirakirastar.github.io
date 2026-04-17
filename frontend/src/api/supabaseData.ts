@@ -94,7 +94,7 @@ export const supabaseNotesApi = {
     }
 
     if (params?.tag) {
-      query = query.contains('tags', [params.tag])
+      query = query.contains('tags', JSON.stringify([params.tag]))
     }
 
     if (params?.folderId !== undefined) {
@@ -285,7 +285,7 @@ export const supabaseJournalsApi = {
     }
 
     if (params?.tag) {
-      query = query.contains('tags', [params.tag])
+      query = query.contains('tags', JSON.stringify([params.tag]))
     }
 
     if (params?.folderId !== undefined) {
@@ -451,7 +451,7 @@ export const supabaseHobbiesApi = {
       query = query.eq('is_private', false)
     }
     if (params?.tag) {
-      query = query.contains('tags', [params.tag])
+      query = query.contains('tags', JSON.stringify([params.tag]))
     }
     if (params?.folderId !== undefined) {
       if (params.folderId === null) {
