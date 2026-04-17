@@ -1,4 +1,4 @@
-﻿import { supabase } from './supabase'
+import { supabase } from './supabase'
 import type { Note, Journal, Hobby, Todo, Folder, DashboardData, ActivityMap, ActivityDay, Tag, Announcement } from './types'
 import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
@@ -55,6 +55,20 @@ const normalizeTags = (tagsRaw: any) => {
     if (typeof t === 'string') return { id: index + 1, name: t }
     return t
   })
+}
+
+// Shared helper for manual tag aggregation (fallback logic)
+const aggregateTags = (items: any[]): Tag[] => {
+  const tagMap = new Map<string, Tag>()
+  for (const item of items) {
+    const tags = normalizeTags(item.tags)
+    for (const tag of tags) {
+      if (tag && tag.name && !tagMap.has(tag.name)) {
+        tagMap.set(tag.name, tag)
+      }
+    }
+  }
+  return [...tagMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
 }
 
 export const supabaseNotesApi = {
@@ -230,10 +244,13 @@ export const supabaseNotesApi = {
     try {
       const { data, error } = await supabase.rpc('get_tag_cloud', {
         table_name: 'notes',
-        public_only: !isOwner // Assuming RPC might support this, or it will be filtered at DB level by RLS
+        public_only: !isOwner
       })
       if (!error && data) {
-        return data.map((d: any, index: number) => ({ id: index + 1, name: d.tag_name }))
+        // Filter out nulls in case the RPC returned them due to data mismatch
+        return data
+          .filter((d: any) => d.tag_name)
+          .map((d: any, index: number) => ({ id: index + 1, name: d.tag_name }))
       }
     } catch (e) {
       console.warn('RPC get_tag_cloud failed, falling back to legacy fetch', e)
@@ -246,14 +263,7 @@ export const supabaseNotesApi = {
 
     const { data, error } = await query
     if (error) throw error
-    const tagMap = new Map<string, Tag>()
-    for (const note of data || []) {
-      const tags = normalizeTags(note.tags)
-      for (const tag of tags) {
-        if (!tagMap.has(tag.name)) tagMap.set(tag.name, tag)
-      }
-    }
-    return [...tagMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
+    return aggregateTags(data || [])
   },
 }
 
@@ -422,14 +432,7 @@ export const supabaseJournalsApi = {
 
     const { data, error } = await query
     if (error) throw error
-    const tagMap = new Map<string, any>()
-    for (const journal of data || []) {
-      const tags = normalizeTags(journal.tags)
-      for (const tag of tags) {
-        if (!tagMap.has(tag.name)) tagMap.set(tag.name, tag)
-      }
-    }
-    return [...tagMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
+    return aggregateTags(data || [])
   },
 }
 
@@ -575,13 +578,17 @@ export const supabaseHobbiesApi = {
     const { data: { user } } = await supabase.auth.getUser()
     const isOwner = !!user
 
+    // Optimized: Attempt to use RPC first
     try {
       const { data, error } = await supabase.rpc('get_tag_cloud', {
         table_name: 'hobbies',
         public_only: !isOwner
       })
       if (!error && data) {
-        return data.map((d: any, index: number) => ({ id: index + 1, name: d.tag_name }))
+        // Filter out nulls in case the RPC returned them due to data mismatch
+        return data
+          .filter((d: any) => d.tag_name)
+          .map((d: any, index: number) => ({ id: index + 1, name: d.tag_name }))
       }
     } catch (e) {
       console.warn('RPC get_tag_cloud failed, falling back to legacy fetch', e)
@@ -594,14 +601,7 @@ export const supabaseHobbiesApi = {
 
     const { data, error } = await query
     if (error) throw error
-    const tagMap = new Map<string, Tag>()
-    for (const hobby of data || []) {
-      const tags = normalizeTags(hobby.tags)
-      for (const tag of tags) {
-        if (!tagMap.has(tag.name)) tagMap.set(tag.name, tag)
-      }
-    }
-    return [...tagMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
+    return aggregateTags(data || [])
   },
 
   stats: async () => {
