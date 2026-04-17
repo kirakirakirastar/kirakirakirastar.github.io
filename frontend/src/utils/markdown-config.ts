@@ -68,52 +68,46 @@ export const bbcodePlugin = (md: any) => {
       if (!tagMap[matchedTagName]) continue
 
       if (match[1] === '/') {
-        if (stack[stack.length - 1] !== matchedTagName) return false
-        stack.pop()
+        if (stack.length > 0 && stack[stack.length - 1] === matchedTagName) {
+          stack.pop()
+        }
       } else {
         stack.push(matchedTagName)
       }
     }
 
-    return stack[stack.length - 1] === tagName
+    return stack.length > 0 && stack[stack.length - 1] === tagName
   }
 
-  // Guard: prevent duplicate registration when parse() is called multiple times
+  // Guard: prevent duplicate registration
   if ((md.inline.ruler as any).__find__('bbcode') !== -1) return
 
   // Handle [tag] and [/tag] as tokens with balancedness check
   md.inline.ruler.before('text', 'bbcode', (state: any, silent: boolean) => {
-    // console.log('[BBCODE-DEBUG] checking at pos:', state.pos, 'char:', state.src[state.pos])
     const start = state.pos
     if (state.src.charCodeAt(start) !== 0x5B /* [ */) return false
 
-    // Look for [tag], [tag=value], or [/tag]
     const match = state.src.slice(start).match(/^\[(\/?)([a-z]+)(=([^\]]+))?\]/i)
     if (!match) return false
 
     const isClose = match[1] === '/'
     const tagName = match[2].toLowerCase()
     const attrValue = match[4]
+    
     const htmlTag = tagMap[tagName]
     const markName = markMap[tagName]
 
-    if (!htmlTag) return false
+    if (!htmlTag || !markName) return false
 
     if (isClose) {
-      if (!hasMatchingOpeningTag(state.src, start, tagName)) {
-        return false
-      }
+      if (!hasMatchingOpeningTag(state.src, start, tagName)) return false
     } else {
       const closeTagIndex = findBalancedClosingTag(state.src, start + match[0].length, tagName)
-      if (closeTagIndex === -1) {
-        return false
-      }
+      if (closeTagIndex === -1) return false
     }
 
     if (!silent) {
       const tokenType = isClose ? `${markName}_close` : `${markName}_open`
-      // Use the standard htmlTag (e.g., span) for the token tag to ensure 
-      // markdown-it renders standard HTML that Tiptap understands.
       const token = state.push(tokenType, htmlTag, isClose ? -1 : 1)
 
       if (!isClose) {
@@ -135,10 +129,7 @@ export const bbcodePlugin = (md: any) => {
     return true
   })
 
-  // Legacy HTML is now processed via regex before it even reaches markdown-it
-  // See convertLegacyHTMLToBBCode
-
-  // Strikethrough Renderer Rule Fix (Ensures <s> tag used for strike-through)
+  // Strike-through renderer rules
   md.renderer.rules.strike_open = (tokens: any, idx: any, options: any, env: any, self: any) => {
     tokens[idx].tag = 's'
     return self.renderToken(tokens, idx, options)
@@ -159,7 +150,6 @@ export const createMarkdownExtension = (options: any = {}) => {
     bulletListMarker: '-',
     linkify: true,
     breaks: true,
-    // Disable transformPastedText to prevent double-conversion loops in older tiptap-markdown versions
     transformPastedText: false,
     ...options,
   }).extend({
