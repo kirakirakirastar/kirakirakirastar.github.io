@@ -8,9 +8,12 @@
 export const calculateReadingTime = (content: string | undefined | null): number => {
   if (!content) return 0
   
-  // 1. Strip basic code/markup logic if needed (optional refinement)
-  // For now, focus on character/word extraction
-  const cleanText = content.trim()
+  // 1. Strip basic markdown/html logic for cleaner text
+  const cleanText = content
+    .replace(/<[^>]*>/g, '') // Strip HTML
+    .replace(/(!\[.*?\]\(.*?\))|(\[.*?\]\(.*?\))/g, '') // Strip links/images
+    .replace(/([*_~`|>#+-]+)/g, '') // Strip MD structural chars
+    .trim()
 
   // 2. Count CJK characters (Unified Ideographs)
   const cjkMatched = cleanText.match(/[\u4E00-\u9FFF]/g)

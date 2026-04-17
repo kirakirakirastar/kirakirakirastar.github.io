@@ -1,4 +1,3 @@
-// @ts-ignore
 import { full as emoji } from 'markdown-it-emoji'
 import anchor from 'markdown-it-anchor'
 import toc from 'markdown-it-toc-done-right'
@@ -16,6 +15,20 @@ import deflist from 'markdown-it-deflist'
 
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
+import DOMPurify from 'dompurify'
+
+/**
+ * Configure DOMPurify to allow specific tags/attributes used in our markdown system
+ */
+const PURIFY_CONFIG = {
+  ADD_TAGS: ['u', 'ins', 'mark', 'span', 'iframe', 'svg', 'path', 'label', 'input'],
+  ADD_ATTR: [
+    'target', 'rel', 'style', 'data-code', 'viewBox', 'fill', 'stroke', 
+    'stroke-linecap', 'stroke-linejoin', 'stroke-width', 'd', 'type', 'checked'
+  ],
+  FORBID_TAGS: ['script'],
+  FORBID_ATTR: ['onerror', 'onload', 'onclick']
+}
 
 /**
  * Configure Markdown-It with advanced plugins and syntax highlighting
@@ -41,8 +54,10 @@ export const createMarkdownRenderer = () => {
       }
 
       return `<div class="code-block-wrapper">
-                <button class="copy-code-btn" data-code="${encodeURIComponent(str)}" title="复制代码">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                <button class="copy-code-btn" data-code="${md.utils.escapeHtml(str)}" title="复制代码">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                  </svg>
                 </button>
                 <pre class="hljs ${codeClass}"><code>${highlightedStr}</code></pre>
               </div>`
@@ -73,11 +88,6 @@ export const createMarkdownRenderer = () => {
     .use(sup)
     .use(katex, { throwOnError: false, errorColor: ' #cc0000' })
 
-  // Remove the core.ruler bbcode plugin - it caused duplication in task list items
-  // because it modified token.content between the block and inline passes,
-  // conflicting with markdown-it-task-lists which also processes inline tokens.
-  // BBCode is now handled as a post-processing step on the final HTML string.
-
   // Custom containers (e.g., ::: info)
   const containers = ['info', 'warning', 'danger', 'success', 'tip', 'note']
   containers.forEach(name => {
@@ -102,23 +112,22 @@ export const md = createMarkdownRenderer()
 
 /**
  * Post-process rendered HTML to convert BBCode tags to HTML.
- * This runs AFTER markdown-it and all its plugins (including task-lists),
- * so there is no interference with token-level processing.
  */
 const applyBBCode = (html: string): string => {
   if (!html) return html
+  // Use simple nesting based on global replaces.
   return html
-    .replace(/\[b\]([\s\S]*?)\[\/b\]/gi, '<strong>$1</strong>')
-    .replace(/\[i\]([\s\S]*?)\[\/i\]/gi, '<em>$1</em>')
-    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi, '<u>$1</u>')
-    .replace(/\[s\]([\s\S]*?)\[\/s\]/gi, '<s>$1</s>')
-    .replace(/\[mask\]([\s\S]*?)\[\/mask\]/gi, '<span class="mask-text">$1</span>')
-    .replace(/\[mark\]([\s\S]*?)\[\/mark\]/gi, '<mark>$1</mark>')
-    .replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/gi, '<span style="color: $1">$2</span>')
-    .replace(/\[size=(\d+)\]([\s\S]*?)\[\/size\]/gi, '<span style="font-size: $1px">$2</span>')
-    .replace(/\[url=([^\]]+)\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>')
-    .replace(/\[url\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>')
-    .replace(/\[img\]([\s\S]*?)\[\/img\]/gi, '<img src="$1" alt="image" />')
+    .replace(/\[b\](.*?)\[\/b\]/gi, '<strong>$1</strong>')
+    .replace(/\[i\](.*?)\[\/i\]/gi, '<em>$1</em>')
+    .replace(/\[u\](.*?)\[\/u\]/gi, '<u>$1</u>')
+    .replace(/\[s\](.*?)\[\/s\]/gi, '<s>$1</s>')
+    .replace(/\[mask\](.*?)\[\/mask\]/gi, '<span class="mask-text">$1</span>')
+    .replace(/\[mark\](.*?)\[\/mark\]/gi, '<mark>$1</mark>')
+    .replace(/\[color=([^\]]+)\](.*?)\[\/color\]/gi, '<span style="color: $1">$2</span>')
+    .replace(/\[size=(\d+)\](.*?)\[\/size\]/gi, '<span style="font-size: $1px">$2</span>')
+    .replace(/\[url=([^\]]+)\](.*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>')
+    .replace(/\[url\](.*?)\[\/url\]/gi, (match, p1) => `<a href="${p1}" target="_blank" rel="noopener noreferrer">${p1}</a>`)
+    .replace(/\[img\](.*?)\[\/img\]/gi, '<img src="$1" alt="image" />')
 }
 
 /**
@@ -126,8 +135,6 @@ const applyBBCode = (html: string): string => {
  */
 const wrapTaskItems = (html: string): string => {
   if (!html) return html
-  // Matches task-list-item <li> tags and their checkbox inputs
-  // Wraps input in .task-marker and everything else in .task-content
   return html.replace(
     /(<li class="task-list-item"[^>]*>)\s*(<input[^>]*>)([\s\S]*?)(?=<\/li>)/gi,
     '$1<div class="task-marker">$2</div><div class="task-content">$3</div>'
@@ -136,8 +143,16 @@ const wrapTaskItems = (html: string): string => {
 
 export const renderMarkdown = (content: string) => {
   if (!content) return ''
+  
+  // 1. Initial Markdown-It render
   let html = md.render(content)
+  
+  // 2. Apply BBCode (Post-process)
   html = applyBBCode(html)
-  return wrapTaskItems(html)
+  
+  // 3. Wrap Tasks (Post-process)
+  html = wrapTaskItems(html)
+  
+  // 4. Sanitize to prevent XSS
+  return DOMPurify.sanitize(html, PURIFY_CONFIG) as string
 }
-

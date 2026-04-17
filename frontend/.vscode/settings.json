@@ -1,8 +1,0 @@
-{
-  "css.lint.unknownAtRules": "ignore",
-  "tailwindCSS.includeLanguages": {
-    "plaintext": "ts",
-    "typescript": "ts",
-    "vue": "vue"
-  }
-}

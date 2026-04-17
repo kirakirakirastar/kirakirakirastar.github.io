@@ -11,7 +11,7 @@
       style="will-change: transform, filter; transform: translateZ(0);"
       :style="{
         objectPosition: 'center',
-        transform: `scale(var(--live-bg-scale, ${settingsStore.bgScale / 100})) translate(var(--live-bg-offset-x, ${settingsStore.bgPosX - 50}%), var(--live-bg-offset-y, ${settingsStore.bgPosY - 50}%)) translateZ(0)`,
+        transform: `scale(var(--live-bg-scale, ${settingsStore.bgScale / 100})) translate(var(--live-bg-pos-x, ${settingsStore.bgPosX - 50}%), var(--live-bg-pos-y, ${settingsStore.bgPosY - 50}%)) translateZ(0)`,
         filter: `blur(var(--live-bg-blur, ${settingsStore.bgBlur}px))`
       }"
     />
@@ -59,8 +59,10 @@ const handleImageLoad = async () => {
   try {
     const color = await getDominantColor(settingsStore.bgUrl)
     document.documentElement.style.setProperty('--live-primary-color', color)
-    // Also derive a lighter version for hover states/badges
-    document.documentElement.style.setProperty('--live-primary-light', color.replace('%)', ', 0.15)'))
+    // Derive a semi-transparent version correctly for modern CSS
+    // From hsl(h, s%, l%) to hsla(h, s%, l%, 0.15)
+    const hsla = color.replace('hsl', 'hsla').replace(')', ', 0.15)')
+    document.documentElement.style.setProperty('--live-primary-light', hsla)
   } catch (e) {
     console.error('Failed to extract color:', e)
   }

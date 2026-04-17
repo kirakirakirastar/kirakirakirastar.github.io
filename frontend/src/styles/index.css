@@ -189,51 +189,38 @@ html, body, #app {
 .markdown-body tr:hover td { @apply bg-slate-50 opacity-50 dark:bg-slate-800 dark:bg-opacity-30; }
 .markdown-body tr:nth-child(even) { @apply bg-slate-50 opacity-20 dark:bg-slate-800 dark:bg-opacity-10; }
 
-/* Task Lists - Total Stability (Wrapper based) */
+/* Task Lists - Total Stability */
 .markdown-body .task-list-item,
 .ProseMirror .task-list-item { 
-  @apply list-none relative my-2 !important; 
-  display: flex !important;
-  align-items: flex-start !important;
-  padding-left: 0 !important;
-  gap: 0.5rem !important;
+  @apply list-none relative my-2 flex items-start gap-2 pl-0; 
 }
 
 /* Marker container (Checkbox) */
 .markdown-body .task-marker,
 .ProseMirror .task-list-item label { 
-  @apply cursor-pointer; 
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 1.5rem !important;
-  height: 1.5rem !important;
-  min-width: 1.5rem !important;
-  flex-shrink: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  @apply flex items-center justify-center shrink-0 cursor-pointer;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 /* Styling the actual checkbox */
 .markdown-body .task-list-item input[type="checkbox"],
 .ProseMirror .task-list-item input[type="checkbox"] {
   @apply rounded-md border-slate-300 dark:border-slate-600 text-primary focus:ring-primary transition-all cursor-pointer shadow-sm;
-  width: 1.25rem !important;
-  height: 1.25rem !important;
-  margin: 0 !important;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 /* Content container (Text and formatting) */
 .markdown-body .task-content,
 .ProseMirror .task-list-item > div,
 .ProseMirror .task-list-item > p {
-  @apply flex-1 min-w-0 !important;
-  margin: 0 !important;
+  @apply flex-1 min-w-0;
 }
 
 .markdown-body .task-content p,
 .ProseMirror .task-list-item > div p {
-  @apply my-0 block !important;
+  @apply my-0 block;
 }
 
 /* Admonitions (Containers) */

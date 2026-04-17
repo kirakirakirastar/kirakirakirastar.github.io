@@ -13,6 +13,7 @@
  *  - `isPrivate`       — whether uploaded images go to the private bucket
  *  - `imageBucket`     — Supabase storage bucket name (default: 'images')
  */
+import { useDebounceFn } from '@vueuse/core'
 import { useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
@@ -54,8 +55,9 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
     return options.isPrivate.value
   }
 
-  // Debounce timer — avoids calling getMarkdown() on every keystroke
-  let _markdownSyncTimer: ReturnType<typeof setTimeout> | null = null
+  const debouncedUpdate = useDebounceFn((markdown: string) => {
+    onUpdate(markdown)
+  }, 400)
 
   const uploadAndInsertImage = async (file: File) => {
     if (!editor.value) return
@@ -91,16 +93,13 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
           class: 'task-list-item',
         },
       }).extend({
-        // Harden the TaskItem serialization AND parsing to move between MD-IT and Tiptap
         parseHTML() {
           return [
             {
-              // Claim the standard markdown-it-task-lists HTML
               tag: 'li.task-list-item',
               priority: 100,
             },
             {
-              // Claim the native tiptap format
               tag: 'li[data-type="taskItem"]',
               priority: 100,
             },
@@ -111,8 +110,6 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
             markdown: {
               serialize(state: any, node: any) {
                 state.write(node.attrs.checked ? '[x] ' : '[ ] ')
-                // Render the first child (usually a paragraph) as inline content
-                // to avoid block-level duplication issues in tiptap-markdown
                 const paragraph = node.firstChild
                 if (paragraph && paragraph.type.name === 'paragraph') {
                   state.renderInline(paragraph)
@@ -162,11 +159,8 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
       },
     },
     onUpdate: ({ editor }) => {
-      if (_markdownSyncTimer) clearTimeout(_markdownSyncTimer)
-      _markdownSyncTimer = setTimeout(() => {
-        const markdown = editor.storage.markdown.getMarkdown()
-        onUpdate(markdown)
-      }, 400)
+      const markdown = editor.storage.markdown.getMarkdown()
+      debouncedUpdate(markdown)
     },
   })
 
@@ -174,14 +168,17 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
   const getEditorColor = (): string => {
     const color = editor.value?.getAttributes('textStyle').color
     if (!color) return '#000000'
+    // Simplified parsing logic that handles hex and rgb
+    if (color.startsWith('#')) return color
     if (color.startsWith('rgb')) {
-      const rgb = color.match(/\d+/g)
-      if (rgb && rgb.length >= 3) {
-        return '#' + rgb.slice(0, 3).map((x: string) => parseInt(x).toString(16).padStart(2, '0')).join('')
+      const parts = color.match(/\d+/g)
+      if (parts && parts.length >= 3) {
+        return '#' + parts.slice(0, 3).map((x: string) => parseInt(x).toString(16).padStart(2, '0')).join('')
       }
     }
     return color
   }
+
 
   /** Handles <input type="file"> change events for image upload */
   const handleImageUpload = (event: Event) => {
