@@ -1,6 +1,7 @@
 import { Markdown, type MarkdownStorage } from 'tiptap-markdown'
 import type MarkdownIt from 'markdown-it'
 import taskListPlugin from 'markdown-it-task-lists'
+import { forceHex } from './tiptap-extensions'
 
 /**
  * Augment the MarkdownStorage interface to include markdownit
@@ -118,7 +119,11 @@ export const bbcodePlugin = (md: any) => {
         if (tagName === 'mask') {
           token.attrs = [['class', 'mask-text']]
         } else if (tagName === 'color' && attrValue) {
-          token.attrs = [['color', attrValue]]
+          const hex = forceHex(attrValue)
+          token.attrs = [
+            ['color', hex],
+            ['style', `color: ${hex}`]
+          ]
         }
       }
     }

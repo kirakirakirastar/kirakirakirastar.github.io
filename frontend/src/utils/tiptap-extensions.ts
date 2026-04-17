@@ -9,7 +9,7 @@ import Color from '@tiptap/extension-color'
  * Helper to force color output to HEX format, ensuring browser compatibility
  * and preventing "The specified value 'rgb(...)' does not conform to the required format" errors.
  */
-const forceHex = (color?: string): string => {
+export const forceHex = (color?: string): string => {
   if (!color) return '#000000'
   if (!color.startsWith('rgb')) return color
   
@@ -206,6 +206,20 @@ export const MarkdownHighlight = Highlight.configure({ multicolor: true }).exten
  * (.filter(extension.type === 'mark')), so we MUST handle color serialization here.
  */
 export const MarkdownTextStyle = TextStyle.extend({
+  parseHTML() {
+    return [
+      {
+        tag: 'span',
+        getAttrs: (element) => {
+          if (typeof element === 'string') return false
+          const el = element as HTMLElement
+          const color = el.style.color || el.getAttribute('color')
+          return color ? { color: forceHex(color) } : false
+        },
+        priority: 100, // Higher priority than default TextStyle
+      },
+    ]
+  },
   addStorage() {
     return {
       markdown: {
@@ -222,7 +236,7 @@ export const MarkdownTextStyle = TextStyle.extend({
         parse: {
           setup: (md: any) => {},
           getAttrs: (tok: any) => {
-            // Check for both direct color attribute and style attribute
+            // Check for both direct color attribute and style attribute in the markdown token
             const color = tok.attrGet('color') || tok.attrGet('style')?.match(/color:\s*([^;]+)/)?.[1]
             return color ? { color: forceHex(color) } : {}
           }

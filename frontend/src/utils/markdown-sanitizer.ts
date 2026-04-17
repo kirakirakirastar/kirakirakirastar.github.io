@@ -33,7 +33,8 @@ export const convertLegacyHTMLToBBCode = (markdown: string): string => {
     .replace(/<s[^>]*>([\s\S]*?)<\/s>/gi, '[s]$1[/s]')
     .replace(/<mark[^>]*>([\s\S]*?)<\/mark>/gi, '[mark]$1[/mark]')
     .replace(/<span[^>]*class=['"][^'"]*mask-text[^'"]*['"][^>]*>([\s\S]*?)<\/span>/gi, '[mask]$1[/mask]')
-    .replace(/<span[^>]*style=['"]color:\s*([^;'"]+)['"][^>]*>([\s\S]*?)<\/span>/gi, '[color=$1]$2[/color]');
+    .replace(/<span[^>]*style=['"][^'"]*color:\s*([^;'"]+)[^'"]*['"][^>]*>([\s\S]*?)<\/span>/gi, '[color=$1]$2[/color]')
+    .replace(/<span[^>]*color=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/span>/gi, '[color=$1]$2[/color]');
 };
 
 /**
