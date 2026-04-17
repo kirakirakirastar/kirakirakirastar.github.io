@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, onUnmounted } from 'vue'
 import dayjs from 'dayjs'
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import { todosApi, checkinApi, announcementsApi } from '@/api/gadgets'
+
+dayjs.extend(isSameOrBefore)
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/api/supabase'
 import { getErrorMessage } from '@/utils/error'
@@ -63,22 +66,48 @@ export const useGadgetStore = defineStore('gadgets', () => {
           return updated
         })
 
-        // 2. Identify and handle overdue tasks (Auto-Failure)
-        const overdueTasks = processedTodos.filter((t: Todo) => 
-          t.status === 'pending' && 
-          t.due_date && 
-          dayjs(t.due_date).isBefore(today)
-        )
+        // 2. Critical: Update state BEFORE processing overdue tasks to avoid overwriting newly created instances
+        todos.value = processedTodos
+
+        // 3. Identify and handle overdue tasks (Auto-Failure)
+        const overdueTasks = todos.value.filter((t: Todo) => {
+          if (t.status !== 'pending') return false
+          
+          // Pure Deadline Check: If due_date passed yesterday
+          if (t.due_date && dayjs(t.due_date).isBefore(today)) return true
+          
+          // Recurrence Span Check: If a recurring task's interval has passed, fail current to make room for next
+          if (t.recurrence && t.recurrence !== 'none') {
+            const unit = t.recurrence === 'weekly' ? 'week' 
+                       : t.recurrence === 'monthly' ? 'month' 
+                       : 'day'
+            const refDate = t.start_date || t.created_at
+            const nextWindowStarts = dayjs(refDate).add(1, unit as dayjs.ManipulateType).startOf('day')
+            
+            if (nextWindowStarts.isSameOrBefore(today)) {
+              return true
+            }
+          }
+          
+          return false
+        })
 
         if (overdueTasks.length > 0) {
           console.log(`Auto-failing ${overdueTasks.length} overdue tasks...`)
           for (const task of overdueTasks) {
-            // Update local state first
-            const localTask = processedTodos.find((t: Todo) => t.id === task.id)
-            if (localTask) localTask.status = 'failed'
+            // Update local state first (todos.value is already set)
+            const localTask = todos.value.find((t: Todo) => t.id === task.id)
+            if (localTask) {
+               localTask.status = 'failed'
+               localTask.completed = false
+            }
             
             // Sync to DB
-            todosApi.updateStatus(task.id, 'failed').catch(e => console.error('Failed to sync auto-failure:', e))
+            todosApi.updateStatus(task.id, 'failed')
+              .then(updated => {
+                if (localTask) Object.assign(localTask, updated)
+              })
+              .catch(e => console.error('Failed to sync auto-failure:', e))
             
             // Trigger next instance for recurring tasks
             if (task.recurrence && task.recurrence !== 'none') {
@@ -86,8 +115,6 @@ export const useGadgetStore = defineStore('gadgets', () => {
             }
           }
         }
-
-        todos.value = processedTodos
 
         setupRealtime()
       } else {
