@@ -168,44 +168,38 @@ export const MarkdownStrike = Strike.extend({
 })
 
 /**
- * Hardened Highlight
+ * Hardened TextStyle with unified markdown color AND highlight serialization.
+ * This is the ONLY Mark that handles textStyle attributes.
+ * By unifying them here, we prevent conflicts between the Color and Highlight extensions.
  */
-export const MarkdownHighlight = Highlight.configure({ multicolor: true }).extend({
-  inclusive: true,
-  spanning: true,
-  parseHTML() {
-    return [
-      {
-        tag: 'mark',
-        priority: 100,
-      },
-    ]
-  },
-  addStorage() {
+export const MarkdownTextStyle = TextStyle.extend({
+  addAttributes() {
     return {
-      markdown: {
-        serialize: {
-          open: '[mark]',
-          close: '[/mark]',
-        },
-        parse: {
-          setup: (md: any) => {},
-          getAttrs: (tok: any) => {
-            if (tok.type === 'highlight_open') return {}
+      ...this.parent?.(),
+      color: {
+        default: null,
+        parseHTML: element => element.style.color || element.getAttribute('color'),
+        renderHTML: attributes => {
+          if (!attributes.color) return {}
+          return {
+            style: `color: ${forceHex(attributes.color)}`,
+            color: forceHex(attributes.color),
           }
-        }
+        },
+      },
+      backgroundColor: {
+        default: null,
+        parseHTML: element => element.style.backgroundColor || (element.tagName === 'MARK' ? 'yellow' : null),
+        renderHTML: attributes => {
+          if (!attributes.backgroundColor) return {}
+          return {
+            style: `background-color: ${attributes.backgroundColor}`,
+          }
+        },
       },
     }
   },
-})
 
-/**
- * Hardened TextStyle with proper markdown color serialization.
- * This is the actual Mark that holds `attrs.color` (set by the Color extension).
- * Color (Extension type) is FILTERED OUT by tiptap-markdown's serializer
- * (.filter(extension.type === 'mark')), so we MUST handle color serialization here.
- */
-export const MarkdownTextStyle = TextStyle.extend({
   parseHTML() {
     return [
       {
@@ -214,31 +208,51 @@ export const MarkdownTextStyle = TextStyle.extend({
           if (typeof element === 'string') return false
           const el = element as HTMLElement
           const color = el.style.color || el.getAttribute('color')
-          return color ? { color: forceHex(color) } : false
+          const bg = el.style.backgroundColor
+          return (color || bg) ? { color: color ? forceHex(color) : null, backgroundColor: bg } : false
         },
-        priority: 100, // Higher priority than default TextStyle
+        priority: 100,
       },
+      {
+        tag: 'mark',
+        getAttrs: (element) => {
+          if (typeof element === 'string') return false
+          const el = element as HTMLElement
+          return { backgroundColor: el.style.backgroundColor || 'yellow' }
+        },
+        priority: 100,
+      }
     ]
   },
+
   addStorage() {
     return {
       markdown: {
         serialize: {
           open(_state: any, mark: any) {
+            let tags = ''
+            if (mark.attrs.backgroundColor) tags += '[mark]'
             const color = mark.attrs.color ? forceHex(mark.attrs.color) : null
-            return color ? `[color=${color}]` : ''
+            if (color) tags += `[color=${color}]`
+            return tags
           },
           close(_state: any, mark: any) {
+            let tags = ''
             const color = mark.attrs.color ? forceHex(mark.attrs.color) : null
-            return color ? '[/color]' : ''
+            if (color) tags += '[/color]'
+            if (mark.attrs.backgroundColor) tags = '[/mark]' + tags
+            return tags
           },
         },
         parse: {
           setup: (md: any) => {},
           getAttrs: (tok: any) => {
-            // Check for both direct color attribute and style attribute in the markdown token
             const color = tok.attrGet('color') || tok.attrGet('style')?.match(/color:\s*([^;]+)/)?.[1]
-            return color ? { color: forceHex(color) } : {}
+            const bg = tok.attrGet('style')?.match(/background-color:\s*([^;]+)/)?.[1]
+            return { 
+              color: color ? forceHex(color) : null,
+              backgroundColor: bg || (tok.tag === 'mark' ? 'yellow' : null)
+            }
           }
         }
       },
@@ -246,10 +260,14 @@ export const MarkdownTextStyle = TextStyle.extend({
   },
 })
 
-// MarkdownColor is kept for its commands (setColor/unsetColor) but its addStorage
-// is effectively dead code since Color is an Extension, not a Mark.
-// The actual serialization is handled by MarkdownTextStyle above.
+// MarkdownColor is kept only for its commands (setColor/unsetColor)
 export const MarkdownColor = Color.extend({
+  inclusive: true,
+  spanning: true,
+})
+
+// MarkdownHighlight is kept only for its commands (setHighlight/toggleHighlight)
+export const MarkdownHighlight = Highlight.extend({
   inclusive: true,
   spanning: true,
 })

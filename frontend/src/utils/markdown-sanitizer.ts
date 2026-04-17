@@ -33,8 +33,16 @@ export const convertLegacyHTMLToBBCode = (markdown: string): string => {
     .replace(/<s[^>]*>([\s\S]*?)<\/s>/gi, '[s]$1[/s]')
     .replace(/<mark[^>]*>([\s\S]*?)<\/mark>/gi, '[mark]$1[/mark]')
     .replace(/<span[^>]*class=['"][^'"]*mask-text[^'"]*['"][^>]*>([\s\S]*?)<\/span>/gi, '[mask]$1[/mask]')
-    .replace(/<span[^>]*style=['"][^'"]*color:\s*([^;'"]+)[^'"]*['"][^>]*>([\s\S]*?)<\/span>/gi, '[color=$1]$2[/color]')
-    .replace(/<span[^>]*color=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/span>/gi, '[color=$1]$2[/color]');
+    .replace(/<span[^>]*style=['"]([^'"]*)['"][^>]*>([\s\S]*?)<\/span>/gi, (match, style, content) => {
+      let result = content
+      const colorMatch = style.match(/color:\s*([^;]+)/)
+      const bgMatch = style.match(/background-color:\s*([^;]+)/)
+      if (colorMatch) result = `[color=${colorMatch[1].trim()}]${result}[/color]`
+      if (bgMatch) result = `[mark]${result}[/mark]`
+      return result
+    })
+    .replace(/<span[^>]*color=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/span>/gi, '[color=$1]$2[/color]')
+    .replace(/<mark[^>]*>([\s\S]*?)<\/mark>/gi, '[mark]$1[/mark]');
 };
 
 /**

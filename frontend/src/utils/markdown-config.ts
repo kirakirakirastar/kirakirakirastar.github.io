@@ -31,7 +31,7 @@ export const bbcodePlugin = (md: any) => {
   const markMap: Record<string, string> = {
     u: 'underline',
     s: 'strike',
-    mark: 'highlight',
+    mark: 'textStyle',
     mask: 'mask',
     color: 'textStyle',
   }
@@ -118,6 +118,8 @@ export const bbcodePlugin = (md: any) => {
       if (!isClose) {
         if (tagName === 'mask') {
           token.attrs = [['class', 'mask-text']]
+        } else if (tagName === 'mark') {
+          token.attrs = [['style', 'background-color: yellow']]
         } else if (tagName === 'color' && attrValue) {
           const hex = forceHex(attrValue)
           token.attrs = [
