@@ -205,18 +205,20 @@ html, body, #app {
   position: absolute !important;
   left: 0.25rem;
   top: 0.15rem;
-  width: 1.5rem;
-  height: 1.5rem;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
   display: flex !important;
   align-items: center;
   justify-content: center;
   margin: 0 !important;
 }
 
-/* The checkbox visual styling */
+/* The checkbox visual styling - FIXED DIMENSIONS APPLIED HERE */
 .markdown-body .task-list-item input[type="checkbox"],
 .ProseMirror .task-list-item input[type="checkbox"] {
-  @apply rounded-md border-slate-300 dark:border-slate-600 text-primary focus:ring-primary w-5 h-5 transition-all cursor-pointer shadow-sm;
+  @apply rounded-md border-slate-300 dark:border-slate-600 text-primary focus:ring-primary transition-all cursor-pointer shadow-sm;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
   margin: 0 !important;
 }
 
