@@ -192,10 +192,9 @@ html, body, #app {
 /* Task Lists - Modern (Applies to both Markdown view and TipTap editor) */
 .markdown-body .task-list-item,
 .ProseMirror .task-list-item { 
-  @apply list-none my-2; 
-  display: grid !important;
-  grid-template-columns: 2.25rem 1fr !important;
-  align-items: start !important;
+  @apply list-none my-2 block clear-both; 
+  padding-left: 2.25rem !important;
+  position: relative;
 }
 
 .markdown-body .task-list-item label,
@@ -203,19 +202,14 @@ html, body, #app {
 .markdown-body .task-list-item > input[type="checkbox"],
 .ProseMirror .task-list-item > input[type="checkbox"] { 
   @apply cursor-pointer; 
-  grid-column: 1 !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  float: left !important;
+  margin-left: -2.25rem !important;
+  width: 1.5rem;
+  height: 1.5rem;
   display: flex !important;
   align-items: center;
   justify-content: center;
-  margin-top: 0.2rem !important; /* Center with first line of text */
-}
-
-/* Force all content nodes (paragraphs, spans, formatting marks) into the second column */
-.markdown-body .task-list-item > *:not(label):not(input),
-.ProseMirror .task-list-item > *:not(label):not(input) {
-  grid-column: 2 !important;
+  margin-top: 0.15rem !important;
 }
 
 .markdown-body .task-list-item input[type="checkbox"],
@@ -225,7 +219,10 @@ html, body, #app {
 }
 
 .markdown-body .task-list-item p,
-.ProseMirror .task-list-item p { @apply my-0; }
+.ProseMirror .task-list-item p { 
+  @apply my-0;
+  display: block;
+}
 
 /* Admonitions (Containers) */
 .admonition { @apply my-8 p-5 rounded-2xl border-l-4 shadow-sm backdrop-blur-md; }
