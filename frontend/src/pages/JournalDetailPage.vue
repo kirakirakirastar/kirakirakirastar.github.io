@@ -77,11 +77,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import { calculateReadingTime } from '@/utils/text'
 import { renderMarkdown } from '@/utils/markdown'
+import { useAuthStore } from '@/stores/auth'
 import { journalsApi } from '@/api/journals'
 import { useTaskListStabilizer } from '@/hooks/useTaskListStabilizer'
 
