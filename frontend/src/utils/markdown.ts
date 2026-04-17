@@ -121,9 +121,23 @@ const applyBBCode = (html: string): string => {
     .replace(/\[img\]([\s\S]*?)\[\/img\]/gi, '<img src="$1" alt="image" />')
 }
 
+/**
+ * Wraps task list input and content in dedicated containers for stable styling.
+ */
+const wrapTaskItems = (html: string): string => {
+  if (!html) return html
+  // Matches task-list-item <li> tags and their checkbox inputs
+  // Wraps input in .task-marker and everything else in .task-content
+  return html.replace(
+    /(<li class="task-list-item"[^>]*>)\s*(<input[^>]*>)([\s\S]*?)(?=<\/li>)/gi,
+    '$1<div class="task-marker">$2</div><div class="task-content">$3</div>'
+  )
+}
+
 export const renderMarkdown = (content: string) => {
   if (!content) return ''
-  const html = md.render(content)
-  return applyBBCode(html)
+  let html = md.render(content)
+  html = applyBBCode(html)
+  return wrapTaskItems(html)
 }
 

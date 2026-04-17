@@ -189,36 +189,32 @@ html, body, #app {
 .markdown-body tr:hover td { @apply bg-slate-50 opacity-50 dark:bg-slate-800 dark:bg-opacity-30; }
 .markdown-body tr:nth-child(even) { @apply bg-slate-50 opacity-20 dark:bg-slate-800 dark:bg-opacity-10; }
 
-/* Task Lists - Nuclear Stability (CSS Grid based) */
+/* Task Lists - Total Stability (Wrapper based) */
 .markdown-body .task-list-item,
 .ProseMirror .task-list-item { 
-  @apply list-none my-2 !important; 
-  display: grid !important;
-  grid-template-columns: 2rem 1fr !important; /* Fixed width for marker, flex for content */
-  align-items: start !important;
-  position: relative !important;
-  padding-left: 0 !important; /* Grid handles the spacing now */
-  gap: 0 !important;
+  @apply list-none relative my-2 !important; 
+  display: flex !important;
+  align-items: flex-start !important;
+  padding-left: 0 !important;
+  gap: 0.5rem !important;
 }
 
-/* Checkbox container - placed in the first grid column */
-.markdown-body .task-list-item label,
-.ProseMirror .task-list-item label,
-.markdown-body .task-list-item > input[type="checkbox"],
-.ProseMirror .task-list-item > input[type="checkbox"] { 
+/* Marker container (Checkbox) */
+.markdown-body .task-marker,
+.ProseMirror .task-list-item label { 
   @apply cursor-pointer; 
-  grid-column: 1 !important;
   display: flex !important;
-  align-items: center;
-  justify-content: center;
-  width: 2rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 1.5rem !important;
   height: 1.5rem !important;
-  min-width: 2rem !important;
+  min-width: 1.5rem !important;
+  flex-shrink: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
 }
 
-/* The checkbox visual styling */
+/* Styling the actual checkbox */
 .markdown-body .task-list-item input[type="checkbox"],
 .ProseMirror .task-list-item input[type="checkbox"] {
   @apply rounded-md border-slate-300 dark:border-slate-600 text-primary focus:ring-primary transition-all cursor-pointer shadow-sm;
@@ -227,15 +223,17 @@ html, body, #app {
   margin: 0 !important;
 }
 
-/* Task content - placed in the second grid column */
-.markdown-body .task-list-item p,
-.ProseMirror .task-list-item p,
-.markdown-body .task-list-item span,
-.ProseMirror .task-list-item span { 
-  grid-column: 2 !important;
+/* Content container (Text and formatting) */
+.markdown-body .task-content,
+.ProseMirror .task-list-item > div,
+.ProseMirror .task-list-item > p {
+  @apply flex-1 min-w-0 !important;
+  margin: 0 !important;
+}
+
+.markdown-body .task-content p,
+.ProseMirror .task-list-item > div p {
   @apply my-0 block !important;
-  width: 100% !important;
-  min-width: 0 !important; /* Prevent flex/grid item overflow */
 }
 
 /* Admonitions (Containers) */

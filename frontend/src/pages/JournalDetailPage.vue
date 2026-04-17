@@ -83,11 +83,11 @@ import dayjs from 'dayjs'
 import { calculateReadingTime } from '@/utils/text'
 import { renderMarkdown } from '@/utils/markdown'
 import { useAuthStore } from '@/stores/auth'
+import { useUiStore } from '@/stores/ui'
 import { journalsApi } from '@/api/journals'
-import { useTaskListStabilizer } from '@/hooks/useTaskListStabilizer'
 
 const authStore = useAuthStore()
-const { stabilize } = useTaskListStabilizer()
+const uiStore = useUiStore()
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
@@ -138,7 +138,6 @@ const deleteJournal = async () => {
 onMounted(() => {
   loadJournal()
   window.addEventListener('scroll', handleScroll)
-  stabilize()
 })
 
 onUnmounted(() => {
@@ -146,6 +145,6 @@ onUnmounted(() => {
 })
 
 watch(() => journal.value?.content_md, () => {
-  stabilize()
+  // No stabilization needed
 })
 </script>

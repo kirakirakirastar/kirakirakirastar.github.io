@@ -129,11 +129,9 @@ import { resolveAssetUrl } from '@/api/http'
 import { renderMarkdown } from '@/utils/markdown'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
-import { useTaskListStabilizer } from '@/hooks/useTaskListStabilizer'
 
 const authStore = useAuthStore()
 const uiStore = useUiStore()
-const { stabilize } = useTaskListStabilizer()
 const route = useRoute()
 const router = useRouter()
 
@@ -203,11 +201,10 @@ const statusClass = (status: string) => {
 
 onMounted(() => {
     loadHobby()
-    stabilize()
 })
 
 watch(() => hobby.value?.review, () => {
-    stabilize()
+    // No stabilization needed with new wrapper
 })
 </script>
 

@@ -88,11 +88,9 @@ import { notesApi } from '@/api/notes'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { calculateReadingTime } from '@/utils/text'
-import { useTaskListStabilizer } from '@/hooks/useTaskListStabilizer'
 
 const uiStore = useUiStore()
 const authStore = useAuthStore()
-const { stabilize } = useTaskListStabilizer()
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
@@ -174,7 +172,6 @@ onMounted(async () => {
     securityLevel: 'loose'
   })
   mermaid.run({ querySelector: '.mermaid' })
-  stabilize()
 })
 
 onUnmounted(() => {
@@ -184,7 +181,6 @@ onUnmounted(() => {
 watch(renderedContent, async () => {
   await nextTick()
   mermaid.run({ querySelector: '.mermaid' })
-  stabilize()
 })
 </script>
 
