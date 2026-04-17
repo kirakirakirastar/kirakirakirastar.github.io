@@ -80,8 +80,28 @@
             <button type="button" @click="editor?.chain().focus().toggleOrderedList().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('orderedList') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">1.</button>
             <button type="button" @click="editor?.chain().focus().toggleBlockquote().run()" :class="{ 'bg-primary/20 text-primary': editor?.isActive('blockquote') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">引用</button>
             <button type="button" @click="editor?.chain().focus().toggleStrike().run()" :class="{ 'bg-slate-200 dark:bg-slate-700': editor?.isActive('strike') }" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm line-through">S</button>
-            <button type="button" @click="editor?.chain().focus().undo().run()" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm ml-auto">撤销</button>
-            <button type="button" @click="editor?.chain().focus().redo().run()" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm">重做</button>
+            <button type="button" @click="editor?.chain().focus().undo().run()" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm ml-auto" title="撤销">撤销</button>
+            <button type="button" @click="editor?.chain().focus().redo().run()" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-sm" title="重做">重做</button>
+            
+            <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 self-center mx-1"></div>
+            
+            <div class="flex items-center gap-1 group relative">
+              <input 
+                type="color" 
+                class="w-8 h-8 p-0 border-none bg-transparent cursor-pointer"
+                :value="editor?.getAttributes('textStyle').color || '#000000'"
+                @input="(e) => editor?.chain().focus().setColor((e.target as HTMLInputElement).value).run()"
+                title="文字颜色"
+              />
+              <button type="button" @click="editor?.chain().focus().unsetColor().run()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-400 hover:text-red-500 transition-colors" title="清除颜色">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+
+            <button type="button" 
+              @click="editor?.getAttributes('textStyle').backgroundColor ? editor?.chain().focus().setMark('textStyle', { backgroundColor: null }).run() : editor?.chain().focus().setMark('textStyle', { backgroundColor: 'yellow' }).run()" 
+              :class="{ 'bg-yellow-200 dark:bg-yellow-900/40 text-slate-900 dark:text-yellow-100': editor?.getAttributes('textStyle').backgroundColor }" 
+              class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="背景高亮">M</button>
           </div>
           <EditorContent :editor="editor" class="markdown-editor-view max-w-none p-4 min-h-[150px]" />
         </div>

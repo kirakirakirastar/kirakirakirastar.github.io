@@ -55,8 +55,16 @@
                 <button type="button" @click="editor?.chain().focus().toggleUnderline().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('underline') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm underline" title="下划线">U</button>
                 <button type="button" @click="editor?.chain().focus().toggleStrike().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('strike') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm line-through" title="删除线 (Ctrl+D)">S</button>
                 <button type="button" @click="editor?.chain().focus().toggleMask().run()" :class="{ 'bg-slate-900 text-white': editor?.isActive('mask') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="黑条/马赛克 (Ctrl+M)">■</button>
-                <input type="color" @input="editor?.chain().focus().setColor(($event.target as HTMLInputElement).value).run()" :value="editor?.getAttributes('textStyle').color || '#000000'" class="w-6 h-6 p-0 border-0 bg-transparent cursor-pointer ml-1" title="文字颜色" />
-                <button type="button" @click="editor?.chain().focus().toggleHighlight().run()" :class="{ 'bg-yellow-200 dark:bg-yellow-900/40': editor?.isActive('highlight') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="背景高亮">M</button>
+                <div class="flex items-center gap-1 ml-1 group relative">
+                  <input type="color" @input="editor?.chain().focus().setColor(($event.target as HTMLInputElement).value).run()" :value="editor?.getAttributes('textStyle').color || '#000000'" class="w-6 h-6 p-0 border-0 bg-transparent cursor-pointer" title="文字颜色" />
+                  <button type="button" @click="editor?.chain().focus().unsetColor().run()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-400 hover:text-red-500 transition-colors" title="清除颜色">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                </div>
+                <button type="button" 
+                  @click="editor?.getAttributes('textStyle').backgroundColor ? editor?.chain().focus().setMark('textStyle', { backgroundColor: null }).run() : editor?.chain().focus().setMark('textStyle', { backgroundColor: 'yellow' }).run()" 
+                  :class="{ 'bg-yellow-200 dark:bg-yellow-900/40 text-slate-900 dark:text-yellow-100': editor?.getAttributes('textStyle').backgroundColor }" 
+                  class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="背景高亮">M</button>
                 <button type="button" @click="editor?.chain().focus().toggleCode().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('code') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-mono" title="行内代码">C</button>
               </div>
 
