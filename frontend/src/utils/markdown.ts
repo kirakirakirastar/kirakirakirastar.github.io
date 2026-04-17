@@ -63,7 +63,7 @@ export const createMarkdownRenderer = () => {
       externalTarget: '_blank',
       externalRel: 'noopener noreferrer'
     })
-    .use(taskLists, { label: true, labelAfter: true })
+    .use(taskLists, { label: false })
     .use(footnote)
     .use(abbr)
     .use(deflist)

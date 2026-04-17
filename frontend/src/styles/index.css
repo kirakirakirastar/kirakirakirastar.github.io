@@ -192,35 +192,38 @@ html, body, #app {
 /* Task Lists - Modern (Applies to both Markdown view and TipTap editor) */
 .markdown-body .task-list-item,
 .ProseMirror .task-list-item { 
-  @apply list-none my-1 block; 
-  padding-left: 1.75rem !important; /* Reserve space on the left */
+  @apply list-none relative my-2; 
+  padding-left: 2.25rem !important; /* Reliable space for the marker on the left */
 }
 
+/* Checkbox container - absolute positioned to stay in the left margin */
 .markdown-body .task-list-item label,
 .ProseMirror .task-list-item label,
 .markdown-body .task-list-item > input[type="checkbox"],
 .ProseMirror .task-list-item > input[type="checkbox"] { 
   @apply cursor-pointer; 
-  display: inline-block !important;
-  margin-left: -1.75rem !important; /* Pull the checkbox into the padding area */
+  position: absolute !important;
+  left: 0.25rem;
+  top: 0.15rem;
   width: 1.5rem;
   height: 1.5rem;
-  vertical-align: top;
-  margin-top: 0.1rem;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
 }
 
+/* The checkbox visual styling */
 .markdown-body .task-list-item input[type="checkbox"],
 .ProseMirror .task-list-item input[type="checkbox"] {
   @apply rounded-md border-slate-300 dark:border-slate-600 text-primary focus:ring-primary w-5 h-5 transition-all cursor-pointer shadow-sm;
   margin: 0 !important;
 }
 
+/* Task content (paragraphs) - remains as standard blocks following the padding-left */
 .markdown-body .task-list-item p,
 .ProseMirror .task-list-item p { 
-  @apply my-0;
-  display: inline-block; /* Helps content stay in one block while responding to padding */
-  vertical-align: top;
-  width: calc(100%);
+  @apply my-0 block; 
 }
 
 /* Admonitions (Containers) */
