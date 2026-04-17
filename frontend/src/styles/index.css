@@ -193,6 +193,8 @@ html, body, #app {
 .markdown-body .task-list-item,
 .ProseMirror .task-list-item { 
   @apply list-none relative my-2; 
+  display: block !important;
+  clear: both !important;
   padding-left: 2.25rem !important; /* Reliable space for the marker on the left */
 }
 

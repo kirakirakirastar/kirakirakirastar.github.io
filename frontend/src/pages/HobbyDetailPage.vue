@@ -95,7 +95,11 @@
           <!-- Review/Content -->
           <div class="bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-3xl p-8 border border-white/60 dark:border-slate-700/60 shadow-sm min-h-[300px] flex flex-col overflow-hidden break-words">
             <div class="text-xs font-black text-primary/40 uppercase tracking-[0.2em] mb-4">心中所想</div>
-            <div class="markdown-body flex-1" v-html="renderMarkdown(hobby.review || '暂无详细记录...')"></div>
+            <div 
+              :key="hobby.id + '_' + hobby.updated_at"
+              class="markdown-body flex-1" 
+              v-html="renderMarkdown(hobby.review || '暂无详细记录...')"
+            ></div>
             
             <div class="mt-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-8 border-t border-gray-100 dark:border-white/5 opacity-60">
                 <div class="flex items-center gap-6 text-xs text-gray-400">
