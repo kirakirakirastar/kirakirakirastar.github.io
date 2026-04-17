@@ -97,10 +97,12 @@ npm run dev
 
 ## 🤝 致谢与技术支持 (Technical Support & Contributors)
 
-本项目由以下 AI 伙伴提供深度技术支持与 Vibe Coding 驱动：
+本项目采用 **Vibe Coding** 模式开发，由以下成员共同协作完成：
 
-- **Antigravity** (Google DeepMind) — 核心系统优化、安全加固及架构设计。
-- **Claude** (Anthropic) — 模块化功能实现与逻辑调试。
+- **Kirakirastar** (Owner) — 产品设计、核心架构与审美把控。
+- **Antigravity** (Google DeepMind) — 提供 Agentic Coding 高级编码环境与 IDE 平台支持。
+- **Gemini** (Google) — 核心逻辑优化、全站重构与 AI 驱动开发。
+- **Claude** (Anthropic) — 模块化功能实现、复杂逻辑调试。
 
 ---
 
