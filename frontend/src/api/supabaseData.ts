@@ -230,7 +230,7 @@ export const supabaseNotesApi = {
   },
 
   archives: async () => {
-    const { data, error } = await supabase.from('notes').select('created_at')
+    const { data, error } = await supabase.from('notes').select('created_at').is('deleted_at', null)
     if (error) throw error
     return buildArchives(data || [])
   },
@@ -256,7 +256,7 @@ export const supabaseNotesApi = {
       console.warn('RPC get_tag_cloud failed, falling back to legacy fetch', e)
     }
 
-    let query = supabase.from('notes').select('tags, is_private')
+    let query = supabase.from('notes').select('tags, is_private').is('deleted_at', null)
     if (!isOwner) {
       query = query.eq('is_private', false)
     }
@@ -416,7 +416,7 @@ export const supabaseJournalsApi = {
   },
 
   archives: async () => {
-    const { data, error } = await supabase.from('journals').select('created_at')
+    const { data, error } = await supabase.from('journals').select('created_at').is('deleted_at', null)
     if (error) throw error
     return buildArchives(data || [])
   },
@@ -425,7 +425,7 @@ export const supabaseJournalsApi = {
     const { data: { user } } = await supabase.auth.getUser()
     const isOwner = !!user
 
-    let query = supabase.from('journals').select('tags, is_private')
+    let query = supabase.from('journals').select('tags, is_private').is('deleted_at', null)
     if (!isOwner) {
       query = query.eq('is_private', false)
     }
@@ -594,7 +594,7 @@ export const supabaseHobbiesApi = {
       console.warn('RPC get_tag_cloud failed, falling back to legacy fetch', e)
     }
 
-    let query = supabase.from('hobbies').select('tags, is_private')
+    let query = supabase.from('hobbies').select('tags, is_private').is('deleted_at', null)
     if (!isOwner) {
       query = query.eq('is_private', false)
     }
@@ -605,7 +605,7 @@ export const supabaseHobbiesApi = {
   },
 
   stats: async () => {
-    const { data, error } = await supabase.from('hobbies').select('status, rating')
+    const { data, error } = await supabase.from('hobbies').select('status, rating').is('deleted_at', null)
     if (error) throw error
     const hobbies = data || []
 
