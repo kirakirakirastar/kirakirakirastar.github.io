@@ -18,6 +18,15 @@
           {{ tab.label }}
           <span v-if="tab.count > 0" class="ml-1 opacity-60">{{ tab.count }}</span>
         </button>
+        <div class="flex items-center gap-2">
+          <button 
+            @click="showBundleEditor = true"
+            class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-xl text-[10px] font-black uppercase tracking-tighter hover:bg-primary/20 transition-all active:scale-95"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            关卡包模式
+          </button>
+        </div>
       </div>
     </div>
 
@@ -51,9 +60,25 @@
           @start-edit="(id) => editingTodoId = id"
           @cancel-edit="editingTodoId = null"
           @save-edit="(updates) => handleSaveEdit(todo.id, updates)"
+          @show-report="handleShowReport"
         />
       </transition-group>
     </div>
+
+    <!-- Bundle Editor Modal -->
+    <BundleEditor 
+      v-if="showBundleEditor" 
+      @close="showBundleEditor = false"
+      @saved="activeTab = 'active'"
+    />
+
+    <!-- Settlement Report Modal -->
+    <SettlementReport
+      v-if="reportData"
+      :todo="reportData.todo"
+      :stats="reportData.stats"
+      @close="reportData = null"
+    />
   </div>
 </template>
 
@@ -61,10 +86,13 @@
 import { ref, computed } from 'vue'
 import dayjs from 'dayjs'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
+import type { Todo } from '@/api/types'
 import { useGadgetStore } from '@/stores/gadgets'
 import { useUiStore } from '@/stores/ui'
 import TodoForm from './todo/TodoForm.vue'
 import TodoItem from './todo/TodoItem.vue'
+import BundleEditor from './todo/BundleEditor.vue'
+import SettlementReport from './todo/SettlementReport.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 
 dayjs.extend(isSameOrAfter)
@@ -73,6 +101,12 @@ const gadgetStore = useGadgetStore()
 const uiStore = useUiStore()
 const editingTodoId = ref<string | null>(null)
 const activeTab = ref('active')
+const showBundleEditor = ref(false)
+const reportData = ref<{ todo: any, stats: any } | null>(null)
+
+const handleShowReport = (data: { todo: any, stats: any }) => {
+  reportData.value = data
+}
 
 const today = dayjs().startOf('day')
 
@@ -89,22 +123,59 @@ const sortTodos = (list: any[]) => {
 
 const categorized = computed(() => {
   const all = gadgetStore.todos
-  const active = all.filter(t => {
-    if (t.status !== 'pending') return false
-    if (!t.start_date) return true
-    return today.isSameOrAfter(dayjs(t.start_date).startOf('day'))
+  const today = dayjs().startOf('day')
+
+  // Helper to group series
+  const groupSeries = (list: Todo[]) => {
+    const groups: Record<string, Todo[]> = {}
+    const singleTasks: Todo[] = []
+
+    list.forEach(t => {
+      if (!t.recurrence || t.recurrence === 'none') {
+        singleTasks.push(t)
+      } else {
+        const key = `${t.text}_${t.recurrence}`
+        if (!groups[key]) groups[key] = []
+        groups[key].push(t)
+      }
+    })
+
+    const aggregated = [...singleTasks]
+    Object.values(groups).forEach(seriesItems => {
+      // Find the "representative" for today:
+      // Priority: 1. Today's pending, 2. Today's completed, 3. Future pending, 4. Latest overall
+      const todayPending = seriesItems.find(t => t.status === 'pending' && dayjs(t.start_date).isSameOrBefore(today) && dayjs(t.due_date).isSameOrAfter(today))
+      const todayCompleted = seriesItems.find(t => t.status === 'completed' && dayjs(t.completed_at || t.updated_at).isSame(today, 'day'))
+      const futurePending = seriesItems.filter(t => t.status === 'pending' && dayjs(t.start_date).isAfter(today)).sort((a,b) => dayjs(a.start_date).diff(dayjs(b.start_date)))[0]
+      
+      const rep = todayPending || todayCompleted || futurePending || seriesItems.sort((a,b) => dayjs(b.created_at).diff(dayjs(a.created_at)))[0]
+      if (rep) aggregated.push(rep)
+    })
+
+    return aggregated
+  }
+
+  // Active: Pending items + today's completed recurring items (so they stay in list)
+  const activeRaw = all.filter(t => {
+    const isToday = t.start_date ? dayjs(t.start_date).isSameOrBefore(today) : true
+    const isPending = t.status === 'pending'
+    const isRecurringTodayCompleted = t.recurrence !== 'none' && t.status === 'completed' && dayjs(t.completed_at || t.updated_at).isSame(today, 'day')
+    
+    return isToday && (isPending || isRecurringTodayCompleted)
   })
-  const planned = all.filter(t => {
+
+  // Planned: Future pending items
+  const plannedRaw = all.filter(t => {
     if (t.status !== 'pending') return false
     if (!t.start_date) return false
-    return dayjs(t.start_date).startOf('day').isAfter(today)
+    return dayjs(t.start_date).isAfter(today)
   })
 
   return {
-    active: sortTodos(active),
-    planned: sortTodos(planned),
-    failed: sortTodos(all.filter(t => t.status === 'failed')),
-    completed: sortTodos(all.filter(t => t.status === 'completed'))
+    active: gadgetStore.getTodoTree(sortTodos(groupSeries(activeRaw))),
+    planned: gadgetStore.getTodoTree(sortTodos(groupSeries(plannedRaw))),
+    failed: gadgetStore.getTodoTree(sortTodos(all.filter(t => t.status === 'failed'))),
+    completed: gadgetStore.getTodoTree(sortTodos(all.filter(t => t.status === 'completed')))
   }
 })
 

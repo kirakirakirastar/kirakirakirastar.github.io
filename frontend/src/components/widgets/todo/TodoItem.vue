@@ -1,13 +1,30 @@
 <template>
-  <div 
-    class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-white/5 transition-all duration-300 group/item relative shadow-sm cursor-default"
-    :class="[
-      getPriorityColor(todo.priority),
-      todo.status === 'completed' ? 'bg-emerald-500/5 opacity-75' : 
-      todo.status === 'failed' ? 'bg-red-500/5 opacity-75' : 
-      'bg-white dark:bg-slate-800/60 hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50'
-    ]"
-  >
+  <div class="flex flex-col gap-2">
+    <div 
+      class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-white/5 transition-all duration-300 group/item relative shadow-sm cursor-default"
+      :class="[
+        getPriorityColor(todo.priority),
+        todo.status === 'completed' ? 'bg-emerald-500/5 opacity-75' : 
+        todo.status === 'failed' ? 'bg-red-500/5 opacity-75' : 
+        'bg-white dark:bg-slate-800/60 hover:border-primary/20 hover:bg-white dark:hover:bg-slate-700/50',
+        todo.is_bundle ? 'ring-1 ring-primary/20 ring-offset-2 dark:ring-offset-slate-900 shadow-lg' : ''
+      ]"
+    >
+      <!-- Bundle Expand/Collapse -->
+      <button 
+        v-if="todo.is_bundle && todo.children?.length"
+        @click="isExpanded = !isExpanded"
+        class="absolute -left-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-full flex items-center justify-center shadow-md z-[20] hover:scale-110 transition-transform"
+      >
+        <svg 
+          class="w-3 h-3 text-primary transition-transform duration-300"
+          :class="isExpanded ? 'rotate-180' : 'rotate-90'"
+          fill="currentColor" viewBox="0 0 20 20"
+        >
+          <path d="M10 12a1 1 0 01-.707-.293l-4-4a1 1 0 111.414-1.414L10 9.586l3.293-3.293a1 1 0 111.414 1.414l-4 4A1 1 0 0110 12z" />
+        </svg>
+      </button>
+
     <!-- Priority Color Bar (Interactive) -->
     <div 
       @click="handleCyclePriority"
@@ -47,9 +64,39 @@
               'text-red-700 dark:text-red-400 line-through decoration-red-400/50': todo.status === 'failed'
             }"
           >
-            <span class="flex items-center gap-1.5">
+            <span class="flex items-center gap-1.5 flex-wrap">
               <svg v-if="todo.is_private" class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
               {{ todo.text }}
+              
+              <!-- Series Stats Badge (Dual Mode: Rate + Streak) -->
+              <span 
+                v-if="seriesStats" 
+                class="flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-tight shrink-0 transition-all duration-500"
+                :class="[
+                  seriesStats.isPerfect 
+                    ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30' 
+                    : 'bg-red-100 text-red-600 dark:bg-red-900/30',
+                  seriesStats.streak >= 7 ? 'ring-1 ring-emerald-500 animate-pulse' : ''
+                ]"
+                :title="`历史达成: ${seriesStats.rate}% | 当前连击: ${seriesStats.streak}天`"
+              >
+                <span>{{ seriesStats.rate }}%</span>
+                <span v-if="seriesStats.streak > 0" class="opacity-30">·</span>
+                <span v-if="seriesStats.streak > 0" class="flex items-center gap-0.5">
+                  <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.334-.398-1.817a1 1 0 00-1.514-.857 4.028 4.028 0 00-1.159 1.44c-.123.242-.231.503-.316.773a6.996 6.996 0 00-.104 2.101 5.996 5.996 0 001.623 3.31c.8.835 1.602 1.134 2.751 1.134 1.554 0 2.302-1 2.302-2.302 0-1.085-.353-2.084-.353-3.133 0-1.272.21-2.287.898-3.676a10.377 10.377 0 00.577-1.485 1.13 1.13 0 00.073-.499c0-.179-.033-.341-.09-.488z" clip-rule="evenodd"></path></svg>
+                  {{ seriesStats.streak }}
+                </span>
+              </span>
+
+              <!-- Settlement Indicator -->
+              <div 
+                v-if="seriesStats?.isFinished" 
+                @click.stop="emit('show-report', { todo, stats: seriesStats })"
+                class="bg-amber-100 dark:bg-amber-900/30 text-amber-600 px-1.5 py-0.5 rounded text-[10px] uppercase font-black ml-1 cursor-pointer hover:bg-amber-200 transition-colors"
+                title="点击查看总结报告"
+              >
+                已结算
+              </div>
             </span>
           </span>
           <div class="flex items-center gap-2 mt-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
@@ -79,6 +126,21 @@
             <option value="low">🔵 轻松</option>
           </select>
         </div>
+        </div>
+      </div>
+
+      <!-- Bundle Progress Bar (Sub-progress) -->
+      <div v-if="todo.is_bundle && seriesStats?.sub_progress" class="w-full mt-auto pt-3 border-t border-slate-100/50 dark:border-white/5">
+         <div class="flex items-center justify-between mb-1.5 px-1">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">关卡总体进度: {{ seriesStats.sub_progress.completed }}/{{ seriesStats.sub_progress.total }}</span>
+            <span class="text-[9px] font-bold text-primary">{{ seriesStats.sub_progress.percent }}%</span>
+         </div>
+         <div class="w-full h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+            <div 
+              class="h-full bg-primary transition-all duration-700 ease-out shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+              :style="{ width: `${seriesStats.sub_progress.percent}%` }"
+            ></div>
+         </div>
       </div>
     </div>
 
@@ -241,21 +303,39 @@
         </div>
       </div>
     </div>
+
+    <!-- Recursive Children Display -->
+    <transition name="fade-slide">
+      <div v-if="isExpanded && todo.children?.length" class="ml-4 pl-4 border-l-2 border-slate-100 dark:border-white/5 flex flex-col gap-2 mt-1">
+        <TodoItem 
+          v-for="child in todo.children" 
+          :key="child.id"
+          :todo="child"
+          :is-editing="false"
+          v-bind="$attrs"
+        />
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
 import dayjs from 'dayjs'
 import { onClickOutside } from '@vueuse/core'
 import type { Todo } from '@/api/types'
+import { useGadgetStore } from '@/stores/gadgets'
 
 const props = defineProps<{
-  todo: Todo
+  todo: any // Cast to any to handle children & stats
   isEditing: boolean
 }>()
 
-const emit = defineEmits(['toggle-status', 'cycle-priority', 'cycle-recurrence', 'postpone', 'fail', 'retry', 'remove', 'start-edit', 'cancel-edit', 'save-edit'])
+const gadgetStore = useGadgetStore()
+const seriesStats = computed(() => gadgetStore.getSeriesStats(props.todo))
+const isExpanded = ref(true)
+
+const emit = defineEmits(['toggle-status', 'cycle-priority', 'cycle-recurrence', 'postpone', 'fail', 'retry', 'remove', 'start-edit', 'cancel-edit', 'save-edit', 'show-report'])
 
 const tempText = ref(props.todo.text)
 const tempPriority = ref(props.todo.priority || 'medium')

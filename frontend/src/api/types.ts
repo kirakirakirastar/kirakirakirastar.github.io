@@ -70,6 +70,13 @@ export interface Todo {
   created_at: string
   updated_at?: string
   is_private: boolean
+  series_started_at?: string | null
+  
+  // Hierarchical / Bundle Support
+  parent_id?: string | null
+  is_bundle?: boolean
+  start_offset?: number // Offset in days from parent start
+  duration_days?: number // Duration of this specific sub-task stage
 }
 
 export interface DashboardStats {

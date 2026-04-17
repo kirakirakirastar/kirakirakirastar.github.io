@@ -96,6 +96,17 @@
                    清除
                  </button>
                </div>
+               <!-- Start Date for Back-filling -->
+               <div v-if="recurrence !== 'none'" class="flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
+                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">习惯起始于 (补录)</span>
+                 <input 
+                   type="date" 
+                   v-model="seriesStart" 
+                   class="bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-primary dark:[color-scheme:dark]"
+                 />
+                 <p class="text-[8px] text-slate-400">设置过去的日期以追溯之前的习惯统计</p>
+               </div>
+
                <p class="text-[9px] text-slate-400 italic">若留空，则循环一直进行到 {{ dueDate || '任务截止' }}（即该任务的最终寿命）。</p>
             </div>
           </div>
@@ -141,6 +152,7 @@ const startDate = ref(todayStr)
 const dueDate = ref(todayStr)
 const recurrence = ref('none')
 const recurrenceUntil = ref<string | null>(null)
+const seriesStart = ref<string | null>(null)
 const isPrivate = ref(false)
 const showRecurrenceMenu = ref(false)
 
@@ -170,6 +182,7 @@ const handleSubmit = () => {
     due_date: dueDate.value || null,
     recurrence: recurrence.value,
     recurrence_until: recurrenceUntil.value || null,
+    series_started_at: seriesStart.value || null,
     is_private: isPrivate.value
   })
   
@@ -180,6 +193,7 @@ const handleSubmit = () => {
   dueDate.value = todayStr
   recurrence.value = 'none'
   recurrenceUntil.value = null
+  seriesStart.value = null
   isPrivate.value = false
   showRecurrenceMenu.value = false
 }
