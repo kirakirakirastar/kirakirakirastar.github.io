@@ -266,10 +266,12 @@ export const MarkdownColor = Color.extend({
   spanning: true,
 })
 
-// MarkdownHighlight is kept only for its commands (setHighlight/toggleHighlight)
+// MarkdownHighlight is kept for its commands but we ensure it doesn't conflict
+// with MarkdownTextStyle for the 'mark' tag parsing.
 export const MarkdownHighlight = Highlight.extend({
   inclusive: true,
   spanning: true,
+  // We don't override parseHTML here, but we let MarkdownTextStyle handle the attributes
 })
 
 
