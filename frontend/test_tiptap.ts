@@ -3,7 +3,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
 import { Markdown } from 'tiptap-markdown'
-import { Mask } from './src/utils/tiptap-extensions/index.ts'
+import { Mask } from './src/utils/tiptap-extensions.ts'
 
 const editor = new Editor({
   extensions: [
@@ -14,7 +14,7 @@ const editor = new Editor({
       addStorage() {
         return {
           markdown: {
-            serialize(state, node) {
+            serialize(state: any, node: any) {
               state.write(node.attrs.checked ? '[x] ' : '[ ] ')
               const paragraph = node.firstChild
               if (paragraph) {

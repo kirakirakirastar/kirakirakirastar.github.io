@@ -54,22 +54,11 @@ export const validateAndSanitizeMarkdown = (content: string): string => {
     cleaned = cleaned.replace(rx, '$1');
   }
 
-  // 3. Selective substring deduplication inside BBCode markers.
-  //    Specifically targets the "TaskItem duplication" signature where 
-  //    the parser appends the same text twice without a space.
-  //    We use a loop to handle multiple levels of corruption (1->2->4->8)
-  // 3. Substring deduplication inside BBCode markers.
-  //    This specifically targets corruption within Lists (Task, Bullet, Ordered).
-  //    Matches: "[s]测试测试[/s]" in "- [ ] [s]测试测试[/s]" or "1. [s]A A[/s]"
-  let prev = '';
-  while (prev !== cleaned) {
-    prev = cleaned;
-    // We check if the line looks like a list item first to be safe
-    cleaned = cleaned.replace(/^([ \t]*([-*+]|\d+\.)( \[[ x]\])? .*?)(\[[a-z]+(?:=[^\]]+)?\])(.+?)(\[\/[a-z]+\])/gm, (match, prefix, bullet, task, open, inner, close) => {
-       const deduplicatedInner = inner.replace(/(.{2,})[\s\u200B]*\1+/g, '$1');
-       return prefix + open + deduplicatedInner + close;
-    });
-  }
+
+  // 3. Selective token deduplication has been removed to prevent false positives 
+  // with legitimate repeated text (e.g. in Chinese "哈哈").
+  // The source-level serialization cleanup in useMarkdownEditor.ts is now the 
+  // preferred way to handle duplication.
 
   return cleaned;
 };

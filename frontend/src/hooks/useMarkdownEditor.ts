@@ -111,7 +111,14 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
             markdown: {
               serialize(state: any, node: any) {
                 state.write(node.attrs.checked ? '[x] ' : '[ ] ')
-                state.renderContent(node)
+                // Render the first child (usually a paragraph) as inline content
+                // to avoid block-level duplication issues in tiptap-markdown
+                const paragraph = node.firstChild
+                if (paragraph && paragraph.type.name === 'paragraph') {
+                  state.renderInline(paragraph)
+                } else {
+                  state.renderContent(node)
+                }
               },
             }
           }
