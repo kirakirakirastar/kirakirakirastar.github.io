@@ -63,15 +63,15 @@
               
               <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 self-center mx-1"></div>
               
-              <div class="flex items-center gap-1 ml-1 group relative">
+              <div class="flex items-center gap-1 group relative">
                 <input 
                   type="color" 
                   class="w-8 h-8 p-0 border-none bg-transparent cursor-pointer"
-                  :value="editor?.getAttributes('textStyle').color || '#000000'"
+                  :value="getEditorColor()"
                   @input="(e) => editor?.chain().focus().setColor((e.target as HTMLInputElement).value).run()"
                   title="文字颜色"
                 />
-                <button type="button" @click="editor?.chain().focus().unsetColor().run()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-400 hover:text-red-500 transition-colors" title="清除颜色">
+                <button type="button" @click="editor?.chain().focus().unsetColor().run()" class="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded text-gray-400 hover:text-red-500 transition-colors" title="清除颜色">
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
               </div>

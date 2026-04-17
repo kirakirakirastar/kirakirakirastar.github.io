@@ -56,7 +56,7 @@
                 <button type="button" @click="editor?.chain().focus().toggleStrike().run()" :class="{ 'bg-gray-200 dark:bg-gray-600': editor?.isActive('strike') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm line-through" title="删除线 (Ctrl+D)">S</button>
                 <button type="button" @click="editor?.chain().focus().toggleMask().run()" :class="{ 'bg-slate-900 text-white': editor?.isActive('mask') }" class="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-sm" title="黑条/马赛克 (Ctrl+M)">■</button>
                 <div class="flex items-center gap-1 ml-1 group relative">
-                  <input type="color" @input="editor?.chain().focus().setColor(($event.target as HTMLInputElement).value).run()" :value="editor?.getAttributes('textStyle').color || '#000000'" class="w-6 h-6 p-0 border-0 bg-transparent cursor-pointer" title="文字颜色" />
+                  <input type="color" @input="editor?.chain().focus().setColor(($event.target as HTMLInputElement).value).run()" :value="getEditorColor()" class="w-6 h-6 p-0 border-0 bg-transparent cursor-pointer" title="文字颜色" />
                   <button type="button" @click="editor?.chain().focus().unsetColor().run()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-400 hover:text-red-500 transition-colors" title="清除颜色">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                   </button>

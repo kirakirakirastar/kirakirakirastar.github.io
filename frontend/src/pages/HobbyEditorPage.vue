@@ -89,7 +89,7 @@
               <input 
                 type="color" 
                 class="w-8 h-8 p-0 border-none bg-transparent cursor-pointer"
-                :value="editor?.getAttributes('textStyle').color || '#000000'"
+                :value="getEditorColor()"
                 @input="(e) => editor?.chain().focus().setColor((e.target as HTMLInputElement).value).run()"
                 title="文字颜色"
               />
@@ -220,7 +220,7 @@ const uploadAndSetCover = async (file: File) => {
   }
 }
 
-const { editor } = useMarkdownEditor({
+const { editor, getEditorColor } = useMarkdownEditor({
   placeholder: '在这里写下你的评价与笔记...',
   onUpdate: (markdown) => {
     form.value.review = markdown
