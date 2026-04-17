@@ -96,7 +96,7 @@
           <div class="bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-3xl p-8 border border-white/60 dark:border-slate-700/60 shadow-sm min-h-[300px] flex flex-col overflow-hidden break-words">
             <div class="text-xs font-black text-primary/40 uppercase tracking-[0.2em] mb-4">心中所想</div>
             <div 
-              :key="hobby.id + '_' + hobby.updated_at"
+              :key="hobby.id + '_' + renderCounter"
               class="markdown-body flex-1" 
               v-html="renderMarkdown(hobby.review || '暂无详细记录...')"
             ></div>
@@ -129,18 +129,22 @@ import { resolveAssetUrl } from '@/api/http'
 import { renderMarkdown } from '@/utils/markdown'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
+import { useTaskListStabilizer } from '@/hooks/useTaskListStabilizer'
 
 const authStore = useAuthStore()
 const uiStore = useUiStore()
+const { stabilize } = useTaskListStabilizer()
 const route = useRoute()
 const router = useRouter()
 
 const loading = ref(true)
 const hobby = ref<any>(null)
+const renderCounter = ref(0)
 
 const loadHobby = async () => {
     try {
         hobby.value = await hobbiesApi.get(Number(route.params.id))
+        renderCounter.value++
         document.title = `${hobby.value.title} | 爱好追踪 | Kirakirastar's Blog`
     } catch (error) {
         console.error('加载条目失败:', error)
@@ -199,6 +203,11 @@ const statusClass = (status: string) => {
 
 onMounted(() => {
     loadHobby()
+    stabilize()
+})
+
+watch(() => hobby.value?.review, () => {
+    stabilize()
 })
 </script>
 

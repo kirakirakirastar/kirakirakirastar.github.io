@@ -58,7 +58,7 @@
       <!-- Content -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8 overflow-hidden break-words">
         <div 
-          :key="note.id + '_' + note.updated_at"
+          :key="note.id + '_' + renderCounter"
           class="markdown-body" 
           v-html="renderedContent" 
           @click="handleCopyCode"
@@ -83,18 +83,17 @@ import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import mermaid from 'mermaid'
 import 'katex/dist/katex.min.css'
-import { renderMarkdown } from '@/utils/markdown'
-import { notesApi } from '@/api/notes'
-import { useAuthStore } from '@/stores/auth'
-import { useUiStore } from '@/stores/ui'
 import { calculateReadingTime } from '@/utils/text'
+import { useTaskListStabilizer } from '@/hooks/useTaskListStabilizer'
 
 const uiStore = useUiStore()
 const authStore = useAuthStore()
+const { stabilize } = useTaskListStabilizer()
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
 const note = ref<any>(null)
+const renderCounter = ref(0)
 
 const renderedContent = computed(() => {
   if (!note.value) return ''
@@ -138,6 +137,7 @@ const handleCopyCode = async (event: MouseEvent) => {
 const loadNote = async () => {
   try {
     note.value = await notesApi.get(Number(route.params.id))
+    renderCounter.value++
     document.title = `${note.value.title} | Kirakirastar's Blog`
   } catch (error) {
     console.error('加载笔记失败:', error)
@@ -170,6 +170,7 @@ onMounted(async () => {
     securityLevel: 'loose'
   })
   mermaid.run({ querySelector: '.mermaid' })
+  stabilize()
 })
 
 onUnmounted(() => {
@@ -179,6 +180,7 @@ onUnmounted(() => {
 watch(renderedContent, async () => {
   await nextTick()
   mermaid.run({ querySelector: '.mermaid' })
+  stabilize()
 })
 </script>
 

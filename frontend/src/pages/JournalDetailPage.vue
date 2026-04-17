@@ -58,7 +58,7 @@
       <!-- Content -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8 overflow-hidden break-words">
         <div 
-          :key="journal.id + '_' + journal.updated_at"
+          :key="journal.id + '_' + renderCounter"
           class="markdown-body" 
           v-html="renderMarkdown(journal.content_md || journal.content_html)"
         ></div>
@@ -82,14 +82,16 @@ import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import { calculateReadingTime } from '@/utils/text'
 import { renderMarkdown } from '@/utils/markdown'
-import { useAuthStore } from '@/stores/auth'
 import { journalsApi } from '@/api/journals'
+import { useTaskListStabilizer } from '@/hooks/useTaskListStabilizer'
 
 const authStore = useAuthStore()
+const { stabilize } = useTaskListStabilizer()
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
 const journal = ref<any>(null)
+const renderCounter = ref(0)
 
 const readingTime = computed(() => {
   if (!journal.value) return 0
@@ -112,6 +114,7 @@ const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm')
 const loadJournal = async () => {
   try {
     journal.value = await journalsApi.get(Number(route.params.id))
+    renderCounter.value++
     document.title = `${journal.value.title} | Kirakirastar's Blog`
   } catch (error) {
     console.error('加载日志失败:', error)
@@ -134,9 +137,14 @@ const deleteJournal = async () => {
 onMounted(() => {
   loadJournal()
   window.addEventListener('scroll', handleScroll)
+  stabilize()
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+})
+
+watch(() => journal.value?.content_md, () => {
+  stabilize()
 })
 </script>
