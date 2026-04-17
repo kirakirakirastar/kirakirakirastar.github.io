@@ -135,9 +135,12 @@ html, body, #app {
   display: list-item !important;
 }
 /* Ensure markers match text color or primary color for visibility */
-.dark .ProseMirror ol::marker,
-.dark .ProseMirror ul::marker {
+.markdown-body ul, 
+.ProseMirror ul:not([data-type="taskList"]) {
   @apply text-slate-100;
+}
+.ProseMirror ul[data-type="taskList"] {
+  list-style-type: none !important;
 }
 .ProseMirror ol::marker,
 .ProseMirror ul::marker {
@@ -156,10 +159,12 @@ html, body, #app {
   @apply text-slate-800 dark:text-slate-100 leading-relaxed;
 }
 
-.markdown-body li > p {
-  @apply mb-0 inline; /* Prevents double spacing in simple lists */
+.markdown-body li > p,
+.ProseMirror li > p {
+  @apply mb-0 block; /* Block layout ensures the text stays together as a single flex child */
 }
-.markdown-body li > p + p {
+.markdown-body li > p + p,
+.ProseMirror li > p + p {
   @apply mt-2 block; /* Allows spacing for multi-paragraph list items */
 }
 
@@ -184,13 +189,20 @@ html, body, #app {
 .markdown-body tr:hover td { @apply bg-slate-50 opacity-50 dark:bg-slate-800 dark:bg-opacity-30; }
 .markdown-body tr:nth-child(even) { @apply bg-slate-50 opacity-20 dark:bg-slate-800 dark:bg-opacity-10; }
 
-/* Task Lists - Modern */
-.markdown-body .task-list-item { @apply list-none flex items-start gap-4 -ml-8 my-2; }
-.markdown-body .task-list-item label { @apply flex items-start gap-4 cursor-pointer; }
-.markdown-body .task-list-item input[type="checkbox"] {
+/* Task Lists - Modern (Applies to both Markdown view and TipTap editor) */
+.markdown-body .task-list-item,
+.ProseMirror .task-list-item { @apply list-none flex items-start gap-4 -ml-8 my-2; }
+
+.markdown-body .task-list-item label,
+.ProseMirror .task-list-item label { @apply flex items-start gap-4 cursor-pointer; }
+
+.markdown-body .task-list-item input[type="checkbox"],
+.ProseMirror .task-list-item input[type="checkbox"] {
   @apply mt-1.5 rounded-md border-slate-300 dark:border-slate-600 text-primary focus:ring-primary w-5 h-5 transition-all cursor-pointer shadow-sm;
 }
-.markdown-body .task-list-item p { @apply my-0; }
+
+.markdown-body .task-list-item p,
+.ProseMirror .task-list-item p { @apply my-0; }
 
 /* Admonitions (Containers) */
 .admonition { @apply my-8 p-5 rounded-2xl border-l-4 shadow-sm backdrop-blur-md; }
