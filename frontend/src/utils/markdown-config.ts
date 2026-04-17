@@ -112,8 +112,9 @@ export const bbcodePlugin = (md: any) => {
 
     if (!silent) {
       const tokenType = isClose ? `${markName}_close` : `${markName}_open`
-      // Use the markName as the tag to ensure tiptap-markdown matches it correctly to the extension
-      const token = state.push(tokenType, tagName, isClose ? -1 : 1)
+      // Use the standard htmlTag (e.g., span) for the token tag to ensure 
+      // markdown-it renders standard HTML that Tiptap understands.
+      const token = state.push(tokenType, htmlTag, isClose ? -1 : 1)
 
       if (!isClose) {
         if (tagName === 'mask') {
