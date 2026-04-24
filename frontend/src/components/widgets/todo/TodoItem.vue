@@ -174,9 +174,12 @@
          </div>
       </div>
 
-      <!-- Refined Action Group (Unified Stack) -->
-      <div class="flex sm:flex-col items-center gap-1 ml-auto shrink-0 self-center sm:self-stretch justify-center pr-1 sm:pr-0">
-        <div class="flex sm:flex-col items-center gap-1 p-1 bg-slate-100/50 dark:bg-slate-900/40 rounded-xl border border-slate-200/50 dark:border-white/5">
+      <!-- Refined Action Group (Horizontal) -->
+      <div class="flex items-center gap-1 ml-auto shrink-0 self-center">
+        <div 
+          class="flex items-center gap-1 p-1 bg-slate-100/50 dark:bg-slate-900/40 rounded-xl border border-slate-200/50 dark:border-white/5 transition-opacity duration-300"
+          :class="!isEditing ? 'opacity-100 sm:opacity-0 sm:group-hover/item:opacity-100' : 'opacity-100'"
+        >
           <!-- Recurrence -->
           <div class="relative" ref="containerRef">
             <button 
@@ -264,7 +267,7 @@
             </Teleport>
           </div>
 
-          <div class="w-full sm:w-4 h-px sm:h-px bg-slate-200 dark:bg-white/10 mx-0.5 sm:my-0.5"></div>
+          <div class="w-px h-4 bg-slate-200 dark:bg-white/10 mx-0.5"></div>
 
           <!-- Edit / Save Actions -->
           <template v-if="isEditing">
@@ -306,7 +309,7 @@
 
     <!-- Recursive Children Display -->
     <transition name="fade-slide">
-      <div v-if="isExpanded && todo.children?.length" class="ml-4 pl-4 border-l-2 border-slate-100 dark:border-white/5 flex flex-col gap-2 mt-1">
+      <div v-if="isExpanded && todo.children?.length" class="ml-4 pl-4 border-l-2 border-primary/20 dark:border-primary/30 flex flex-col gap-2 mt-1">
         <TodoItem 
           v-for="child in todo.children" 
           :key="child.id"

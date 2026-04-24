@@ -54,7 +54,7 @@
       <Transition name="tooltip-fade">
         <div 
           v-if="hoveredDayData"
-          class="absolute px-5 py-4.5 bg-slate-900/98 backdrop-blur-3xl text-white text-[11px] rounded-[1.5rem] pointer-events-none z-[100] shadow-[0_25px_60px_rgba(0,0,0,0.5)] ring-1 ring-white/10 w-64"
+          class="absolute px-5 py-4.5 bg-slate-900/80 backdrop-blur-2xl text-white text-[11px] rounded-[1.5rem] pointer-events-none z-[100] shadow-[0_25px_60px_rgba(0,0,0,0.6)] ring-1 ring-white/20 w-64"
           :style="tooltipStyle"
         >
           <div class="font-black border-b border-white/10 pb-3 mb-3.5 flex justify-between items-center text-white/90 tracking-wide text-[13px]">
@@ -168,7 +168,7 @@
                 @click="$emit('day-click', day.date === props.selectedDate ? null : day.date)"
                 @mouseenter="handleMouseEnter($event, day, dayIndex, weekIndex)"
                 :id="day.date === dayjs().format('YYYY-MM-DD') ? 'today-cell' : ''"
-                class="heatmap-cell rounded-[4px] sm:rounded-[5px] md:rounded-[6.5px] relative group/cell transition-all duration-500 hover:z-50 cursor-pointer"
+                class="heatmap-cell rounded-[4px] sm:rounded-[5px] md:rounded-[6.5px] relative group/cell transition-all duration-500 hover:z-50 cursor-pointer hover:scale-110 hover:brightness-110 hover:ring-2 hover:ring-white/30"
                 :class="[
                   // Only add grey bg for truly empty days (no inline backgroundColor set)
                   !day.style.backgroundColor ? 'bg-slate-100/80 dark:bg-slate-700/40 hover:bg-slate-200 dark:hover:bg-slate-600/60' : '',

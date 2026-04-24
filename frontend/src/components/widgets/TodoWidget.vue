@@ -250,12 +250,17 @@ const cycleRecurrence = (todo: any) => {
   background: rgba(255,255,255,0.1);
 }
 
+.list-complete-enter-active,
+.list-complete-move {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.list-complete-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute;
+}
 .list-complete-enter-from,
 .list-complete-leave-to {
   opacity: 0;
-  transform: translateX(30px);
-}
-.list-complete-leave-active {
-  position: absolute;
+  transform: translateX(30px) scale(0.95);
 }
 </style>
