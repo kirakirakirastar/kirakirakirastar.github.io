@@ -35,7 +35,7 @@
     </div>
 
     <!-- Component Row 1: Checkbox + Name -->
-    <div class="flex items-center gap-3 w-full sm:flex-1 min-w-0">
+    <div class="flex items-center gap-3 w-full min-w-0" :class="!isEditing ? 'sm:flex-1' : ''">
       <button 
         @click="handleToggleStatus"
         class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center transition-colors shadow-sm"

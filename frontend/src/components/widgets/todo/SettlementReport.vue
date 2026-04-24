@@ -1,5 +1,6 @@
 <template>
-  <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-500">
+  <Teleport to="body">
+    <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-500">
     <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 relative">
       
       <!-- Confetti Overlay (CSS Pure) -->
@@ -68,7 +69,7 @@
       </div>
 
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
