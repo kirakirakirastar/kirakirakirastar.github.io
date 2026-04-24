@@ -70,7 +70,7 @@
               
               <!-- Series Stats Badge (Dual Mode: Rate + Streak) -->
               <span 
-                v-if="seriesStats" 
+                v-if="seriesStats && seriesStats.streak !== undefined" 
                 class="flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-tight shrink-0 transition-all duration-500"
                 :class="[
                   seriesStats.isPerfect 

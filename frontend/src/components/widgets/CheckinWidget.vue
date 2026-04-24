@@ -47,7 +47,7 @@
         <div class="flex flex-col items-center py-4">
           <div class="relative">
             <div class="text-6xl font-black bg-gradient-to-br from-secondary to-pink-500 bg-clip-text text-transparent drop-shadow-sm">
-              {{ gadgetStore.checkin.streak }}
+              {{ gadgetStore.currentStreak }}
             </div>
             <div class="absolute -top-1 -right-6 text-2xl animate-bounce">🔥</div>
           </div>

@@ -28,21 +28,38 @@ md.renderer.rules.strike_close = () => '</s>'
  */
 export const convertLegacyHTMLToBBCode = (markdown: string): string => {
   if (!markdown) return markdown;
-  return markdown
+  let bbcode = markdown
     .replace(/<u[^>]*>([\s\S]*?)<\/u>/gi, '[u]$1[/u]')
     .replace(/<s[^>]*>([\s\S]*?)<\/s>/gi, '[s]$1[/s]')
-    .replace(/<mark[^>]*>([\s\S]*?)<\/mark>/gi, '[mark]$1[/mark]')
-    .replace(/<span[^>]*class=['"][^'"]*mask-text[^'"]*['"][^>]*>([\s\S]*?)<\/span>/gi, '[mask]$1[/mask]')
-    .replace(/<span[^>]*style=['"]([^'"]*)['"][^>]*>([\s\S]*?)<\/span>/gi, (match, style, content) => {
-      let result = content
-      const colorMatch = style.match(/color:\s*([^;]+)/)
-      const bgMatch = style.match(/background-color:\s*([^;]+)/)
-      if (colorMatch) result = `[color=${colorMatch[1].trim()}]${result}[/color]`
-      if (bgMatch) result = `[mark]${result}[/mark]`
-      return result
-    })
-    .replace(/<span[^>]*color=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/span>/gi, '[color=$1]$2[/color]')
     .replace(/<mark[^>]*>([\s\S]*?)<\/mark>/gi, '[mark]$1[/mark]');
+
+  // Stateful replacement for spans to ensure proper BBCode closing tags
+  const spanStack: string[] = [];
+  bbcode = bbcode.replace(/<(\/)?span([^>]*)>/gi, (match, isClose, attrs) => {
+    if (isClose) {
+      const tag = spanStack.pop();
+      if (tag === 'html_span' || !tag) return '</span>';
+      return `[/${tag}]`;
+    } else {
+      if (/mask-text/i.test(attrs)) {
+        spanStack.push('mask');
+        return '[mask]';
+      } else if (/background-color:\s*yellow/i.test(attrs)) {
+        spanStack.push('mark');
+        return '[mark]';
+      } else {
+        const colorMatch = attrs.match(/color:\s*([^;"'\s]+)/i);
+        if (colorMatch) {
+          spanStack.push('color');
+          return `[color=${colorMatch[1]}]`;
+        }
+      }
+      spanStack.push('html_span');
+      return match;
+    }
+  });
+
+  return bbcode;
 };
 
 /**
@@ -83,6 +100,12 @@ export const renderMarkdownToHTML = (markdown: string): string => {
   const sanitized = validateAndSanitizeMarkdown(markdown);
   
   // 2. Render to plain HTML using the standalone parser
-  // This ensures Tiptap starts in a perfectly clean, processed state.
-  return md.render(sanitized);
+  let html = md.render(sanitized);
+
+  // 3. Merge nested textStyle HTML tags (<mark> and <span color>) to prevent Tiptap DOMParser override
+  // This ensures that nested background and color styles form a single TextStyle mark
+  html = html.replace(/<mark[^>]*style=['"]([^'"]*)['"][^>]*>\s*<span[^>]*style=['"]([^'"]*)['"][^>]*>([\s\S]*?)<\/span>\s*<\/mark>/gi, '<span style="$1; $2">$3</span>');
+  html = html.replace(/<span[^>]*style=['"]([^'"]*)['"][^>]*>\s*<mark[^>]*style=['"]([^'"]*)['"][^>]*>([\s\S]*?)<\/mark>\s*<\/span>/gi, '<span style="$1; $2">$3</span>');
+  
+  return html;
 };

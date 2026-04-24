@@ -110,12 +110,7 @@ export function useMarkdownEditor(options: UseMarkdownEditorOptions) {
             markdown: {
               serialize(state: any, node: any) {
                 state.write(node.attrs.checked ? '[x] ' : '[ ] ')
-                const paragraph = node.firstChild
-                if (paragraph && paragraph.type.name === 'paragraph') {
-                  state.renderInline(paragraph)
-                } else {
-                  state.renderContent(node)
-                }
+                state.renderContent(node)
               },
             }
           }

@@ -96,6 +96,10 @@
             <div v-else-if="hoveredDayData.count[props.activeCategory] === 0" class="text-slate-500 italic py-1 text-center font-bold text-[10px] uppercase tracking-widest">
               No {{ currentCategoryInfo.name }}
             </div>
+            <div v-else class="flex items-start gap-3 text-[11px] leading-relaxed group/item">
+              <div class="mt-1 w-1.5 h-1.5 rounded-full shrink-0 transition-transform duration-300 group-hover/item:scale-125" :style="{ backgroundColor: currentCategoryInfo.color, boxShadow: `0 0 8px ${currentCategoryInfo.color}80` }"></div>
+              <span class="text-white/80 line-clamp-2">{{ currentCategoryInfo.name }} +{{ hoveredDayData.count[props.activeCategory] }}</span>
+            </div>
           </div>
 
           <!-- Summary View for 'All' Category -->
@@ -381,11 +385,14 @@ const handleMouseEnter = (event: MouseEvent, day: any, dayIndex: number, weekInd
   const isInStartWeeks = weekIndex < 4
   const isInEndWeeks = weekIndex > heatmapData.value.length - 4
 
+  const translateX = isInStartWeeks ? 'translateX(0)' : (isInEndWeeks ? 'translateX(-100%)' : 'translateX(-50%)')
+  const translateY = isInTopHalf ? 'translateY(0)' : 'translateY(-100%)'
+
   tooltipStyle.value = {
     top: isInTopHalf ? `${top + cellRect.height + 15}px` : `${top - 15}px`,
     left: `${left}px`,
     opacity: '1',
-    transform: `scale(1) ${isInStartWeeks ? 'translateX(0)' : (isInEndWeeks ? 'translateX(-100%)' : 'translateX(-50%)')}`
+    transform: `scale(1) ${translateX} ${translateY}`
   }
 
   tooltipArrowClass.value = [

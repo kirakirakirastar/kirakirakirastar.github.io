@@ -144,7 +144,7 @@ const categorized = computed(() => {
     Object.values(groups).forEach(seriesItems => {
       // Find the "representative" for today:
       // Priority: 1. Today's pending, 2. Today's completed, 3. Future pending, 4. Latest overall
-      const todayPending = seriesItems.find(t => t.status === 'pending' && dayjs(t.start_date).isSameOrBefore(today) && dayjs(t.due_date).isSameOrAfter(today))
+      const todayPending = seriesItems.find(t => t.status === 'pending' && dayjs(t.start_date).isSameOrBefore(today) && (!t.due_date || dayjs(t.due_date).isSameOrAfter(today)))
       const todayCompleted = seriesItems.find(t => t.status === 'completed' && dayjs(t.completed_at || t.updated_at).isSame(today, 'day'))
       const futurePending = seriesItems.filter(t => t.status === 'pending' && dayjs(t.start_date).isAfter(today)).sort((a,b) => dayjs(a.start_date).diff(dayjs(b.start_date)))[0]
       
@@ -156,7 +156,7 @@ const categorized = computed(() => {
   }
 
   // Active: Pending items + today's completed recurring items (so they stay in list)
-  const activeRaw = all.filter(t => {
+  const activeRaw = all.filter((t: any) => {
     const isToday = t.start_date ? dayjs(t.start_date).isSameOrBefore(today) : true
     const isPending = t.status === 'pending'
     const isRecurringTodayCompleted = t.recurrence !== 'none' && t.status === 'completed' && dayjs(t.completed_at || t.updated_at).isSame(today, 'day')
@@ -165,7 +165,7 @@ const categorized = computed(() => {
   })
 
   // Planned: Future pending items
-  const plannedRaw = all.filter(t => {
+  const plannedRaw = all.filter((t: any) => {
     if (t.status !== 'pending') return false
     if (!t.start_date) return false
     return dayjs(t.start_date).isAfter(today)
@@ -174,8 +174,8 @@ const categorized = computed(() => {
   return {
     active: gadgetStore.getTodoTree(sortTodos(groupSeries(activeRaw))),
     planned: gadgetStore.getTodoTree(sortTodos(groupSeries(plannedRaw))),
-    failed: gadgetStore.getTodoTree(sortTodos(all.filter(t => t.status === 'failed'))),
-    completed: gadgetStore.getTodoTree(sortTodos(all.filter(t => t.status === 'completed')))
+    failed: gadgetStore.getTodoTree(sortTodos(all.filter((t: any) => t.status === 'failed'))),
+    completed: gadgetStore.getTodoTree(sortTodos(all.filter((t: any) => t.status === 'completed')))
   }
 })
 

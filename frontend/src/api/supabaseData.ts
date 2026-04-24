@@ -758,8 +758,11 @@ export const supabaseDashboardApi = {
 
               // 2. Simulate future occurrences (only for recurring)
               if (todo.recurrence && todo.recurrence !== 'none') {
+                const durationDays = rangeStart && rangeEnd ? dayjs(rangeEnd).diff(dayjs(rangeStart), 'day') : 0
                 // Start simulation from NEXT occurrence after the reference point
-                current = current.add(1, unit as dayjs.ManipulateType)
+                // Wait, if refDate is due_date, the next due_date is refDate + 1 unit.
+                // The next start_date is nextDue - durationDays.
+                current = current.add(1, unit as dayjs.ManipulateType) // This is the next refDate (usually next due_date)
 
                 while (current.isBefore(futureLimit)) {
                   // If current date exceeds the series limit, stop simulation
@@ -767,16 +770,25 @@ export const supabaseDashboardApi = {
                     break
                   }
 
-                  const dStr = current.format('YYYY-MM-DD')
-                  if (!activityMap[dStr]) {
-                    activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
-                  }
+                  // Determine the range for this future iteration
+                  let iterEnd = current
+                  let iterStart = current.subtract(durationDays, 'day')
 
-                  if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
-                  if (!activityMap[dStr].schedules_list.includes(todo.text)) {
-                    activityMap[dStr].schedules++
-                    activityMap[dStr].total++
-                    activityMap[dStr].schedules_list.push(todo.text)
+                  // Fill the range for this future iteration
+                  let d = dayjs(iterStart)
+                  while (d.isSameOrBefore(iterEnd)) {
+                    const dStr = d.format('YYYY-MM-DD')
+                    if (!activityMap[dStr]) {
+                      activityMap[dStr] = { notes: 0, journals: 0, hobbies: 0, todos: 0, checkins: 0, schedules: 0, total: 0, notes_list: [], journals_list: [], hobbies_list: [], todos_list: [], schedules_list: [] }
+                    }
+
+                    if (!activityMap[dStr].schedules_list) activityMap[dStr].schedules_list = []
+                    if (!activityMap[dStr].schedules_list.includes(todo.text)) {
+                      activityMap[dStr].schedules++
+                      activityMap[dStr].total++
+                      activityMap[dStr].schedules_list.push(todo.text)
+                    }
+                    d = d.add(1, 'day')
                   }
 
                   current = current.add(1, unit as dayjs.ManipulateType)
@@ -847,7 +859,7 @@ export const supabaseTodosApi = {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
 
-    const payload = {
+    const payload: any = {
       text,
       user_id: user.id,
       priority: payloadUpdates?.priority || 'medium',
@@ -859,6 +871,11 @@ export const supabaseTodosApi = {
       status: payloadUpdates?.status || 'pending',
       completed: payloadUpdates?.status === 'completed'
     }
+
+    if (payloadUpdates?.is_bundle !== undefined) payload.is_bundle = payloadUpdates.is_bundle
+    if (payloadUpdates?.parent_id !== undefined) payload.parent_id = payloadUpdates.parent_id
+    if (payloadUpdates?.start_offset !== undefined) payload.start_offset = payloadUpdates.start_offset
+    if (payloadUpdates?.duration_days !== undefined) payload.duration_days = payloadUpdates.duration_days
 
     const { data, error } = await supabase.from('todos').insert(payload).select().single()
     if (error) throw error

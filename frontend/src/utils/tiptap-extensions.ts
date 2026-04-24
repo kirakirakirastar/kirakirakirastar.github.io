@@ -240,7 +240,7 @@ export const MarkdownTextStyle = TextStyle.extend({
             let tags = ''
             const color = mark.attrs.color ? forceHex(mark.attrs.color) : null
             if (color) tags += '[/color]'
-            if (mark.attrs.backgroundColor) tags = '[/mark]' + tags
+            if (mark.attrs.backgroundColor) tags += '[/mark]'
             return tags
           },
         },

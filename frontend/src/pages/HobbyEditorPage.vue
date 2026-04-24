@@ -179,10 +179,10 @@ const loadHobby = async () => {
     review: data.review,
     cover_url: data.cover_url,
     folder_id: data.folder_id,
-    tags: data.tags,
+    tags: data.tags || [],
     is_private: data.is_private || false,
   }
-  tagsInput.value = data.tags.map(t => t.name).join(', ')
+  tagsInput.value = (data.tags || []).map((t: any) => t.name).join(', ')
   const editorHTML = renderMarkdownToHTML(data.review || '')
   editor.value?.commands.setContent(editorHTML)
   form.value.review = data.review

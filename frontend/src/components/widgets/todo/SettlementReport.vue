@@ -49,7 +49,7 @@
             <span class="text-xs font-black text-slate-800 dark:text-slate-100">{{ todo.text }}</span>
           </div>
           <div class="flex items-center justify-between py-2 border-b border-slate-200 dark:border-white/5">
-            <span class="text-xs font-bold text-slate-600 dark:text-slate-300">完成天数</span>
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-300">达成次数</span>
             <span class="text-xs font-black text-slate-800 dark:text-slate-100">{{ stats.completed }} / {{ stats.total }}</span>
           </div>
           <div class="flex items-center justify-between py-2">

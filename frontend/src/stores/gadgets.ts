@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, computed } from 'vue'
 import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import { todosApi, checkinApi, announcementsApi } from '@/api/gadgets'
@@ -95,24 +95,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
         if (overdueTasks.length > 0) {
           console.log(`Auto-failing ${overdueTasks.length} overdue tasks...`)
           for (const task of overdueTasks) {
-            // Update local state first (todos.value is already set)
-            const localTask = todos.value.find((t: Todo) => t.id === task.id)
-            if (localTask) {
-               localTask.status = 'failed'
-               localTask.completed = false
-            }
-            
-            // Sync to DB
-            todosApi.updateStatus(task.id, 'failed')
-              .then(updated => {
-                if (localTask) Object.assign(localTask, updated)
-              })
-              .catch(e => console.error('Failed to sync auto-failure:', e))
-            
-            // Trigger next instance for recurring tasks
-            if (task.recurrence && task.recurrence !== 'none') {
-              handleRecurrence(task)
-            }
+             updateTodoStatus(task.id, 'failed').catch(e => console.error('Failed to auto-fail:', e))
           }
         }
 
@@ -264,8 +247,16 @@ export const useGadgetStore = defineStore('gadgets', () => {
 
       // 2. Create children
       const childPromises = childDrafts.map(child => {
+        let cStart, cDue;
+        if (parentPayload.start_date) {
+          cStart = dayjs(parentPayload.start_date).add(child.start_offset || 0, 'day').format('YYYY-MM-DD')
+          cDue = dayjs(cStart).add((child.duration_days || 1) - 1, 'day').format('YYYY-MM-DD')
+        }
+
         return todosApi.create(child.text, {
           ...child,
+          start_date: cStart,
+          due_date: cDue,
           parent_id: parent.id,
           priority: child.priority || parent.priority,
           is_private: parent.is_private
@@ -296,23 +287,34 @@ export const useGadgetStore = defineStore('gadgets', () => {
     try {
       const updated = await todosApi.updateStatus(id, status)
       
-      // Cascaded completion: If a bundle is completed, auto-complete children
-      if (status === 'completed' && todo.is_bundle) {
+      // Cascaded resolution: If a bundle is completed or failed, auto-resolve children
+      if ((status === 'completed' || status === 'failed') && todo.is_bundle) {
         const children = todos.value.filter(t => t.parent_id === id && t.status === 'pending')
         for (const child of children) {
           // Sequential to keep logic clean and trigger their handleRecurrence if needed
-          await updateTodoStatus(child.id, 'completed')
+          await updateTodoStatus(child.id, status)
+        }
+      } else if (status === 'pending' && todo.is_bundle) {
+        // Revival cascade: Reviving a failed bundle revives its failed children
+        const children = todos.value.filter(t => t.parent_id === id && t.status === 'failed')
+        for (const child of children) {
+          await updateTodoStatus(child.id, 'pending')
         }
       }
 
-      // Reverse cascaded completion: If all children of a bundle are now finished, the parent should be settled
+      // Reverse cascaded completion/revival
       if (todo.parent_id) {
         const parent = todos.value.find(t => t.id === todo.parent_id)
-        if (parent && parent.status === 'pending') {
-          const siblingsAndSelf = todos.value.filter(t => t.parent_id === parent.id)
-          const allFinished = siblingsAndSelf.every(t => t.status !== 'pending')
-          if (allFinished) {
-            await updateTodoStatus(parent.id, 'completed')
+        if (parent) {
+          if (status === 'pending' && parent.status !== 'pending') {
+            // Reverse Revival: Reviving a child MUST revive the parent
+            await updateTodoStatus(parent.id, 'pending')
+          } else if (parent.status === 'pending') {
+            const siblingsAndSelf = todos.value.filter(t => t.parent_id === parent.id)
+            const allFinished = siblingsAndSelf.every(t => t.status !== 'pending')
+            if (allFinished) {
+              await updateTodoStatus(parent.id, 'completed')
+            }
           }
         }
       }
@@ -367,11 +369,12 @@ export const useGadgetStore = defineStore('gadgets', () => {
          break
       }
 
-      // Deduplication: Don't create if an instance with same text and due_date already exists
-      const exists = todos.value.some(t => 
-        t.text === todo.text && 
-        dayjs(t.due_date).isSame(nextDue, 'day')
-      )
+      // Deduplication: Don't create if an instance with same text and start/due_date already exists
+      const exists = todos.value.some(t => {
+        if (t.text !== todo.text) return false
+        if (todo.due_date && t.due_date) return dayjs(t.due_date).isSame(nextDue, 'day')
+        return dayjs(t.start_date).isSame(nextStart, 'day')
+      })
 
       if (!exists) {
         const followingWindowStarts = nextStart.add(1, unit).startOf('day')
@@ -417,7 +420,11 @@ export const useGadgetStore = defineStore('gadgets', () => {
 
         if (newStatus === 'pending') break
       } else {
-        const instance = todos.value.find(t => t.text === todo.text && dayjs(t.due_date).isSame(nextDue, 'day'))
+        const instance = todos.value.find(t => {
+          if (t.text !== todo.text) return false
+          if (todo.due_date && t.due_date) return dayjs(t.due_date).isSame(nextDue, 'day')
+          return dayjs(t.start_date).isSame(nextStart, 'day')
+        })
         if (instance && instance.status === 'pending') break
       }
 
@@ -453,6 +460,21 @@ export const useGadgetStore = defineStore('gadgets', () => {
     const backup = { ...todo }
     Object.assign(todo, updates)
 
+    const isPriorityOrPrivacyChanged = ('priority' in updates && updates.priority !== backup.priority) || 
+                                       ('is_private' in updates && updates.is_private !== backup.is_private)
+
+    if (todo.is_bundle && isPriorityOrPrivacyChanged) {
+        const children = todos.value.filter(t => t.parent_id === id)
+        const childUpdates: any = {}
+        if ('priority' in updates) childUpdates.priority = updates.priority
+        if ('is_private' in updates) childUpdates.is_private = updates.is_private
+
+        for (const child of children) {
+            Object.assign(child, childUpdates)
+            todosApi.update(child.id, childUpdates).catch(e => console.error("Failed to cascade child update", e))
+        }
+    }
+
     try {
       const data = await todosApi.update(id, updates)
       Object.assign(todo, data)
@@ -487,6 +509,18 @@ export const useGadgetStore = defineStore('gadgets', () => {
     const now = dayjs()
     return !last.isSame(now, 'day')
   }
+
+  const currentStreak = computed(() => {
+    if (!checkin.value.last_date) return 0
+    const last = dayjs(checkin.value.last_date)
+    const now = dayjs()
+    // If they checked in today or yesterday, the streak is still alive
+    if (last.isSame(now, 'day') || last.isSame(now.subtract(1, 'day'), 'day')) {
+      return checkin.value.streak || 0
+    }
+    // Otherwise, the streak was broken
+    return 0
+  })
 
   const doCheckin = async (record: string = '') => {
     if (!canCheckin()) return false
@@ -582,7 +616,10 @@ export const useGadgetStore = defineStore('gadgets', () => {
   }
 
   const getSeriesStats = (todo: Todo) => {
-    if (!todo.recurrence || todo.recurrence === 'none') return null
+    if (!todo.recurrence || todo.recurrence === 'none') {
+      if (todo.is_bundle) return { sub_progress: getSubProgress(todo) }
+      return null
+    }
 
     const series = todos.value.filter(t => 
       t.text === todo.text && 
@@ -596,17 +633,21 @@ export const useGadgetStore = defineStore('gadgets', () => {
     const earliestData = earlyTask.start_date || earlyTask.created_at
     const anchor = todo.series_started_at || earliestData
 
+    let unit: dayjs.ManipulateType = 'day'
+    if (todo.recurrence === 'weekly') unit = 'week'
+    else if (todo.recurrence === 'monthly') unit = 'month'
+
     // 2. Completion Metrics
     const completed = series.filter(t => t.status === 'completed').length
     const today = dayjs().startOf('day')
-    const start = dayjs(anchor).startOf('day')
-    let end = today
+    const start = dayjs(anchor).startOf(unit)
+    let end = today.startOf(unit)
 
     if (todo.recurrence_until && today.isAfter(dayjs(todo.recurrence_until))) {
-      end = dayjs(todo.recurrence_until).startOf('day')
+      end = dayjs(todo.recurrence_until).startOf(unit)
     }
 
-    const elapsed = Math.max(1, end.diff(start, 'day') + 1)
+    const elapsed = Math.max(1, end.diff(start, unit) + 1)
     
     // 3. Success Perfection vs Threshold
     const rate = completed / elapsed
@@ -615,25 +656,20 @@ export const useGadgetStore = defineStore('gadgets', () => {
 
     // 4. Streak Calculation
     let streak = 0
-    const checkDate = today
+    let currentInChain = today.startOf(unit)
     
-    // Scan series items to find continuous completed chain starting from today or yesterday
-    let currentInChain = checkDate
-    
-    // If today exists and is pending, start checking from yesterday
-    const todayTask = series.find(t => dayjs(t.start_date).isSame(today, 'day'))
-    if (todayTask && todayTask.status !== 'completed') {
-      currentInChain = today.subtract(1, 'day')
+    // If current period exists and is pending, start checking from previous period
+    const currentTask = series.find(t => dayjs(t.start_date).isSame(currentInChain, unit))
+    if (currentTask && currentTask.status !== 'completed') {
+      currentInChain = currentInChain.subtract(1, unit)
     }
 
     while (true) {
-      const taskOnDate = series.find(t => dayjs(t.start_date).isSame(currentInChain, 'day'))
-      if (taskOnDate && taskOnDate.status === 'completed') {
+      const taskInPeriod = series.find(t => dayjs(t.start_date).isSame(currentInChain, unit))
+      if (taskInPeriod && taskInPeriod.status === 'completed') {
         streak++
-        currentInChain = currentInChain.subtract(1, 'day')
+        currentInChain = currentInChain.subtract(1, unit)
       } else {
-        // Break chain if we don't find a completed task for that day 
-        // OR we've checked back before the series started
         break
       }
       if (currentInChain.isBefore(start)) break
@@ -672,32 +708,36 @@ export const useGadgetStore = defineStore('gadgets', () => {
     }
   }
 
-  /**
-   * Builds a tree structure for UI rendering
-   * Returns top-level items that represent either standalone tasks, 
-   * aggregated series cards, or parent task bundles.
-   */
   const getTodoTree = (rawList: Todo[]) => {
-    // 1. First, identify standalone vs child tasks
-    const topLevel = rawList.filter(t => !t.parent_id)
-    const childrenMap: Record<string, Todo[]> = {}
+    const rawListIds = new Set(rawList.map(t => t.id))
     
-    rawList.forEach(t => {
-      if (t.parent_id) {
-        if (!childrenMap[t.parent_id]) childrenMap[t.parent_id] = []
-        childrenMap[t.parent_id].push(t)
-      }
-    })
+    // 1. Identify top-level items: either it has no parent, OR its parent is not in the current filtered view
+    const topLevel = rawList.filter(t => !t.parent_id || !rawListIds.has(t.parent_id))
+    
+    // 2. Recursively attach children
+    const buildTree = (parents: Todo[]): any[] => {
+      return parents.map(p => {
+        // ALWAYS pull children from the FULL global pool to avoid "missing children" bugs
+        const children = todos.value.filter(t => t.parent_id === p.id)
+        
+        // Sort children chronologically (start_date ascending, then created_at ascending)
+        const sortedChildren = children.sort((a, b) => {
+          if (a.start_date && b.start_date) {
+            const diff = dayjs(a.start_date).diff(dayjs(b.start_date))
+            if (diff !== 0) return diff
+          }
+          return dayjs(a.created_at || 0).diff(dayjs(b.created_at || 0))
+        })
 
-    // 2. Map children into parents and attach stats
-    return topLevel.map(todo => {
-      const children = childrenMap[todo.id] || []
-      return {
-         ...todo,
-         children: children.sort((a,b) => (a.start_offset || 0) - (b.start_offset || 0)),
-         series_stats: getSeriesStats(todo)
-      }
-    })
+        return {
+          ...p,
+          children: sortedChildren.length > 0 ? buildTree(sortedChildren) : [],
+          series_stats: getSeriesStats(p)
+        }
+      })
+    }
+
+    return buildTree(topLevel)
   }
 
   onUnmounted(() => {
@@ -705,7 +745,7 @@ export const useGadgetStore = defineStore('gadgets', () => {
   })
 
   return {
-    todos, checkin, checkinHistory, announcements, loading,
+    todos, checkin, checkinHistory, announcements, loading, currentStreak,
     initGadgets, addTodo, addBundle, updateTodoStatus, postponeTodo, updateTodo, failTodo, removeTodo,
     canCheckin, doCheckin, updateCheckinRecord, fetchCheckinHistory, addAnnouncement, removeAnnouncement,
     getSeriesStats, getTodoTree
