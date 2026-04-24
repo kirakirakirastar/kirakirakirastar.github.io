@@ -161,13 +161,14 @@
               <div
                 v-for="(day, dayIndex) in week"
                 :key="day.date"
-                @click="$emit('day-click', day.date === selectedDate ? null : day.date)"
+                @click="$emit('day-click', day.date === props.selectedDate ? null : day.date)"
                 @mouseenter="handleMouseEnter($event, day, dayIndex, weekIndex)"
                 :id="day.date === dayjs().format('YYYY-MM-DD') ? 'today-cell' : ''"
                 class="heatmap-cell rounded-[4px] sm:rounded-[5px] md:rounded-[6.5px] relative group/cell transition-all duration-500 hover:z-50 cursor-pointer"
                 :class="[
-                  day.count[props.activeCategory === 'all' ? 'total' : props.activeCategory] === 0 ? 'bg-slate-100/80 dark:bg-slate-700/40 hover:bg-slate-200 dark:hover:bg-slate-600/60' : '',
-                  day.date === selectedDate ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-800 scale-110 z-20' : '',
+                  // Only add grey bg for truly empty days (no inline backgroundColor set)
+                  !day.style.backgroundColor ? 'bg-slate-100/80 dark:bg-slate-700/40 hover:bg-slate-200 dark:hover:bg-slate-600/60' : '',
+                  day.date === props.selectedDate ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-800 scale-110 z-20' : '',
                   (hoveredRow === dayIndex || hoveredMonth === day.monthKey) ? 'ring-4 ring-sky-400 z-10 scale-[1.08] !opacity-100 shadow-[0_0_25px_rgba(14,165,233,0.6)] !bg-sky-400/20' : ''
                 ]"
                 :style="day.style"
@@ -252,8 +253,9 @@ const heatmapData = computed(() => {
     endDate = dayjs().add(6, 'month') 
     startDate = dayjs().subtract(6, 'month').startOf('month').startOf('week')
   } else {
+    // Year view: show only that calendar year (Jan 1 → Dec 31)
     startDate = dayjs(`${selectedYear.value}-01-01`).startOf('week')
-    endDate = dayjs(`${selectedYear.value}-12-31`).add(6, 'month')
+    endDate = dayjs(`${selectedYear.value}-12-31`)
   }
   
   const todayStr = dayjs().format('YYYY-MM-DD')
@@ -409,7 +411,10 @@ onMounted(() => {
   setTimeout(scrollToToday, 500) // Buffer for initial render
 })
 
-watch([heatmapData, selectedYear], () => {
+// Only scroll to today when the user explicitly switches year — not on every data refresh.
+// Listening to heatmapData was causing the viewport to jump back to today whenever
+// the activities prop updated (e.g. after completing a todo).
+watch(selectedYear, () => {
   scrollToToday()
 })
 

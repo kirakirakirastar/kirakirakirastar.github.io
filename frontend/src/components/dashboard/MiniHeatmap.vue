@@ -28,9 +28,9 @@ const miniData = computed(() => {
   const weeks = []
   let currentWeek = []
   
-  // Display based on requested weeks (default 35 days)
+  // Align to week boundary: start from the beginning of the week (props.weeks) ago
   const endDate = dayjs()
-  const startDate = dayjs().subtract((props.weeks * 7) - 1, 'day').startOf('week')
+  const startDate = dayjs().startOf('week').subtract(props.weeks - 1, 'week')
   
   let current = startDate
   while (current.isBefore(endDate) || current.isSame(endDate, 'day')) {
@@ -51,9 +51,10 @@ const miniData = computed(() => {
 })
 
 const getCellStyle = (count: number) => {
-  if (count === 0) return { backgroundColor: 'currentColor', opacity: 0.05 }
+  if (count === 0) return { backgroundColor: 'currentColor', opacity: 0.08 }
   
-  const intensity = Math.min(0.2 + (count * 0.2), 1)
+  // Scale opacity from 0.25 (1 item) to 1.0 (5+ items)
+  const intensity = Math.min(0.25 + (count * 0.18), 1)
   return {
     backgroundColor: props.color,
     opacity: intensity

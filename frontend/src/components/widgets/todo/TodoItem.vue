@@ -311,8 +311,18 @@
           v-for="child in todo.children" 
           :key="child.id"
           :todo="child"
-          :is-editing="false"
-          v-bind="$attrs"
+          :is-editing="editingChildId === child.id"
+          @toggle-status="emit('toggle-status', child)"
+          @cycle-priority="emit('cycle-priority', child)"
+          @cycle-recurrence="emit('cycle-recurrence', child)"
+          @postpone="(days: number) => emit('postpone', days, child)"
+          @fail="emit('fail', child)"
+          @retry="emit('retry', child)"
+          @remove="emit('remove', child)"
+          @start-edit="(id: string) => editingChildId = id"
+          @cancel-edit="editingChildId = null"
+          @save-edit="(updates: any) => { emit('save-edit', updates, child); editingChildId = null }"
+          @show-report="(data: any) => emit('show-report', data)"
         />
       </div>
     </transition>
@@ -334,8 +344,21 @@ const props = defineProps<{
 const gadgetStore = useGadgetStore()
 const seriesStats = computed(() => gadgetStore.getSeriesStats(props.todo))
 const isExpanded = ref(true)
+const editingChildId = ref<string | null>(null)
 
-const emit = defineEmits(['toggle-status', 'cycle-priority', 'cycle-recurrence', 'postpone', 'fail', 'retry', 'remove', 'start-edit', 'cancel-edit', 'save-edit', 'show-report'])
+const emit = defineEmits<{
+  'toggle-status': [todo?: any]
+  'cycle-priority': [todo?: any]
+  'cycle-recurrence': [todo?: any]
+  'postpone': [days: number, todo?: any]
+  'fail': [todo?: any]
+  'retry': [todo?: any]
+  'remove': [todo?: any]
+  'start-edit': [id: string]
+  'cancel-edit': []
+  'save-edit': [updates: any, todo?: any]
+  'show-report': [data: any]
+}>()
 
 const tempText = ref(props.todo.text)
 const tempPriority = ref(props.todo.priority || 'medium')
@@ -416,7 +439,16 @@ const handleToggleStatus = () => emit('toggle-status')
 const handleCyclePriority = () => emit('cycle-priority')
 const handleCycleRecurrence = () => emit('cycle-recurrence')
 const handleCycleRecurrenceSpecific = (type: string) => {
-  emit('save-edit', { ...props.todo, recurrence: type })
+  // Only emit the fields that belong in the database — never spread the whole
+  // todo object which contains runtime-only fields like `children` and `series_stats`.
+  emit('save-edit', {
+    text: props.todo.text,
+    priority: props.todo.priority,
+    start_date: props.todo.start_date || null,
+    due_date: props.todo.due_date || null,
+    recurrence: type,
+    recurrence_until: props.todo.recurrence_until || null
+  })
   showRecurrenceMenu.value = false
 }
 

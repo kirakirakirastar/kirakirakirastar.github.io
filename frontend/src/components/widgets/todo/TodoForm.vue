@@ -189,8 +189,8 @@ const handleSubmit = () => {
   // Reset
   text.value = ''
   priority.value = 'medium'
-  startDate.value = todayStr
-  dueDate.value = todayStr
+  startDate.value = dayjs().format('YYYY-MM-DD')
+  dueDate.value = dayjs().format('YYYY-MM-DD')
   recurrence.value = 'none'
   recurrenceUntil.value = null
   seriesStart.value = null

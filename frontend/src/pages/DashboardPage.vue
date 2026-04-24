@@ -102,7 +102,7 @@
           </div>
           <Skeleton v-if="loading" width="50px" height="40px" custom-class="mb-2" />
           <div v-else class="flex items-baseline gap-2">
-            <div class="text-4xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{{ stats.completed_todos_today }}</div>
+            <div class="text-4xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">{{ completedTodosToday }}</div>
           </div>
           <div class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-3">今日完成量</div>
           
@@ -305,6 +305,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import dayjs from 'dayjs'
 import { dashboardApi } from '@/api/dashboard'
+import type { Todo } from '@/api/types'
 import { useAuthStore } from '@/stores/auth'
 import { useGadgetStore } from '@/stores/gadgets'
 import { formatShortDate } from '@/utils/format'
@@ -326,8 +327,13 @@ const isHeatmapExpanded = ref(false)
 const toggleCategory = (cat: string) => {
   if (activeHeatmapCategory.value === cat) {
     activeHeatmapCategory.value = 'all'
+    // Collapse heatmap if clicking the already-active category
+    isHeatmapExpanded.value = false
   } else {
     activeHeatmapCategory.value = cat
+    // Always expand heatmap when selecting a category so user can see the detail
+    isHeatmapExpanded.value = true
+    selectedDate.value = null
   }
 }
 const stats = ref({
@@ -338,6 +344,17 @@ const stats = ref({
   completed_todos_week: 0,
   completed_todos_month: 0,
   month_updates: 0,
+})
+
+// Reactively compute today's completed count directly from the live store
+// so the dashboard stat card updates the moment a todo is ticked.
+const completedTodosToday = computed(() => {
+  const todayStr = dayjs().format('YYYY-MM-DD')
+  return gadgetStore.todos.filter((t: Todo) =>
+    t.status === 'completed' &&
+    t.completed_at &&
+    dayjs(t.completed_at).format('YYYY-MM-DD') === todayStr
+  ).length
 })
 const latestNotes = ref<any[]>([])
 const latestJournals = ref<any[]>([])
@@ -396,6 +413,25 @@ const loadDashboard = async () => {
   }
 }
 
+// Re-fetch heatmap activity data when todos change (e.g., after completing a task).
+// Debounced to avoid hammering the API on rapid sequential updates.
+let refreshActivityTimer: ReturnType<typeof setTimeout> | null = null
+const refreshActivities = () => {
+  if (refreshActivityTimer) clearTimeout(refreshActivityTimer)
+  refreshActivityTimer = setTimeout(async () => {
+    try {
+      if (dashboardApi.activities) {
+        activities.value = await dashboardApi.activities()
+      }
+      // Also refresh server-side stats (weekly/monthly counts)
+      const data = await dashboardApi.get()
+      stats.value = data.stats
+    } catch (e) {
+      console.error('刷新热力图数据失败:', e)
+    }
+  }, 800) // 800ms debounce
+}
+
 
 
 
@@ -421,6 +457,18 @@ watch(
   () => {
     if (authStore.initialized) {
       gadgetStore.initGadgets()
+    }
+  }
+)
+
+// Keep heatmap in sync: when todos change (complete/add/remove),
+// refresh the activity map so the heatmap reflects the latest state.
+watch(
+  () => gadgetStore.todos.map((t: Todo) => `${t.id}:${t.status}:${t.completed_at}`).join('|'),
+  (newVal, oldVal) => {
+    // Only trigger when the user is logged in and data has actually changed
+    if (authStore.user && newVal !== oldVal) {
+      refreshActivities()
     }
   }
 )

@@ -788,17 +788,41 @@ export const supabaseDashboardApi = {
           console.error('Failed to simulate future recurrences', e)
         }
 
-        // 注入连续打卡数据（由于 checkins 表只存当前状态，仍需前端配合 heatmap 组件逻辑显示）
-        const { data: checkin } = await supabase.from('checkins').select('*').maybeSingle()
-        if (checkin && checkin.last_date && checkin.streak > 0) {
-          const last = dayjs(checkin.last_date)
-          for (let i = 0; i < checkin.streak; i++) {
-            const d = last.subtract(i, 'day').format('YYYY-MM-DD')
-            if (!activityMap[d]) {
-              activityMap[d] = { notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, schedules: 0, total: 0 }
+        // 注入打卡历史：从 checkin_logs 获取真实的逐日打卡记录
+        // 旧方式（streak 倒推）会把连续中断前未打卡的天也标记为已打卡，现改用日志表
+        try {
+          const { data: checkinLogs } = await supabase
+            .from('checkin_logs')
+            .select('checkin_date')
+            .order('checkin_date', { ascending: false })
+            .limit(400)
+
+          if (checkinLogs) {
+            checkinLogs.forEach((log) => {
+              const d = log.checkin_date
+              if (!activityMap[d]) {
+                activityMap[d] = { notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, schedules: 0, total: 0 }
+              }
+              if (activityMap[d].checkins === 0) {
+                activityMap[d].checkins++
+                activityMap[d].total++
+              }
+            })
+          }
+        } catch (e) {
+          // 降级：用 streak 近似
+          console.warn('打卡日志加载失败，降级用 streak 近似', e)
+          const { data: checkin } = await supabase.from('checkins').select('*').maybeSingle()
+          if (checkin && checkin.last_date && checkin.streak > 0) {
+            const last = dayjs(checkin.last_date)
+            for (let i = 0; i < checkin.streak; i++) {
+              const d = last.subtract(i, 'day').format('YYYY-MM-DD')
+              if (!activityMap[d]) {
+                activityMap[d] = { notes: 0, journals: 0, todos: 0, hobbies: 0, checkins: 0, schedules: 0, total: 0 }
+              }
+              activityMap[d].checkins++
+              activityMap[d].total++
             }
-            activityMap[d].checkins++
-            activityMap[d].total++
           }
         }
         return activityMap
