@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-2">
     <div 
-      class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-white/5 transition-all duration-300 group/item relative shadow-sm cursor-default"
+      class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-2xl border border-slate-100 dark:border-white/5 transition-all duration-300 group/item relative shadow-sm cursor-default flex-wrap"
       :class="[
         getPriorityColor(todo.priority),
         todo.status === 'completed' ? 'bg-emerald-500/5 opacity-75' : 
@@ -128,22 +128,6 @@
         </div>
         </div>
       </div>
-
-      <!-- Bundle Progress Bar (Sub-progress) -->
-      <div v-if="todo.is_bundle && seriesStats?.sub_progress" class="w-full mt-auto pt-3 border-t border-slate-100/50 dark:border-white/5">
-         <div class="flex items-center justify-between mb-1.5 px-1">
-            <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">关卡总体进度: {{ seriesStats.sub_progress.completed }}/{{ seriesStats.sub_progress.total }}</span>
-            <span class="text-[9px] font-bold text-primary">{{ seriesStats.sub_progress.percent }}%</span>
-         </div>
-         <div class="w-full h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-            <div 
-              class="h-full bg-primary transition-all duration-700 ease-out shadow-[0_0_8px_rgba(99,102,241,0.5)]"
-              :style="{ width: `${seriesStats.sub_progress.percent}%` }"
-            ></div>
-         </div>
-      </div>
-    </div>
-
     <!-- Component Row 2: Dates + Actions -->
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-1 sm:mt-0 pl-9 sm:pl-0 sm:ml-auto">
       <!-- Dates Section -->
@@ -306,6 +290,22 @@
         </div>
       </div>
     </div>
+
+    <!-- Bundle Progress Bar (Sub-progress) -->
+    <div v-if="todo.is_bundle && seriesStats?.sub_progress" class="w-full mt-2 pt-3 border-t border-slate-100/50 dark:border-white/5">
+       <div class="flex items-center justify-between mb-1.5 px-1">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">关卡总体进度: {{ seriesStats.sub_progress.completed }}/{{ seriesStats.sub_progress.total }}</span>
+          <span class="text-[9px] font-bold text-primary">{{ seriesStats.sub_progress.percent }}%</span>
+       </div>
+       <div class="w-full h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+          <div 
+            class="h-full bg-primary transition-all duration-700 ease-out shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+            :style="{ width: `${seriesStats.sub_progress.percent}%` }"
+          ></div>
+       </div>
+    </div>
+
+  </div>
 
     <!-- Recursive Children Display -->
     <transition name="fade-slide">
